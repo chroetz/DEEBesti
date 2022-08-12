@@ -4,7 +4,7 @@
 \alias{fit_ll}
 \title{Fit local linear estimator.}
 \usage{
-fit_ll(x, y, h, kernel)
+fit_ll(x, y, bw, kernel)
 }
 \arguments{
 \item{x}{\code{numeric(n)} or \code{matrix(, n, p)}. n observations of
@@ -13,13 +13,15 @@ p-dimensional predictors.}
 \item{y}{\code{numeric(n)} or \code{matrix(, n, k)}. n observations of
 k-dimensional predictors.}
 
-\item{h}{\code{numeric(1)}. The bandwidth to use.}
+\item{bw}{\code{numeric(1)}. The bandwidth to use.}
 
-\item{kernel}{\code{function}. The kernel.}
+\item{kernel}{\code{function}. The kernel. Maps the Euclidean distance of
+points in the predictor space to a weight.}
 }
 \value{
 A numeric n by k matrix. The estimates of response variable at the
 locations of the observed predictors.
+@export
 }
 \description{
 Take predictor-response pairs and estimate new responses for the same

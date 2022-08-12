@@ -1,12 +1,14 @@
-
-parab <- function(delta) {
+#' @export
+kern_parab <- function(delta) {
   (delta > -1 & delta < 1) * (1-delta^2)
 }
 
-rect <- function(delta) {
+#' @export
+kern_rect <- function(delta) {
   (delta > -1 & delta < 1)
 }
 
-tri <- function(delta) {
+#' @export
+kern_tri <- function(delta) {
   (delta > -1 & delta < 1) * (1-abs(delta))
 }
