@@ -3,6 +3,7 @@
 export(change)
 export(emprisk)
 export(err)
+export(fit_lc)
 export(init)
 export(kern_parab)
 export(kern_rect)

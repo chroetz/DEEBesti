@@ -36,7 +36,7 @@ fit_ll <- function(x, y, bw, kernel) {
 }
 
 
-#'  @export
+#' @export
 fit_lc <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
