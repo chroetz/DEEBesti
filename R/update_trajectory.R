@@ -3,7 +3,7 @@ update_trajectory <- function(z, obs, gamma) {
   with(z, {
 
     A1A1 <- Matrix::bandSparse(
-      steps*d, steps*d, c(0, 2),
+      steps*d, steps*d, c(0, d),
       diagonals = list(
         c(rep(1, d), rep(2, (steps-2)*d), rep(1, d)),
         rep(-1, (steps-1)*d)),
@@ -26,7 +26,8 @@ update_trajectory <- function(z, obs, gamma) {
     A <- gamma/steps * A1A1 + (1-gamma)/n * A2A2
     b <- gamma/steps * A1b1 + (1-gamma)/n * b2
 
-    new_trajectory <<- Matrix::solve(A, b)
+    new_trajectory <- Matrix::solve(A, b)
+
     return(t(matrix(new_trajectory, nrow = d)))
   })
 }
