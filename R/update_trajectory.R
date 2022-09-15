@@ -9,7 +9,7 @@ update_trajectory <- function(z, obs, gamma) {
         rep(-1, (steps-1)*d)),
       symmetric = TRUE) / step_size^2
 
-    b1 <- as.vector(t(a))
+    b1 <- as.vector(t(deriv))
     A1b1 <- c(
       -b1[1:d],
       b1[1:((steps-2)*d)] - b1[(1+d):((steps-1)*d)],
@@ -21,7 +21,7 @@ update_trajectory <- function(z, obs, gamma) {
       symmetric = TRUE)
 
     b2 <- double(steps*d)
-    b2[rep(has_obs, each=d)] <- as.vector(t(obs$u))
+    b2[rep(has_obs, each=d)] <- as.vector(t(obs$state))
 
     A <- gamma/steps * A1A1 + (1-gamma)/n * A2A2
     b <- gamma/steps * A1b1 + (1-gamma)/n * b2

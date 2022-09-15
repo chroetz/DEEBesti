@@ -16,4 +16,5 @@ Imports:
     Matrix,
     readr,
     stats,
-    stringr
+    stringr,
+    tibble

@@ -7,7 +7,7 @@
 #' @param x \code{numeric(n)} or \code{matrix(, n, p)}. n observations of
 #'   p-dimensional predictors.
 #' @param y \code{numeric(n)} or \code{matrix(, n, k)}. n observations of
-#'   k-dimensional predictors.
+#'   k-dimensional responses.
 #' @param bw \code{numeric(1)}. The bandwidth to use.
 #' @param kernel \code{function}. The kernel. Maps the Euclidean distance of
 #'   points in the predictor space to a weight.
