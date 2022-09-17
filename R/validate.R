@@ -5,12 +5,12 @@ vali_err <- function(z, fun) {
   mean((obs_vali$state - traj$state[i, ])^2)
 }
 
-validate <- function(z, obs, bw, gamma, Smax, kernel=dnorm, derivFun = derivFunNearestNeighbor) {
+validate <- function(z, obs, bw, gamma, Smax, kernel=stats::dnorm, derivFun = derivFunNearestNeighbor) {
   errs <- double(Smax)
   for(i in seq_len(Smax)) {
     z <- step_optimization(
       z, obs, gamma,
-      fit_deriv = fit_lc, fit_deriv_opts = list(bw = bw, kernel = kernel),
+      fit_deriv = fitLocalConst, fit_deriv_opts = list(bw = bw, kernel = kernel),
       fit_traj = update_trajectory)
     errs[i] <- vali_err(z, derivFun)
   }

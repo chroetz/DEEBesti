@@ -14,7 +14,7 @@
 #' @return A numeric n by k matrix. The estimates of response variable at the
 #'   locations of the observed predictors.
 #'  @export
-fit_ll <- function(x, y, bw, kernel) {
+fitLocalLinear <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
   stopifnot(NROW(x) == NROW(y))
@@ -37,7 +37,7 @@ fit_ll <- function(x, y, bw, kernel) {
 
 
 #' @export
-fit_lc <- function(x, y, bw, kernel) {
+fitLocalConstant <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
   stopifnot(NROW(x) == NROW(y))
