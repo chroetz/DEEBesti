@@ -1,35 +1,42 @@
 #' @export
-update_trajectory <- function(z, obs, gamma) {
-  with(z, {
+updateTrajectory <- function(trajs, obs, gamma) {
+  d <- getDim(trajs)
+  count <- getCount(trajs)
+  n <- getCount(obs)
+  timeDist <- outer(trajs$time, obs$time, \(x, y) abs(x - y))
+  closest <- apply(timeDist, 2, which.min)
+  hasObs <- 1:count %in% closest
 
-    A1A1 <- Matrix::bandSparse(
-      steps*d, steps*d, c(0, d),
-      diagonals = list(
-        c(rep(1, d), rep(2, (steps-2)*d), rep(1, d)),
-        rep(-1, (steps-1)*d)),
-      symmetric = TRUE) / step_size^2
+  # TODO: arbitrary stepsize, multiple trajectories, correct rule for calcing the deriv
+  stepSize <- trajs$time[2] - trajs$time[1]
 
-    b1 <- as.vector(t(deriv))
-    A1b1 <- c(
-      -b1[1:d],
-      b1[1:((steps-2)*d)] - b1[(1+d):((steps-1)*d)],
-      b1[((steps-2)*d+1):((steps-1)*d)]) / step_size
+  A1A1 <- Matrix::bandSparse(
+    count*d, count*d, c(0, d),
+    diagonals = list(
+      c(rep(1, d), rep(2, (count-2)*d), rep(1, d)),
+      rep(-1, (count-1)*d)),
+    symmetric = TRUE) / stepSize^2
 
-    A2A2 <- Matrix::bandSparse(
-      steps*d, steps*d, 0,
-      diagonals = list(rep(as.numeric(has_obs), each=d)),
-      symmetric = TRUE)
+  b1 <- as.vector(t(trajs$deriv))
+  A1b1 <- c(
+    -b1[1:d],
+    b1[1:((count-2)*d)] - b1[(1+d):((count-1)*d)],
+    b1[((count-2)*d+1):((count-1)*d)]) / stepSize
 
-    b2 <- double(steps*d)
-    b2[rep(has_obs, each=d)] <- as.vector(t(obs$state))
+  A2A2 <- Matrix::bandSparse(
+    count*d, count*d, 0,
+    diagonals = list(rep(as.numeric(hasObs), each=d)),
+    symmetric = TRUE)
 
-    A <- gamma/steps * A1A1 + (1-gamma)/n * A2A2
-    b <- gamma/steps * A1b1 + (1-gamma)/n * b2
+  b2 <- double(count*d)
+  b2[rep(hasObs, each=d)] <- as.vector(t(obs$state))
 
-    new_trajectory <- Matrix::solve(A, b)
+  A <- gamma/count * A1A1 + (1-gamma)/n * A2A2
+  b <- gamma/count * A1b1 + (1-gamma)/n * b2
 
-    return(t(matrix(new_trajectory, nrow = d)))
-  })
+  newState <- Matrix::solve(A, b)
+
+  return(t(matrix(newState, nrow = d)))
 }
 
 

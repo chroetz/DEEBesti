@@ -37,7 +37,7 @@ fitLocalLinear <- function(x, y, bw, kernel) {
 
 
 #' @export
-fitLocalConstant <- function(x, y, bw, kernel) {
+fitLocalConst <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
   stopifnot(NROW(x) == NROW(y))

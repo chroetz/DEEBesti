@@ -1,5 +1,10 @@
-solveOde <- function(u0, f, delta_t, t_max, parms) {
-  times <- seq(0, t_max, delta_t)
-  res <- deSolve::ode(u0, times=times, func=f, parms=parms, method="rk4")
-  return(tibble::tibble(time = res[,1], state = res[,-1]))
+solveOde <- function(fun, u0, tMax, tStep, opts = list(method = "rk4"), parms = NULL) {
+  tm <- seq(0, tMax, by = tStep)
+  suppressWarnings(suppressMessages(utils::capture.output( # make silent
+    u <- do.call(
+      deSolve::ode,
+      c(list(y = u0, times = tm, func = fun, parms = parms), opts))
+  )))
+  colnames(u) <- c("time", paste0("state", seq_len(ncol(u)-1)))
+  return(asTrajs(u))
 }

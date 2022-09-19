@@ -14,8 +14,8 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     DEETrajs,
+    deSolve,
+    dplyr,
     Matrix,
-    readr,
     stats,
-    stringr,
     tibble
