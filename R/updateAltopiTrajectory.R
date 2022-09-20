@@ -1,4 +1,3 @@
-#' @export
 updateAltopiTraj <- function(trajs, obs, gamma) {
   d <- getDim(trajs)
   count <- getCount(trajs)
@@ -40,7 +39,6 @@ updateAltopiTraj <- function(trajs, obs, gamma) {
 }
 
 
-#' @export
 updateAltopiTrajMultistep <- function(z, obs, gamma, coeff) {
 
   with(z, {

@@ -1,32 +1,48 @@
 validateHyperparams <- function(obsTrain, obsVali, hyperParmsSet, method) {
-  validateFun <- getValidateFun(method)
-  prepareValidationMemory(method, nrow(hyperParmsSet))
+  prepareMemory(method, nrow(hyperParmsSet))
   vali <- sapply(
     seq_len(nrow(hyperParmsSet)),
-    \(i) validateFun(obsTrain, obsVali, hyperParmsSet[i, ]))
+    \(i) validate(obsTrain, obsVali, hyperParmsSet[i, ], method, memoize = TRUE))
   vali[is.na(vali)] <- Inf
   dplyr::bind_cols(hyperParmsSet, validationErr = vali)
 }
 
 
-selectHyperparams <- function(obs, hyperParmsSet, method) {
-  n <- getCount(obs)
-  iVali <- 1:floor(n/5) * 5
-  iTrain <- setdiff(1:n, iVali)
-  obsVali <- obs[iVali,]
-  obsTrain <- obs[iTrain,]
+selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
+  splitedObs <- splitIntoTrainAndValidation(obs, ratio = opts$ratio)
 
   pt <- proc.time()
-  validation <- validateHyperparams(obsTrain, obsVali, hyperParmsSet, method=method)
+  validatedHyperParms <- validateHyperparams(
+    splitedObs$train,
+    splitedObs$vali,
+    hyperParmsSet,
+    method = method)
   message(as.vector((proc.time()-pt)["elapsed"]), "s")
 
-  return(validation[which.min(validation$validationErr),])
+  minRowIdx <- which.min(validatedHyperParms$validationErr)
+  return(validatedHyperParms[minRowIdx,])
+}
+
+splitIntoTrainAndValidation <- function(trajs, ratio) {
+  n <- getCount(trajs)
+  iVali <- floor(1:(n*ratio) / ratio)
+  iTrain <- setdiff(1:n, iVali)
+  vali <- trajs[iVali,]
+  train <- trajs[iTrain,]
+  return(list(train = train, vali = vali))
 }
 
 
-estimateWithHyperparameterSelection <- function(obs, hyperParmsSet, method, outTimes) {
-  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method = method)
-  res <- getParmsAndIntitialState(obs, optiHyperParms, method = method)
+#' @export
+estimateWithHyperparameterSelection <- function(
+    obs,
+    hyperParmsSet,
+    method,
+    outTimes,
+    opts
+  ) {
+  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method, opts$hyper)
+  res <- getParmsAndIntitialState(obs, optiHyperParms, method)
   trajFinal <- solveOde(
     u0 = res$initialState,
     fun = buildDerivFun(optiHyperParms$derivFun),
@@ -34,27 +50,3 @@ estimateWithHyperparameterSelection <- function(obs, hyperParmsSet, method, outT
     parms = res$parms)
   return(trajFinal)
 }
-
-getParmsAndIntitialState <- function(obs, hyperParms, method) {
-  if (method == "Colloc") {
-    smoothed <- estimateParmsColloc(obs, hyperParms$bwTime, hyperParms$kernelTime)
-    parms <- as.list(smoothed)
-    parms$bw <- hyperParms$bwState
-    parms$kernel <- getKernel(hyperParms$kernelState)
-    initialState <- getInitialState(smoothed)
-  } else if (method == "Altopi") {
-    preTraj <- getPreviousAltopiTraj(obs, hyperParms)
-    parms <- oneAltopiStep(
-      preTraj,
-      obs,
-      gamma = hyperParms$gamma,
-      fitDeriv = fitLocalConst,
-      fitDerivOpts = list(bw = hyperParms$bw, kernel = getKernel(hyperParms$kernel)),
-      fitTraj = updateAltopiTraj)
-    initialState <- getInitialState(parms)
-  } else {
-    stop("Unknown method ", method)
-  }
-  return(list(parms = parms, initialState = initialState))
-}
-

@@ -18,4 +18,4 @@ Imports:
     dplyr,
     Matrix,
     stats,
-    tibble
+    utils
