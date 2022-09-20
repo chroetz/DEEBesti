@@ -12,7 +12,10 @@ getParmsAndIntitialState <- function(obs, hyperParms, method, memoize = FALSE) {
   initialState <- getInitialState(trajs)
   derivFunParms <- list()
   if (hyperParms$derivFun == "NearestNeighbor") {
-  } else if (hyperParms$derivFun == "LocalConst") {
+  } else if (hyperParms$derivFun == "WeightedKNN") {
+    derivFunParms$k <- hyperParms$derivFunK
+    derivFunParms$p <- hyperParms$derivFunP
+  } else if (hyperParms$derivFun %in% c("LocalConst", "LocalLinear")) {
     derivFunParms$bw <- hyperParms$derivFunBw
     derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
   } else {
