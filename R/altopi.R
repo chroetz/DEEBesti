@@ -32,8 +32,8 @@ getAltopiTraj <- function(obs, hyperParms, memoize = FALSE) {
     preTraj,
     obs,
     gamma = hyperParms$gamma,
-    fitDeriv = fitLocalConst,
-    fitDerivOpts = list(bw = hyperParms$bw, kernel = getKernel(hyperParms$kernel)),
+    fitDeriv = getFitter(hyperParms$fitter),
+    fitDerivOpts = list(bw = hyperParms$fitterBw, kernel = getKernel(hyperParms$fitterKernel)),
     fitTraj = updateAltopiTraj)
   if (memoize) {
     addToAltopiMemory(hyperParms, nextTraj)

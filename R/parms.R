@@ -1,17 +1,27 @@
 
 getParmsAndIntitialState <- function(obs, hyperParms, method, memoize = FALSE) {
   if (method == "Colloc") {
-    smoothed <- estimateParmsColloc(obs, hyperParms$bwTime, hyperParms$kernelTime)
-    parms <- as.list(smoothed)
-    parms$bw <- hyperParms$bwState
-    parms$kernel <- getKernel(hyperParms$kernelState)
-    initialState <- getInitialState(smoothed)
+    trajs <- estimateParmsColloc(obs, hyperParms)
   } else if (method == "Altopi") {
-    parms <- getAltopiTraj(obs, hyperParms, memoize = memoize)
-    initialState <- getInitialState(parms)
+    trajs <- getAltopiTraj(obs, hyperParms, memoize = memoize)
+  } else if (method == "Trivial") {
+    trajs <- setDeriv(obs)
   } else {
     stop("Unknown method ", method)
   }
-  return(list(parms = parms, initialState = initialState))
+  initialState <- getInitialState(trajs)
+  derivFunParms <- list()
+  if (hyperParms$derivFun == "NearestNeighbor") {
+  } else if (hyperParms$derivFun == "LocalConst") {
+    derivFunParms$bw <- hyperParms$derivFunBw
+    derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
+  } else {
+    stop("Unknown derivFun name ", hyperParms$derivFun)
+  }
+  list(
+    parms = list(
+      trajs = trajs,
+      derivFun = derivFunParms),
+    initialState = initialState)
 }
 
