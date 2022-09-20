@@ -1,4 +1,4 @@
-estimateParmsColloc <- function(obs, bwTime, kernelTime="Normal") {
+estimateParmsColloc <- function(obs, bwTime, kernelTime) {
   smoothed <- makeTrajs(
     time = obs$time,
     trajId = obs$trajId,

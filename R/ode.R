@@ -1,4 +1,4 @@
-solveOde <- function(fun, u0, times, opts = list(method = "rk4"), parms = NULL) {
+solveOde <- function(fun, u0, times, opts, parms = NULL) {
   suppressWarnings(suppressMessages(utils::capture.output( # make silent
     u <- do.call(
       deSolve::ode,

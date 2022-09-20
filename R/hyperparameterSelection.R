@@ -1,24 +1,39 @@
-validateHyperparams <- function(obsTrain, obsVali, hyperParmsSet, method) {
+validateHyperparams <- function(
+    obsTrain,
+    obsVali,
+    hyperParmsSet,
+    method,
+    odeSteps,
+    odeSolverOpts
+  ) {
   prepareMemory(method, nrow(hyperParmsSet))
   vali <- sapply(
     seq_len(nrow(hyperParmsSet)),
-    \(i) validate(obsTrain, obsVali, hyperParmsSet[i, ], method, memoize = TRUE))
+    \(i) validate(
+      obsTrain,
+      obsVali,
+      hyperParmsSet[i, ],
+      method,
+      memoize = TRUE,
+      odeSteps = odeSteps,
+      odeSolverOpts = odeSolverOpts))
   vali[is.na(vali)] <- Inf
   dplyr::bind_cols(hyperParmsSet, validationErr = vali)
 }
 
 
 selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
+  # TODO: implement cross validation
   splitedObs <- splitIntoTrainAndValidation(obs, ratio = opts$ratio)
-
   pt <- proc.time()
   validatedHyperParms <- validateHyperparams(
     splitedObs$train,
     splitedObs$vali,
     hyperParmsSet,
-    method = method)
+    method = method,
+    odeSteps = opts$odeSteps,
+    odeSolverOpts = opts$odeSolver)
   message(as.vector((proc.time()-pt)["elapsed"]), "s")
-
   minRowIdx <- which.min(validatedHyperParms$validationErr)
   return(validatedHyperParms[minRowIdx,])
 }
@@ -41,12 +56,13 @@ estimateWithHyperparameterSelection <- function(
     outTimes,
     opts
   ) {
-  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method, opts$hyper)
+  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method, opts$crossValidation)
   res <- getParmsAndIntitialState(obs, optiHyperParms, method)
   trajFinal <- solveOde(
     u0 = res$initialState,
     fun = buildDerivFun(optiHyperParms$derivFun),
     times = outTimes,
+    opts = opts$odeSolver,
     parms = res$parms)
   return(trajFinal)
 }
