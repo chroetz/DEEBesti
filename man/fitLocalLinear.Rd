@@ -21,7 +21,6 @@ points in the predictor space to a weight.}
 \value{
 A numeric n by k matrix. The estimates of response variable at the
 locations of the observed predictors.
-@export
 }
 \description{
 Take predictor-response pairs and estimate new responses for the same

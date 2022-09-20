@@ -13,7 +13,7 @@
 #'   points in the predictor space to a weight.
 #' @return A numeric n by k matrix. The estimates of response variable at the
 #'   locations of the observed predictors.
-#'  @export
+#' @export
 fitLocalLinear <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
