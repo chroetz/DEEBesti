@@ -1,10 +1,15 @@
 initAltopi <- function(obs, hyperPrams) {
-  n <- nrow(obs$state)
-  steps <- (n-1)*hyperPrams$interSteps + 1
-  time <- seq(min(obs$time), max(obs$time), length.out = steps)
-  traj <- interpolateTrajs(obs, time)
-  traj <- setDeriv(traj)
-  return(traj)
+  trajIds <- getTrajIds(obs)
+  trajsList <- lapply(trajIds, \(trajId) {
+    trj <- getTrajsWithId(obs, trajId)
+    n <- getCount(trj)
+    steps <- (n-1)*hyperPrams$interSteps + 1
+    time <- seq(min(trj$time), max(trj$time), length.out = steps)
+    trj <- interpolateTrajs(trj, time)
+    trj <- setDeriv(trj)
+    trj
+  })
+  return(bindTrajs(trajsList))
 }
 
 

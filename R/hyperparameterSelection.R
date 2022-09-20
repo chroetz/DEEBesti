@@ -41,7 +41,7 @@ selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
 }
 
 splitIntoTrainAndValidation <- function(trajs, ratio) {
-  n <- getCount(trajs)
+  n <- sum(getCount(trajs))
   iVali <- floor(1:(n*ratio) / ratio)
   iTrain <- setdiff(1:n, iVali)
   vali <- trajs[iVali,]
@@ -56,9 +56,13 @@ estimateWithHyperparameterSelection <- function(
     hyperParmsSet,
     method,
     outTimes,
-    opts
+    opts,
+    verbose = FALSE
   ) {
   optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method, opts$crossValidation)
+  if (verbose) {
+    print(optiHyperParms)
+  }
   res <- getParmsAndIntitialState(obs, optiHyperParms, method)
   trajFinal <- solveOde(
     u0 = res$initialState,
