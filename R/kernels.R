@@ -13,7 +13,7 @@ kern_tri <- function(delta) {
   (delta > -1 & delta < 1) * (1-abs(delta))
 }
 
-buildKernel <- function(name) {
+getKernel <- function(name) {
   switch(
     name,
     Normal = stats::dnorm,

@@ -1,5 +1,6 @@
-validateHyperparams <- function(obsTrain, obsVali, hyperParmsSet, validateFun) {
-  clearMemory()
+validateHyperparams <- function(obsTrain, obsVali, hyperParmsSet, method) {
+  validateFun <- getValidateFun(method)
+  prepareValidationMemory(method, nrow(hyperParmsSet))
   vali <- sapply(
     seq_len(nrow(hyperParmsSet)),
     \(i) validateFun(obsTrain, obsVali, hyperParmsSet[i, ]))
@@ -8,7 +9,7 @@ validateHyperparams <- function(obsTrain, obsVali, hyperParmsSet, validateFun) {
 }
 
 
-selectHyperparams <- function(obs, hyperParmsSet, validateFun) {
+selectHyperparams <- function(obs, hyperParmsSet, method) {
   n <- getCount(obs)
   iVali <- 1:floor(n/5) * 5
   iTrain <- setdiff(1:n, iVali)
@@ -16,22 +17,20 @@ selectHyperparams <- function(obs, hyperParmsSet, validateFun) {
   obsTrain <- obs[iTrain,]
 
   pt <- proc.time()
-  validation <- validateHyperparams(obsTrain, obsVali, hyperParmsSet, validateFun=validateFun)
+  validation <- validateHyperparams(obsTrain, obsVali, hyperParmsSet, method=method)
   message(as.vector((proc.time()-pt)["elapsed"]), "s")
 
   return(validation[which.min(validation$validationErr),])
 }
 
 
-estimateWithHyperparameterSelection <- function(obs, hyperParmsSet, method) {
-  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, validateFun=getValidateFun(method))
+estimateWithHyperparameterSelection <- function(obs, hyperParmsSet, method, outTimes) {
+  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method = method)
   res <- getParmsAndIntitialState(obs, optiHyperParms, method = method)
-  tMax <- max(obs$time)*2
   trajFinal <- solveOde(
     u0 = res$initialState,
     fun = buildDerivFun(optiHyperParms$derivFun),
-    tStep = tMax / 1e3,
-    tMax = tMax,
+    times = outTimes,
     parms = res$parms)
   return(trajFinal)
 }
@@ -41,11 +40,17 @@ getParmsAndIntitialState <- function(obs, hyperParms, method) {
     smoothed <- estimateParmsColloc(obs, hyperParms$bwTime, hyperParms$kernelTime)
     parms <- as.list(smoothed)
     parms$bw <- hyperParms$bwState
-    parms$kernel <- buildKernel(hyperParms$kernelState)
+    parms$kernel <- getKernel(hyperParms$kernelState)
     initialState <- getInitialState(smoothed)
   } else if (method == "Altopi") {
-    trajsInit <- initAltopi(obs, interSteps = hyperParms$interSteps)
-    parms <- optimizeTrajs(trajsInit, obs, gamma=hyperParms$gamma, S=hyperParms$S, bw=hyperParms$bw, kernel=hyperParms$kernel)
+    preTraj <- getPreviousAltopiTraj(obs, hyperParms)
+    parms <- oneAltopiStep(
+      preTraj,
+      obs,
+      gamma = hyperParms$gamma,
+      fitDeriv = fitLocalConst,
+      fitDerivOpts = list(bw = hyperParms$bw, kernel = getKernel(hyperParms$kernel)),
+      fitTraj = updateAltopiTraj)
     initialState <- getInitialState(parms)
   } else {
     stop("Unknown method ", method)

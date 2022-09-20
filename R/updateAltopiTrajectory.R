@@ -1,5 +1,5 @@
 #' @export
-updateTrajectory <- function(trajs, obs, gamma) {
+updateAltopiTraj <- function(trajs, obs, gamma) {
   d <- getDim(trajs)
   count <- getCount(trajs)
   n <- getCount(obs)
@@ -41,7 +41,7 @@ updateTrajectory <- function(trajs, obs, gamma) {
 
 
 #' @export
-update_trajectory_multistep <- function(z, obs, gamma, coeff) {
+updateAltopiTrajMultistep <- function(z, obs, gamma, coeff) {
 
   with(z, {
 

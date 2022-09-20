@@ -5,81 +5,64 @@ getValidateFun <- function(method) {
     \(obsTrain, obsVali, hyperParms) validateDefault(obsTrain, obsVali, hyperParms, method = method))
 }
 
-validateAltopiMemory <- tibble::tibble(
-  bw = double(0),
-  S = integer(0),
-  gamma = double(0),
-  kernel = character(0),
-  derivFun = character(0),
-  interSteps = integer(0),
-  err = double(0),
-  trajs = list()
-)
+validationMemory <- NULL
 
 validateAltopi <- function(
     obsTrain,
     obsVali,
     hyperParms
   ) {
-  if (nrow(validateAltopiMemory) > 0) {
-    selMem <-
-      validateAltopiMemory$bw == hyperParms$bw &
-      validateAltopiMemory$gamma == hyperParms$gamma &
-      validateAltopiMemory$kernel == hyperParms$kernel &
-      validateAltopiMemory$derivFun == hyperParms$derivFun &
-      validateAltopiMemory$interSteps == hyperParms$interSteps
-    selMemThis <- selMem & validateAltopiMemory$S == hyperParms$S
-    if (any(selMemThis)) return(validateAltopiMemory$err[which(selMemThis)[1]])
-    selMemPrev <- selMem & validateAltopiMemory$S == hyperParms$S-1
-  } else {
-    selMemPrev <- FALSE
+  err <- getErrFromValidationMemory(hyperParms)
+  if (!is.null(err)) return(err)
+  preHyperParms <- getHyperParmaPredecessorAltopi(hyperParms)
+  trajs <- getTrajsFromValidationMemory(preHyperParms)
+  if (is.null(trajs)) {
+    trajs <- initAltopi(obsTrain, hyperParms)
   }
-  if (any(selMemPrev)) {
-    trajs <- validateAltopiMemory$trajs[[which(selMemPrev)[1]]]
-    sStart <- hyperParms$S
-  } else {
-    trajs <- initAltopi(obsTrain, interSteps = hyperParms$interSteps)
-    sStart <- 1
-  }
-  for(i in sStart:hyperParms$S) {
-    trajs <- stepOptimization(
-      trajs, obsTrain, hyperParms$gamma,
-      fitDeriv = fitLocalConst, fitDerivOpts = list(bw = hyperParms$bw, kernel = buildKernel(hyperParms$kernel)),
-      fitTraj = updateTrajectory)
-  }
-  tMax <- max(obsVali$time)
+  newTrajs <- oneAltopiStep(
+    trajs,
+    obsTrain,
+    hyperParms$gamma,
+    fitDeriv = fitLocalConst,
+    fitDerivOpts = list(bw = hyperParms$bw, kernel = getKernel(hyperParms$kernel)),
+    fitTraj = updateAltopiTraj)
   esti <- solveOde(
     buildDerivFun(hyperParms$derivFun),
-    getInitialState(trajs),
-    tStep = tMax / 1e3, tMax = tMax,
-    parms = trajs)
+    getInitialState(newTrajs),
+    times = seq(0, max(obsVali$time), length.out = 1e3),
+    parms = newTrajs)
   err <- l2err(esti, obsVali)
-  validateAltopiMemory <<- dplyr::bind_rows(
-    validateAltopiMemory,
-    tibble::tibble(
-      S = hyperParms$S,
-      bw = hyperParms$bw,
-      gamma = hyperParms$gamma,
-      kernel = hyperParms$kernel,
-      derivFun = hyperParms$derivFun,
-      interSteps = hyperParms$interSteps,
-      err = err,
-      trajs = list(trajs)))
+  addToValidationMemory(hyperParms, err, newTrajs)
   return(err)
 }
 
-clearMemory <- function() {
-  validateAltopiMemory <<- validateAltopiMemory[0,]
+getHyperParmaPredecessorAltopi <- function(hyperParms) {
+  hyperParms$S <- hyperParms$S - 1
+  return(hyperParms)
+}
+
+addToValidationMemory <- function(hyperParms, err, trajs) {
+  utils::sethash(validationMemory, hyperParms, list(err = err, trajs = trajs))
+}
+
+getErrFromValidationMemory <- function(hyperParms) {
+  utils::gethash(validationMemory, hyperParms, nomatch = NULL)$err
+}
+
+getTrajsFromValidationMemory <- function(hyperParms) {
+  utils::gethash(validationMemory, hyperParms, nomatch = NULL)$trajs
+}
+
+prepareValidationMemory <- function(method, n) {
+  validationMemory <<- utils::hashtab("identical", n)
 }
 
 validateDefault <- function(obsTrain, obsVali, hyperParms, method) {
   res <- getParmsAndIntitialState(obsTrain, hyperParms, method = method)
-  tMax <- max(obsVali$time)
   esti <- solveOde(
     u0 = res$initialState,
     fun = buildDerivFun(hyperParms$derivFun),
-    tStep = tMax / 1e3,
-    tMax = tMax,
+    times = seq(0, max(obsVali$time), length.out = 1e3),
     parms = res$parms)
   err <- l2err(esti, obsVali)
   return(err)
