@@ -10,17 +10,7 @@ getParmsAndIntitialState <- function(obs, hyperParms, method, memoize = FALSE) {
     stop("Unknown method ", method)
   }
   initialState <- getInitialState(trajs)
-  derivFunParms <- list()
-  if (hyperParms$derivFun == "NearestNeighbor") {
-  } else if (hyperParms$derivFun == "WeightedKNN") {
-    derivFunParms$k <- hyperParms$derivFunK
-    derivFunParms$p <- hyperParms$derivFunP
-  } else if (hyperParms$derivFun %in% c("LocalConst", "LocalLinear")) {
-    derivFunParms$bw <- hyperParms$derivFunBw
-    derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
-  } else {
-    stop("Unknown derivFun name ", hyperParms$derivFun)
-  }
+  derivFunParms <- selectDerivFunHyperParms(hyperParms)
   list(
     parms = list(
       trajs = trajs,

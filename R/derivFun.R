@@ -10,6 +10,25 @@ buildDerivFun <- function(name) {
   )
 }
 
+selectDerivFunHyperParms <- function(hyperParms) {
+  derivFunParms <- list()
+  if (hyperParms$derivFun == "NearestNeighbor") {
+  } else if (hyperParms$derivFun == "InterpolKNN") {
+    derivFunParms$k <- hyperParms$derivFunK
+    derivFunParms$p <- hyperParms$derivFunP
+  } else if (hyperParms$derivFun == "KernelKNN") {
+    derivFunParms$k <- hyperParms$derivFunK
+    derivFunParms$bw <- hyperParms$derivFunBw
+    derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
+  } else if (hyperParms$derivFun %in% c("LocalConst", "LocalLinear")) {
+    derivFunParms$bw <- hyperParms$derivFunBw
+    derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
+  } else {
+    stop("Unknown derivFun name ", hyperParms$derivFun)
+  }
+  derivFunParms
+}
+
 
 derivFunNearestNeighbor <- function(t, u, parms) {
   dstSqr <- rowSums((parms$trajs$state - rep(u, each=nrow(parms$trajs$state)))^2)
