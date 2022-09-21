@@ -60,9 +60,7 @@ estimateWithHyperparameterSelection <- function(
     verbose = FALSE
   ) {
   optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method, opts$crossValidation)
-  if (verbose) {
-    print(optiHyperParms)
-  }
+  if (verbose) printHyperParms(optiHyperParms, method)
   res <- getParmsAndIntitialState(obs, optiHyperParms, method)
   trajFinal <- solveOde(
     u0 = res$initialState,
@@ -70,5 +68,13 @@ estimateWithHyperparameterSelection <- function(
     times = outTimes,
     opts = opts$odeSolver,
     parms = res$parms)
-  return(trajFinal)
+  return(list(trajs = trajFinal, hyperParms = optiHyperParms))
+}
+
+printHyperParms <- function(hyperParms, method) {
+  cat(
+    "[", method, "] ",
+    paste0(names(hyperParms), ": ", unlist(hyperParms), collapse=", "),
+    "\n",
+    sep="")
 }
