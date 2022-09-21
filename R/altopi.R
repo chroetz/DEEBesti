@@ -49,7 +49,7 @@ getAltopiTraj <- function(obs, hyperParms, memoize = FALSE) {
 }
 
 
-altopiMemory <- NULL
+altopiMemory <- utils::hashtab()
 
 getHyperParmPredecessorAltopi <- function(hyperParms) {
   hyperParms$S <- hyperParms$S - 1

@@ -1,4 +1,3 @@
 prepareMemory <- function(method, n) {
-  if (method == "Altopi")
-    altopiMemory <<- utils::hashtab("identical", n)
+  if (method == "Altopi") utils::clrhash(altopiMemory)
 }
