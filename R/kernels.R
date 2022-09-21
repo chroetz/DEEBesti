@@ -1,23 +1,28 @@
-kern_parab <- function(delta) {
-  (delta > -1 & delta < 1) * (1-delta^2)
+kernConst <- function(delta) {
+  rep(1, length(delta))
 }
 
-kern_rect <- function(delta) {
+kernRect <- function(delta) {
   (delta > -1 & delta < 1)
 }
 
-kern_tri <- function(delta) {
+kernTri <- function(delta) {
   (delta > -1 & delta < 1) * (1-abs(delta))
+}
+
+kernParab <- function(delta) {
+  (delta > -1 & delta < 1) * (1-delta^2)
 }
 
 getKernel <- function(name) {
   switch(
     name,
     Normal = stats::dnorm,
-    Rect = kern_rect,
-    Parab = kern_parab,
-    Tri = kern_tri,
-    stop("Unknown kenel name: ", name)
+    Const = kernConst,
+    Rect = kernRect,
+    Tri = kernTri,
+    Parab = kernParab,
+    stop("Unknown kernel name: ", name)
   )
 }
 

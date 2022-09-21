@@ -1,41 +1,61 @@
 updateAltopiTraj <- function(trajs, obs, gamma) {
-  d <- getDim(trajs)
-  count <- getCount(trajs)
-  n <- getCount(obs)
-  timeDist <- outer(trajs$time, obs$time, \(x, y) abs(x - y))
-  closest <- apply(timeDist, 2, which.min)
-  hasObs <- 1:count %in% closest
 
-  # TODO: arbitrary stepsize, multiple trajectories, correct rule for calcing the deriv
+
   stepSize <- trajs$time[2] - trajs$time[1]
+  counts <- unname(getCount(trajs))
+  countTotal <- sum(counts)
+  nTotal <- sum(getCount(obs))
 
-  A1A1 <- Matrix::bandSparse(
-    count*d, count*d, c(0, d),
+  diagLeft   <- lapply(counts, \(m) c( 0, rep(-1/2, m-2), -1)) |> unlist()
+  diagMiddle <- lapply(counts, \(m) c(-1, rep(   0, m-2),  1)) |> unlist()
+  diagRight  <- lapply(counts, \(m) c( 1, rep( 1/2, m-2),  0)) |> unlist()
+  matDeriv <- Matrix::bandSparse(
+    countTotal, countTotal, c(-1,0,1),
     diagonals = list(
-      c(rep(1, d), rep(2, (count-2)*d), rep(1, d)),
-      rep(-1, (count-1)*d)),
-    symmetric = TRUE) / stepSize^2
+      diagLeft[-1],
+      diagMiddle,
+      diagRight[-countTotal])) / stepSize
+  matDerivSymm <- Matrix::crossprod(matDeriv)
 
-  b1 <- as.vector(t(trajs$deriv))
-  A1b1 <- c(
-    -b1[1:d],
-    b1[1:((count-2)*d)] - b1[(1+d):((count-1)*d)],
-    b1[((count-2)*d+1):((count-1)*d)]) / stepSize
-
-  A2A2 <- Matrix::bandSparse(
-    count*d, count*d, 0,
-    diagonals = list(rep(as.numeric(hasObs), each=d)),
+  if (hasTrajId(trajs)) {
+    trajIds <- getTrajIds(trajs)
+    hasObs <- lapply(trajIds, \(trajId) {
+      trj <- getTrajsWithId(trajs, trajId)
+      ob <- getTrajsWithId(obs, trajId)
+      timeDist <- outer(trj$time, ob$time, \(x, y) abs(x - y))
+      closest <- apply(timeDist, 2, which.min)
+      1:length(trj$time) %in% closest # TODO: only works if there is at most one obs per trajs
+    }) |> unlist()
+  } else {
+    timeDist <- outer(trajs$time, obs$time, \(x, y) abs(x - y))
+    closest <- apply(timeDist, 2, which.min)
+    1:length(trajs$time) %in% closest
+  }
+  matObsSymm <- Matrix::bandSparse(
+    countTotal, countTotal, 0,
+    diagonals = list(as.numeric(hasObs)),
     symmetric = TRUE)
 
-  b2 <- double(count*d)
-  b2[rep(hasObs, each=d)] <- as.vector(t(obs$state))
+  mat <-
+    gamma/countTotal * matDerivSymm +
+    (1-gamma)/nTotal * matObsSymm
 
-  A <- gamma/count * A1A1 + (1-gamma)/n * A2A2
-  b <- gamma/count * A1b1 + (1-gamma)/n * b2
+  newState <- sapply(seq_len(getDim(trajs)), \(k) {
 
-  newState <- Matrix::solve(A, b)
+    targetDeriv <- as.vector(trajs$deriv[,k])
+    targetDerivTransformed <- Matrix::crossprod(matDeriv, targetDeriv)
 
-  return(t(matrix(newState, nrow = d)))
+    tragetObs <- double(countTotal)
+    tragetObs[hasObs] <- as.vector(obs$state[,k])
+
+    traget <-
+      gamma/countTotal * targetDerivTransformed +
+      (1-gamma)/nTotal * tragetObs
+
+    as.matrix(Matrix::solve(mat, traget))
+  })
+
+  return(newState)
 }
 
 
