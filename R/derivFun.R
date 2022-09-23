@@ -56,7 +56,7 @@ derivFunInterpolKNN <- function(t, u, parms) {
 
 derivFunKernelKNN <- function(t, u, parms) {
   dstSqr <- rowSums((parms$trajs$state - rep(u, each=nrow(parms$trajs$state)))^2)
-  sel <- rank(dstSqr) <= parms$derivFun$k
+  sel <- rank(dstSqr, ties.method="first") <= parms$derivFun$k
   dus <- parms$trajs$deriv[sel, , drop=FALSE]
   dstSqrSel <- dstSqr[sel]
   w <- parms$derivFun$kernel(sqrt(dstSqrSel) / parms$derivFun$bw)

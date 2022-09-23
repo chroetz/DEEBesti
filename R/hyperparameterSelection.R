@@ -23,8 +23,9 @@ validateHyperparams <- function(
 
 
 selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
+  len <- length(hyperParmsSet)
   pt <- proc.time()
-  validationFoldErrors <- sapply(
+  validationFoldErrors <- vapply(
     seq_len(opts$folds),
     function(k) {
       splitedObs <- splitCrossValidation(obs, fold = k, maxFolds = opts$folds)
@@ -35,7 +36,9 @@ selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
         method = method,
         odeSteps = opts$odeSteps,
         odeSolverOpts = opts$odeSolver)
-    })
+    },
+    FUN.VALUE = double(len))
+  validationFoldErrors <- matrix(validationFoldErrors, nrow = len)
   validationError <- rowMeans(validationFoldErrors)
   message(
     as.vector((proc.time()-pt)["elapsed"]), "s. ",
@@ -81,7 +84,7 @@ estimateWithHyperparameterSelection <- function(
     times = outTimes,
     opts = opts$odeSolver,
     parms = res$parms)
-  return(list(trajs = trajFinal, hyperParms = optiHyperParms))
+  return(c(list(trajs = trajFinal, hyperParms = optiHyperParms), res))
 }
 
 printHyperParms <- function(hyperParms, method) {

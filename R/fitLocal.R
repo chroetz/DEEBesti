@@ -35,6 +35,12 @@ fitLocalLinear <- function(x, y, bw, kernel) {
   return(fit)
 }
 
+predictLoess <- function(x, y, xout, span, degree) {
+  fit <- stats::loess(y ~ x, span=span, degree=degree)
+  yout <- stats::predict(fit, xout)
+  return(yout)
+}
+
 
 #' @export
 fitLocalConst <- function(x, y, bw, kernel) {
