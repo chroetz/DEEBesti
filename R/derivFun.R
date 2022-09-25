@@ -1,48 +1,36 @@
-buildDerivFun <- function(name) {
-  switch(
+buildDerivFun <- function(opts) {
+  opts <- asOpts(opts, "DerivFun")
+  name <- getClassAt(opts, 2)
+  derivFunUnlisted <- switch(
     name,
-    NearestNeighbor = derivFunNearestNeighbor,
-    InterpolKNN = derivFunInterpolKNN,
-    KernelKNN = derivFunKernelKNN,
-    LocalConst = derivFunLocalConst,
-    LocalLinear = derivFunLocalLinear,
+    NearestNeighbor = \(t, u, parms) derivFunNearestNeighbor(
+      u, parms),
+    InterpolKNN = \(t, u, parms) derivFunInterpolKNN(
+      u, parms, p = opts$p, k = opts$k),
+    KernelKNN = \(t, u, parms) derivFunKernelKNN(
+      u, parms, k = opts$k, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+    LocalConst = \(t, u, parms) derivFunLocalConst(
+      u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+    LocalLinear = \(t, u, parms) derivFunLocalLinear(
+      u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     stop("Unknown derivFun name: ", name)
   )
-}
-
-selectDerivFunHyperParms <- function(hyperParms) {
-  derivFunParms <- list()
-  if (hyperParms$derivFun == "NearestNeighbor") {
-  } else if (hyperParms$derivFun == "InterpolKNN") {
-    derivFunParms$k <- hyperParms$derivFunK
-    derivFunParms$p <- hyperParms$derivFunP
-  } else if (hyperParms$derivFun == "KernelKNN") {
-    derivFunParms$k <- hyperParms$derivFunK
-    derivFunParms$bw <- hyperParms$derivFunBw
-    derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
-  } else if (hyperParms$derivFun %in% c("LocalConst", "LocalLinear")) {
-    derivFunParms$bw <- hyperParms$derivFunBw
-    derivFunParms$kernel <- getKernel(hyperParms$derivFunKernel)
-  } else {
-    stop("Unknown derivFun name ", hyperParms$derivFun)
-  }
-  derivFunParms
+  function(t, u, parms) list(derivFunUnlisted(t, u, parms))
 }
 
 
-derivFunNearestNeighbor <- function(t, u, parms) {
-  dstSqr <- rowSums((parms$trajs$state - rep(u, each=nrow(parms$trajs$state)))^2)
-  du <- parms$trajs$deriv[which.min(dstSqr[-length(dstSqr)]), ]
-  list(du)
+derivFunNearestNeighbor <- function(u, trajs) {
+  dstSqr <- rowSums((trajs$state - rep(u, each=nrow(trajs$state)))^2)
+  trajs$deriv[which.min(dstSqr[-length(dstSqr)]), ]
 }
 
 
-derivFunInterpolKNN <- function(t, u, parms) {
-  dstSqr <- rowSums((parms$trajs$state - rep(u, each=nrow(parms$trajs$state)))^2)
-  sel <- rank(dstSqr) <= parms$derivFun$k
-  dus <- parms$trajs$deriv[sel, , drop=FALSE]
-  if (parms$derivFun$p > 0) { # p > 0 (p==2): interpolation weights, for p = 0: no weights
-    dstSel <- dstSqr[sel]^(parms$derivFun$p/2)
+derivFunInterpolKNN <- function(u, trajs, p, k) { # BEWARE: this will introduce discontinuities
+  dstSqr <- rowSums((trajs$state - rep(u, each=nrow(trajs$state)))^2)
+  sel <- rank(dstSqr) <= k
+  dus <- trajs$deriv[sel, , drop=FALSE]
+  if (p > 0) { # p > 0 (p==2): interpolation weights, for p = 0: no weights
+    dstSel <- dstSqr[sel]^(p/2)
     w <- 1/dstSel
     w <- w / sum(w)
     w[!is.finite(w)] <- 1/length(w)
@@ -51,34 +39,34 @@ derivFunInterpolKNN <- function(t, u, parms) {
   } else {
     du <- colMeans(dus)
   }
-  list(du)
+  return(du)
 }
 
-derivFunKernelKNN <- function(t, u, parms) {
-  dstSqr <- rowSums((parms$trajs$state - rep(u, each=nrow(parms$trajs$state)))^2)
-  sel <- rank(dstSqr, ties.method="first") <= parms$derivFun$k
-  dus <- parms$trajs$deriv[sel, , drop=FALSE]
+derivFunKernelKNN <- function(u, trajs, k, kernel, bw) {
+  dstSqr <- rowSums((trajs$state - rep(u, each=nrow(trajs$state)))^2)
+  sel <- rank(dstSqr, ties.method="first") <= k
+  dus <- trajs$deriv[sel, , drop=FALSE]
   dstSqrSel <- dstSqr[sel]
-  w <- parms$derivFun$kernel(sqrt(dstSqrSel) / parms$derivFun$bw)
+  w <- kernel(sqrt(dstSqrSel) / bw)
   w <- w / sum(w)
   w[!is.finite(w)] <- 1/length(w)
   w <- w / sum(w)
   du <- colMeans(dus * w)
-  list(du)
+  return(du)
 }
 
-derivFunLocalConst <- function(t, u, parms) {
-  dst <- sqrt(rowSums((rep(u, each=nrow(parms$trajs$state)) - parms$trajs$state)^2))
-  w <- parms$derivFun$kernel(dst / parms$derivFun$bw)
+derivFunLocalConst <- function(u, trajs, kernel, bw) {
+  dst <- sqrt(rowSums((rep(u, each=nrow(trajs$state)) - trajs$state)^2))
+  w <- kernel(dst / bw)
   w <- w / sum(w)
   w[!is.finite(w)] <- 1/length(w)
   w <- w / sum(w)
-  du <- colSums(parms$trajs$deriv * w)
+  du <- colSums(trajs$deriv * w)
   du[is.na(du)] <- 0
-  list(du)
+  return(du)
 }
 
-derivFunLocalLinear <- function(t, u, parms) {
+derivFunLocalLinear <- function(u, trajs, kernel, bw) {
   # TODO
   stop("derivFunLocalLinear is not implemented yet")
 }

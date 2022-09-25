@@ -1,0 +1,5 @@
+{
+    "_class": ["OdeSolver", "Opts"],
+    "method": "rk4"
+}
+ 

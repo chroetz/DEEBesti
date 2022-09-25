@@ -1,0 +1,7 @@
+{
+    "_class": ["LocalConst", "Fitter", "Opts"],
+    "_description": "",
+    "kernel": "Normal",
+    "bandwidth": 1
+}
+  

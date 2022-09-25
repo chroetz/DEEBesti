@@ -1,20 +1,19 @@
 
-getParmsAndIntitialState <- function(obs, hyperParms, method, memoize = FALSE) {
+getParmsAndIntitialState <- function(obs, hyperParms, opts, memoize = FALSE) {
+  opts <- asOpts(opts, "Method")
+  method <- getClassAt(opts, 2)
   if (method == "Colloc") {
-    trajs <- estimateParmsColloc(obs, hyperParms)
+    trajs <- estimateParmsColloc(obs, hyperParms, opts)
   } else if (method == "Altopi") {
-    trajs <- getAltopiTraj(obs, hyperParms, memoize = memoize)
+    trajs <- getAltopiTraj(obs, hyperParms, opts, memoize = memoize)
   } else if (method == "Trivial") {
     trajs <- setDeriv(obs)
   } else {
     stop("Unknown method ", method)
   }
   initialState <- getInitialState(trajs)
-  derivFunParms <- selectDerivFunHyperParms(hyperParms)
   list(
-    parms = list(
-      trajs = trajs,
-      derivFun = derivFunParms),
+    parms = trajs,
     initialState = initialState)
 }
 

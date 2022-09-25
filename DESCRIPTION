@@ -13,8 +13,14 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
+    ConfigOpts,
     DEETrajs,
     deSolve,
+    dplyr,
     Matrix,
+    rlang,
     stats,
+    stringr,
+    tibble,
+    tidyr,
     utils

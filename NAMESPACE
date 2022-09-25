@@ -3,4 +3,6 @@
 export(estimateWithHyperparameterSelection)
 export(fitLocalConst)
 export(fitLocalLinear)
+import(ConfigOpts)
 import(DEETrajs)
+importFrom(rlang,.data)

@@ -1,0 +1,6 @@
+{
+    "_class": ["DerivFun", "Opts"],
+    "_description": "",
+    "_defaultSubClass": "NearestNeighbor"
+}
+  

@@ -1,4 +1,5 @@
 solveOde <- function(fun, u0, times, opts, parms = NULL) {
+  opts <- asOpts(opts, "OdeSolver")
   if (is.null(nrow(u0))) {
     u0 <- matrix(u0, nrow=1)
   }

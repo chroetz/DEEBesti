@@ -1,0 +1,7 @@
+{
+    "_class": ["InterpolKNN", "DerivFun", "Opts"],
+    "_description": "",
+    "k": 3,
+    "power": 2
+}
+  

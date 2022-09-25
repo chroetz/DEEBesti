@@ -1,29 +1,7 @@
-validateHyperparams <- function(
-    obsTrain,
-    obsVali,
-    hyperParmsSet,
-    method,
-    odeSteps,
-    odeSolverOpts
-  ) {
-  prepareMemory(method, length(hyperParmsSet))
-  vali <- sapply(
-    seq_len(length(hyperParmsSet)),
-    \(i) validate(
-      obsTrain,
-      obsVali,
-      hyperParmsSet[[i]],
-      method,
-      memoize = TRUE,
-      odeSteps = odeSteps,
-      odeSolverOpts = odeSolverOpts))
-  vali[is.na(vali)] <- Inf
-  return(vali)
-}
-
-
-selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
-  len <- length(hyperParmsSet)
+selectHyperparams <- function(obs, hyperParmsListOpts, methodOpts, opts) {
+  hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
+  hyperParmsList <- hyperParmsListOpts$list
+  len <- length(hyperParmsList)
   pt <- proc.time()
   validationFoldErrors <- vapply(
     seq_len(opts$folds),
@@ -32,10 +10,9 @@ selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
       validateHyperparams(
         splitedObs$train,
         splitedObs$vali,
-        hyperParmsSet,
-        method = method,
-        odeSteps = opts$odeSteps,
-        odeSolverOpts = opts$odeSolver)
+        hyperParmsList,
+        methodOpts = methodOpts,
+        opts = opts)
     },
     FUN.VALUE = double(len))
   validationFoldErrors <- matrix(validationFoldErrors, nrow = len)
@@ -44,7 +21,7 @@ selectHyperparams <- function(obs, hyperParmsSet, method, opts) {
     as.vector((proc.time()-pt)["elapsed"]), "s. ",
     "err:", min(validationError))
   minRowIdx <- which.min(validationError)
-  return(hyperParmsSet[[minRowIdx]])
+  return(hyperParmsList[[minRowIdx]])
 }
 
 splitIntoTrainAndValidation <- function(trajs, ratio) {
@@ -69,28 +46,36 @@ splitCrossValidation <- function(trajs, fold, maxFolds) {
 #' @export
 estimateWithHyperparameterSelection <- function(
     obs,
-    hyperParmsSet,
-    method,
-    outTimes,
+    hyperParmsListOpts,
     opts,
     verbose = FALSE
   ) {
-  optiHyperParms <- selectHyperparams(obs, hyperParmsSet, method, opts$crossValidation)
-  if (verbose) printHyperParms(optiHyperParms, method)
-  res <- getParmsAndIntitialState(obs, optiHyperParms, method)
+  normalization <- calculateNormalization(obs)
+  obsNormed <- normalization$normalize(obs)
+  optiHyperParms <- selectHyperparams(obsNormed, hyperParmsListOpts, opts$method, opts$hyperParmsSelection)
+  if (verbose) printHyperParms(optiHyperParms)
+  res <- getParmsAndIntitialState(obsNormed, optiHyperParms, opts$method)
   trajFinal <- solveOde(
     u0 = res$initialState,
     fun = buildDerivFun(optiHyperParms$derivFun),
-    times = outTimes,
+    times = getSequenceVector(opts$outTime),
     opts = opts$odeSolver,
     parms = res$parms)
-  return(c(list(trajs = trajFinal, hyperParms = optiHyperParms), res))
+  trajDenormed <- normalization$denormalize(trajFinal)
+  return(c(list(trajs = trajDenormed, hyperParms = optiHyperParms), res))
 }
 
-printHyperParms <- function(hyperParms, method) {
+printHyperParms <- function(hyperParms) {
+  method <- getClassAt(hyperParms, 2)
+  # TODO write print / format method for Opts
   cat(
     "[", method, "] ",
-    paste0(names(hyperParms), ": ", unlist(hyperParms), collapse=", "),
+    paste0(
+      names(hyperParms), ": ",
+      sapply(
+        hyperParms,
+        \(x) if (isOpts(x)) paste(oldClass(x)[-length(oldClass(x))], collapse="_") else format(x)),
+      collapse=", "),
     "\n",
     sep="")
 }

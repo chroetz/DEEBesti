@@ -1,0 +1,13 @@
+{
+    "_class": ["Altopi", "HyperParms", "Opts"],
+    "_description": "",
+    "steps": 1,
+    "gamma": 0.5,
+    "fitter": {
+        "_class": ["Fitter", "Opts"]
+    },
+    "derivFun": {
+        "_class": ["DerivFun", "Opts"]
+    }
+}
+  

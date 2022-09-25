@@ -1,0 +1,8 @@
+{
+    "_class": ["KernelKNN", "DerivFun", "Opts"],
+    "_description": "",
+    "kernel": "Normal",
+    "bandwidth": 1,
+    "k": 3
+}
+  

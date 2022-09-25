@@ -1,0 +1,17 @@
+{
+    "_class": ["Estimation", "Opts"],
+    "_description": "",
+    "method": {
+        "_class": ["Method", "Opts"]
+    },
+    "hyperParmsSelection": {
+        "_class": ["HyperParmsSelection", "Opts"]
+    },
+    "odeSolver": {
+        "_class": ["OdeSolver", "Opts"]
+    },
+    "outTime": {
+        "_class": ["Sequence", "Opts"]
+    }
+}
+  
