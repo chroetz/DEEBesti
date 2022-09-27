@@ -4,7 +4,8 @@ applyMethodToModel <- function(
     example,
     opts,
     hyperParmsList,
-    predTimeFromTasks = TRUE
+    predTimeFromTasks = TRUE,
+    obsFileNrs = NULL
 ) {
 
   opts <- asOpts(opts, "Estimation")
@@ -18,7 +19,7 @@ applyMethodToModel <- function(
     submissionPath <- examplePath
   } else {
     observationPath <- file.path(basePath, "observation")
-    submissionPath <- file.path(basePath, "evaluation")
+    submissionPath <- file.path(basePath, "estimation")
   }
 
   method <- getClassAt(opts$method, 2)
@@ -52,7 +53,13 @@ applyMethodToModel <- function(
     dir() |>
     stringr::str_subset("^truth\\d+obs\\d+\\.csv$")
 
-  for (obsFile in obsFiles) {
+  if (is.null(obsFileNrs)) {
+    obsFileSel <- seq_along(obsFiles)
+  } else {
+    obsFileSel <- intersect(seq_along(obsFiles), obsFileNrs)
+  }
+
+  for (obsFile in obsFiles[obsFileSel]) {
     obs <- readTrajs(file.path(observationPath, obsFile))
     res <- estimateWithHyperparameterSelection(
       obs,
