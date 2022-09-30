@@ -1,73 +1,83 @@
 applyMethodToModel <- function(
-    dbPath,
-    statModel,
-    example,
     opts,
     hyperParmsList,
-    predTimeFromTasks = TRUE,
-    obsFileNrs = NULL
+    observationPath = NULL,
+    submissionPath = observationPath,
+    obsNrFilter = NULL,
+    truthNrFilter = NULL
 ) {
 
   opts <- asOpts(opts, "Estimation")
   hyperParmsList <- asOpts(hyperParmsList, c("HyperParms", "List"))
-
-  basePath <- normalizePath(file.path(dbPath, statModel), mustWork=TRUE)
-
-  if (example) {
-    examplePath <- file.path(basePath, "example")
-    observationPath <- examplePath
-    submissionPath <- examplePath
-  } else {
-    observationPath <- file.path(basePath, "observation")
-    submissionPath <- file.path(basePath, "estimation")
-  }
 
   method <- getClassAt(opts$method, 2)
 
   outPath <- file.path(submissionPath, method)
   if (!file.exists(outPath)) dir.create(outPath)
 
-  if (predTimeFromTasks) {
-    taskFiles <-
-      observationPath |>
-      dir() |>
-      stringr::str_subset("task\\d+.json$")
-    # TODO: these lines create too many depenencies
-    predictionTime <-
-      tibble::tibble(fileNames = taskFiles) |>
-      dplyr::mutate(fullPath = file.path(observationPath, .data$fileNames)) |>
-      dplyr::mutate(task = lapply(.data$fullPath, ConfigOpts::readOptsBare)) |>
-      dplyr::mutate(task = lapply(.data$task, unclass)) |>
-      tidyr::unnest_wider(.data$task) |>
-      dplyr::pull(.data$predictionTime) |>
-      unlist() |>
-      range()
-    opts <- overwriteOpts(opts, list(outTime = list(range = predictionTime)))
-  }
+  predictionTimes <- loadTasksPredictionTime(observationPath)
+  totalPredictionTime <- range(unlist(predictionTimes))
+  opts <- overwriteOpts(
+    opts,
+    list(outTime = list(range = totalPredictionTime)))
 
-  writeOpts(hyperParmsList, file.path(outPath, "Opts_List_HyperParms")) # TODO
-  writeOpts(opts, file.path(outPath, "Opts_Estimation")) # TODO: set default name of out file for write function
+  writeOpts(hyperParmsList, file.path(outPath, "Opts_List_HyperParms"))
+  writeOpts(opts, file.path(outPath, "Opts_Estimation"))
 
-  obsFiles <-
-    observationPath |>
-    dir() |>
-    stringr::str_subset("^truth\\d+obs\\d+\\.csv$")
+  obsMeta <- getObsMeta(observationPath, obsNrFilter, truthNrFilter)
 
-  if (is.null(obsFileNrs)) {
-    obsFileSel <- seq_along(obsFiles)
-  } else {
-    obsFileSel <- intersect(seq_along(obsFiles), obsFileNrs)
-  }
-
-  for (obsFile in obsFiles[obsFileSel]) {
-    obs <- readTrajs(file.path(observationPath, obsFile))
+  for (i in seq_len(nrow(obsMeta))) {
+    obs <- readTrajs(obsMeta$path[i])
     res <- estimateWithHyperparameterSelection(
       obs,
       hyperParmsList,
       opts,
       verbose = TRUE)
-    outFileBase <- substr(obsFile, 1, nchar(obsFile)-4)
-    writeTrajs(res$trajs, file.path(outPath, paste0(outFileBase, "esti.csv")))
-    writeOpts(res$hyperParms, file.path(outPath, paste0(outFileBase, "hyperParms")))
+    baseOfPath <- file.path(outPath, sprintf(
+        "truth%04dobs%04d", obsMeta$truthNr[i], obsMeta$obsNr[i]))
+    writeOpts(res$hyperParms, paste0(baseOfPath, "hyperParms"))
+    for (j in seq_along(predictionTimes)) {
+      delta <- DEETrajs::getTimeStep(res$trajs$time)
+      writeTrajs(
+        res$trajs |> dplyr::filter(
+          time+delta >= predictionTimes[[j]][1],
+          time-delta <= predictionTimes[[j]][2]),
+        paste0(baseOfPath, sprintf("task%02d.csv", j)))
+    }
   }
+}
+
+
+getObsMeta <- function(observationPath, obsNrFilter, truthNrFilter) {
+  obsFiles <-
+    observationPath |>
+    dir() |>
+    stringr::str_subset("^truth\\d+obs\\d+\\.csv$")
+  parts <- stringr::str_match(obsFiles, "^truth(\\d+)obs(\\d+)\\.csv$")
+  obsMeta <- tibble::tibble(
+    fileName = obsFiles,
+    dir = normalizePath(observationPath),
+    path = normalizePath(file.path(dir, fileName)),
+    obsNr = as.integer(parts[,3]),
+    truthNr = as.integer(parts[,2]))
+  if (!is.null(obsNrFilter))
+    obsMeta <- dplyr::filter(obsMeta, .data$obsNr %in% obsNrFilter)
+  if (!is.null(truthNrFilter))
+      obsMeta <- dplyr::filter(obsMeta, .data$truthNr %in% truthNrFilter)
+  return(obsMeta)
+}
+
+loadTasksPredictionTime <- function(observationPath) {
+  taskFiles <-
+    observationPath |>
+    dir() |>
+    stringr::str_subset("task\\d+.json$")
+  predictionTimes <-
+    tibble::tibble(fileNames = taskFiles) |>
+    dplyr::mutate(fullPath = file.path(observationPath, .data$fileNames)) |>
+    dplyr::mutate(task = lapply(.data$fullPath, ConfigOpts::readOptsBare)) |>
+    dplyr::mutate(task = lapply(.data$task, unclass)) |>
+    tidyr::unnest_wider(.data$task) |>
+    dplyr::pull(.data$predictionTime)
+  return(predictionTimes)
 }
