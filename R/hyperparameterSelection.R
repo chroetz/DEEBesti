@@ -2,6 +2,8 @@ selectHyperparams <- function(obs, hyperParmsListOpts, methodOpts, opts) {
   hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
+  if (len == 0) return(NULL)
+  if (len == 1) return(hyperParmsList[[1]])
   pt <- proc.time()
   validationFoldErrors <- vapply(
     seq_len(opts$folds),
@@ -55,12 +57,16 @@ estimateWithHyperparameterSelection <- function(
   optiHyperParms <- selectHyperparams(obsNormed, hyperParmsListOpts, opts$method, opts$hyperParmsSelection)
   if (verbose) printHyperParms(optiHyperParms)
   res <- getParmsAndIntitialState(obsNormed, optiHyperParms, opts$method)
-  trajFinal <- solveOde(
-    u0 = res$initialState,
-    fun = buildDerivFun(optiHyperParms$derivFun),
-    times = getSequenceVector(opts$outTime),
-    opts = opts$odeSolver,
-    parms = res$parms)
+  if (!is.null(optiHyperParms$derivFun)) {
+    trajFinal <- solveOde(
+      u0 = res$initialState,
+      fun = buildDerivFun(optiHyperParms$derivFun),
+      times = getSequenceVector(opts$outTime),
+      opts = opts$odeSolver,
+      parms = res$parms)
+  } else {
+    trajFinal <- interpolateTrajs(res$parms, getSequenceVector(opts$outTime))
+  }
   trajDenormed <- normalization$denormalize(trajFinal)
   return(c(list(trajs = trajDenormed, hyperParms = optiHyperParms), res))
 }

@@ -14,7 +14,7 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     ConfigOpts,
-    DEETrajs,
+    DEEBtrajs,
     deSolve,
     dplyr,
     Matrix,

@@ -8,6 +8,8 @@ getParmsAndIntitialState <- function(obs, hyperParms, opts, memoize = FALSE) {
     trajs <- getAltopiTraj(obs, hyperParms, opts, memoize = memoize)
   } else if (method == "Trivial") {
     trajs <- setDeriv(obs)
+  } else if (method == "Const") {
+    trajs <- makeTrajsStateConst(obs, mean)
   } else {
     stop("Unknown method ", method)
   }

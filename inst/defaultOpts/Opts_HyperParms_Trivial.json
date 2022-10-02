@@ -1,8 +1,7 @@
 {
-    "_class": ["Colloc", "HyperParms", "Opts"],
+    "_class": ["Trivial", "HyperParms", "Opts"],
     "_description": "",
     "derivFun": {
         "_class": ["DerivFun", "Opts"]
     }
 }
-  

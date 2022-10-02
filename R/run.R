@@ -37,12 +37,12 @@ applyMethodToModel <- function(
         "truth%04dobs%04d", obsMeta$truthNr[i], obsMeta$obsNr[i]))
     writeOpts(res$hyperParms, paste0(baseOfPath, "hyperParms"))
     for (j in seq_along(predictionTimes)) {
-      delta <- DEETrajs::getTimeStep(res$trajs$time)
+      delta <- getTimeStep(res$trajs$time)
       writeTrajs(
         res$trajs |> dplyr::filter(
-          time+delta >= predictionTimes[[j]][1],
-          time-delta <= predictionTimes[[j]][2]),
-        paste0(baseOfPath, sprintf("task%02d.csv", j)))
+          .data$time+delta >= predictionTimes[[j]][1],
+          .data$time-delta <= predictionTimes[[j]][2]),
+        paste0(baseOfPath, sprintf("task%02desti.csv", j)))
     }
   }
 }
@@ -57,7 +57,7 @@ getObsMeta <- function(observationPath, obsNrFilter, truthNrFilter) {
   obsMeta <- tibble::tibble(
     fileName = obsFiles,
     dir = normalizePath(observationPath),
-    path = normalizePath(file.path(dir, fileName)),
+    path = normalizePath(file.path(.data$dir, .data$fileName)),
     obsNr = as.integer(parts[,3]),
     truthNr = as.integer(parts[,2]))
   if (!is.null(obsNrFilter))
