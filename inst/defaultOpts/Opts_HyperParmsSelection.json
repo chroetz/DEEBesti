@@ -1,5 +1,6 @@
 {
     "_class": ["HyperParmsSelection", "Opts"],
+    "_defaultSubClass": "CrossValidation",
     "_description": ""
 }
  

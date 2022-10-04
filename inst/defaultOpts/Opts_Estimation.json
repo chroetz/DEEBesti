@@ -11,7 +11,11 @@
         "_class": ["OdeSolver", "Opts"]
     },
     "outTime": {
-        "_class": ["Sequence", "Opts"]
+        "_class": ["Sequence", "Opts"],
+        "_defaultInstance": {
+            "_class": ["ByStepCount", "Sequence", "Opts"],
+            "steps": 1000
+          }
     }
 }
   

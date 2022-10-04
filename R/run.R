@@ -1,6 +1,6 @@
 applyMethodToModel <- function(
     opts,
-    hyperParmsList,
+    hyperParmsList = NULL,
     observationPath = NULL,
     submissionPath = observationPath,
     obsNrFilter = NULL,
@@ -8,9 +8,10 @@ applyMethodToModel <- function(
 ) {
 
   opts <- asOpts(opts, "Estimation")
-  hyperParmsList <- asOpts(hyperParmsList, c("HyperParms", "List"))
-
   method <- getClassAt(opts$method, 2)
+  if (is.null(hyperParmsList)) {
+    hyperParmsList <- makeOpts(c(method, "HyperParms"))
+  }
 
   outPath <- file.path(submissionPath, method)
   if (!file.exists(outPath)) dir.create(outPath)
@@ -75,9 +76,7 @@ loadTasksPredictionTime <- function(observationPath) {
   predictionTimes <-
     tibble::tibble(fileNames = taskFiles) |>
     dplyr::mutate(fullPath = file.path(observationPath, .data$fileNames)) |>
-    dplyr::mutate(task = lapply(.data$fullPath, ConfigOpts::readOptsBare)) |>
-    dplyr::mutate(task = lapply(.data$task, unclass)) |>
-    tidyr::unnest_wider(.data$task) |>
+    dplyr::mutate(predictionTime = lapply(.data$fullPath, \(x) ConfigOpts::readOptsBare(x)$predictionTime)) |>
     dplyr::pull(.data$predictionTime)
   return(predictionTimes)
 }

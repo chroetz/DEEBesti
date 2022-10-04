@@ -54,18 +54,26 @@ estimateWithHyperparameterSelection <- function(
   ) {
   normalization <- calculateNormalization(obs)
   obsNormed <- normalization$normalize(obs)
-  optiHyperParms <- selectHyperparams(obsNormed, hyperParmsListOpts, opts$method, opts$hyperParmsSelection)
+  if (
+    !inheritsOptsClass(hyperParmsListOpts, "List") &&
+    inheritsOptsClass(hyperParmsListOpts, "HyperParms")
+  ) {
+    optiHyperParms <- asOpts(hyperParmsListOpts, "HyperParms")
+  } else {
+    optiHyperParms <- selectHyperparams(
+      obsNormed, hyperParmsListOpts, opts$method, opts$hyperParmsSelection)
+  }
   if (verbose) printHyperParms(optiHyperParms)
   res <- getParmsAndIntitialState(obsNormed, optiHyperParms, opts$method)
   if (!is.null(optiHyperParms$derivFun)) {
     trajFinal <- solveOde(
       u0 = res$initialState,
       fun = buildDerivFun(optiHyperParms$derivFun),
-      times = getSequenceVector(opts$outTime),
+      times = makeSequence(opts$outTime),
       opts = opts$odeSolver,
       parms = res$parms)
   } else {
-    trajFinal <- interpolateTrajs(res$parms, getSequenceVector(opts$outTime))
+    trajFinal <- interpolateTrajs(res$parms, makeSequence(opts$outTime))
   }
   trajDenormed <- normalization$denormalize(trajFinal)
   return(c(list(trajs = trajDenormed, hyperParms = optiHyperParms), res))
