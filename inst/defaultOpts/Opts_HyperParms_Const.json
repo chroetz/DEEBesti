@@ -1,4 +1,10 @@
 {
     "_class": ["Const", "HyperParms", "Opts"],
-    "_description": ""
+    "_description": "",
+    "derivFun": {
+        "_class": ["DerivFun", "Opts"],
+        "_defaultInstance": {
+            "_class": ["Null", "DerivFun", "Opts"]
+        }
+    }
 }

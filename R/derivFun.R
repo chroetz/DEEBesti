@@ -3,6 +3,7 @@ buildDerivFun <- function(opts) {
   name <- getClassAt(opts, 2)
   derivFunUnlisted <- switch(
     name,
+    Null = \(t, u, parms) rep(0, length(u)),
     NearestNeighbor = \(t, u, parms) derivFunNearestNeighbor(
       u, parms),
     InterpolKNN = \(t, u, parms) derivFunInterpolKNN(
