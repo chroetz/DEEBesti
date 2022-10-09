@@ -3,7 +3,7 @@ getParmsAndIntitialState <- function(obs, hyperParms, opts, memoize = FALSE) {
   parms <- getParms(obs, hyperParms, opts, memoize = FALSE)
   list(
     parms = parms,
-    initialState =getInitialState(parms))
+    initial = getInitialState(parms))
 }
 
 getParms <- function(obs, hyperParms, opts, memoize = FALSE) {

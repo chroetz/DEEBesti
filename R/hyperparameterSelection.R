@@ -67,7 +67,7 @@ estimateWithHyperparameterSelection <- function(
   res <- getParmsAndIntitialState(obsNormed, optiHyperParms, opts$method)
   outTimes <- seq(0, max(obs$time), length.out = opts$odeSteps)
   trajFinal <- solveOde(
-    u0 = res$initialState,
+    u0 = res$initial,
     fun = buildDerivFun(optiHyperParms$derivFun),
     times = outTimes,
     opts = opts$odeSolver,

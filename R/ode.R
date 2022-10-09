@@ -1,21 +1,22 @@
 solveOde <- function(fun, u0, times, opts, parms = NULL) {
   opts <- asOpts(opts, "OdeSolver")
-  if (is.null(nrow(u0))) {
-    u0 <- matrix(u0, nrow=1)
+  if (!isTrajs(u0)) { # time column of u0 is ignored
+    if (is.matrix(u0)) {
+      n <- nrow(u0)
+    } else if (is.vector(u0)) {
+      n <- 1
+    } else {
+      stop("u0 must be Trajs, matrix or vector")
+    }
+    u0 <- makeTrajs(time = 0, state = u0, trajId = seq_len(n))
   }
-  trajIds <- rownames(u0)
-  trajList <- lapply(seq_len(nrow(u0)), \(i) {
+  mapTrajs2Trajs(u0, function(init) {
     suppressWarnings(suppressMessages(utils::capture.output( # make silent
       u <- do.call(
         deSolve::ode,
-        c(list(y = u0[i, ], times = times, func = fun, parms = parms), opts))
+        c(list(y = init$state, times = times, func = fun, parms = parms), opts))
     )))
     colnames(u) <- c("time", paste0("state", seq_len(ncol(u)-1)))
-    trajs <- asTrajs(u)
-    if (length(trajIds) > 0)
-      trajs <- setTrajId(trajs, trajIds[i])
-    return(trajs)
+    asTrajs(u)
   })
-
-  return(bindTrajs(trajList))
 }

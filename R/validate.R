@@ -12,7 +12,7 @@ validate <- function(
     methodOpts,
     memoize = memoize)
   esti <- solveOde(
-    u0 = res$initialState,
+    u0 = res$initial,
     fun = buildDerivFun(hyperParms$derivFun),
     times = seq(0, max(obsVali$time), length.out = opts$odeSteps),
     opts = opts$odeSolver,
