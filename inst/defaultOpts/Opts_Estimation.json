@@ -10,6 +10,9 @@
     "odeSteps": 1000,
     "odeSolver": {
         "_class": ["OdeSolver", "Opts"]
-    }
+    },
+    "initialState": {
+        "_class": ["InitialState", "Opts"]
+    } 
 }
   

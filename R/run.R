@@ -66,6 +66,7 @@ writeTaskResultNewTrajs <- function(res, opts, info) {
     by = info$task$timeStep)
   init <- makeTrajs(
     time = 0,
+    trajId = seq_len(nrow(info$task$initialState)),
     state = info$task$initialState)
   result <- solveOde(
     u0 = init,
@@ -115,7 +116,7 @@ writeTaskResultEstiObsTrajs <- function(res, opts, info, obs) {
 }
 
 estimateInitialStateAndTime <- function(res, opts, startTime, timeStep, obs) {
-  name <- getClassAt(opts, 2)
+  name <- getClassAt(opts$initialState, 2)
   if (name == "FromTrajs" || (name == "Choose" && startTime == res$trajs$time[1])) {
     return(list(time = startTime, initial = getInitialState(res$trajs, startTime)))
   } else if (name == "FromObs" || (name == "Choose" && startTime > res$trajs$time[1])) {
