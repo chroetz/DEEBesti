@@ -16,20 +16,14 @@ updateAltopiTraj <- function(trajs, obs, gamma) {
       diagRight[-countTotal])) / stepSize
   matDerivSymm <- Matrix::crossprod(matDeriv)
 
-  if (hasTrajId(trajs)) {
-    trajIds <- getTrajIds(trajs)
-    hasObs <- lapply(trajIds, \(trajId) {
-      trj <- getTrajsWithId(trajs, trajId)
-      ob <- getTrajsWithId(obs, trajId)
-      timeDist <- outer(trj$time, ob$time, \(x, y) abs(x - y))
-      closest <- apply(timeDist, 2, which.min)
-      1:length(trj$time) %in% closest # TODO: only works if there is at most one obs per trajs
-    }) |> unlist()
-  } else {
-    timeDist <- outer(trajs$time, obs$time, \(x, y) abs(x - y))
+  trajIds <- getTrajIds(trajs)
+  hasObs <- lapply(trajIds, \(trajId) {
+    trj <- getTrajsWithId(trajs, trajId)
+    ob <- getTrajsWithId(obs, trajId)
+    timeDist <- outer(trj$time, ob$time, \(x, y) abs(x - y))
     closest <- apply(timeDist, 2, which.min)
-    1:length(trajs$time) %in% closest
-  }
+    1:length(trj$time) %in% closest # TODO: only works if there is at most one obs per trajs
+  }) |> unlist()
   matObsSymm <- Matrix::bandSparse(
     countTotal, countTotal, 0,
     diagonals = list(as.numeric(hasObs)),

@@ -27,22 +27,22 @@ applyMethodToModel <- function(
     nrFilters = list(obs = obsNrFilter, truth = truthNrFilter))
 
   for (i in seq_len(nrow(meta))) {
-    obs <- readTrajs(meta$obsPath[i])
+    info <- meta[i,]
+    obs <- readTrajs(info$obsPath)
     res <- estimateWithHyperparameterSelection(
       obs,
       hyperParmsList,
       opts,
       verbose = TRUE)
-    hpPath <- file.path(outDir, sprintf(
-        "truth%04dobs%04dhyperParms", meta$truthNr[i], meta$obsNr[i]))
+    hpPath <- file.path(outDir, DEEBpath::hyperParmsFile(info))
     writeOpts(res$hyperParms, hpPath)
 
     # TODO: check where it makes sense to set the derivative
     if (!hasDeriv(res$trajs)) res$trajs <- setDeriv(res$trajs)
 
     for (j in seq_len(nrow(taskMeta))) {
-      info <- c(as.list(meta[i,]), as.list(taskMeta[j,]), list(outDir = outDir))
-      writeTaskResult(res, opts, info, obs)
+      allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
+      writeTaskResult(res, opts, allInfo, obs)
     }
   }
 }
