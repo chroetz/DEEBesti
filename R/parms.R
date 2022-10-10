@@ -21,7 +21,7 @@ getParms <- function(obs, hyperParms, opts, memoize = FALSE) {
     stop("Unknown method ", method)
   }
   # TODO: check where it makes sense to set the derivative
-  if (!hasDeriv(trajs)) trajs <- setDeriv(trajs)
+  if (!hasDeriv(trajs)) trajs <- setDeriv(trajs, opts$derivMethod)
   return(trajs)
 }
 

@@ -38,7 +38,7 @@ applyMethodToModel <- function(
     writeOpts(res$hyperParms, hpPath)
 
     # TODO: check where it makes sense to set the derivative
-    if (!hasDeriv(res$trajs)) res$trajs <- setDeriv(res$trajs)
+    if (!hasDeriv(res$trajs)) res$trajs <- setDeriv(res$trajs, opts$derivMethod)
 
     for (j in seq_len(nrow(taskMeta))) {
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))

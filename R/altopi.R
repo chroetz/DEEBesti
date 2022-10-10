@@ -6,7 +6,7 @@ initAltopi <- function(obs, interSteps) {
     steps <- (n-1) * interSteps + 1
     time <- seq(min(trj$time), max(trj$time), length.out = steps)
     trj <- interpolateTrajs(trj, time)
-    trj <- setDeriv(trj)
+    trj <- setDeriv(trj, "center")
     trj
   })
   return(bindTrajs(trajsList))

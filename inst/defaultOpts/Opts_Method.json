@@ -1,6 +1,7 @@
 {
     "_class": ["Method", "Opts"],
     "_description": "",
-    "_defaultSubClass": "Trivial"
+    "_defaultSubClass": "Trivial",
+    "derivMethod": "forward"
 }
   
