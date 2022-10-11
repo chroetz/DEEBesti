@@ -5,5 +5,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib NonParamODE, .registration = TRUE
 ## usethis namespace: end
 NULL

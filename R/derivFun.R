@@ -21,17 +21,16 @@ buildDerivFun <- function(opts) {
 
 
 derivFunNearestNeighbor <- function(u, trajs) {
-  dstSqr <- rowSums((trajs$state - rep(u, each=nrow(trajs$state)))^2)
-  trajs$deriv[which.min(dstSqr[-length(dstSqr)]), ]
+  trajs$deriv[whichMinDist(trajs$state, u), ]
 }
 
 
 derivFunInterpolKNN <- function(u, trajs, p, k) { # BEWARE: this will introduce discontinuities
-  dstSqr <- rowSums((trajs$state - rep(u, each=nrow(trajs$state)))^2)
-  sel <- rank(dstSqr) <= k
+  dst <- distToVec(trajs$state, u)
+  sel <- rank(dst) <= k
   dus <- trajs$deriv[sel, , drop=FALSE]
   if (p > 0) { # p > 0 (p==2): interpolation weights, for p = 0: no weights
-    dstSel <- dstSqr[sel]^(p/2)
+    dstSel <- dst[sel]^p
     w <- 1/dstSel
     w <- w / sum(w)
     w[!is.finite(w)] <- 1/length(w)
@@ -44,11 +43,11 @@ derivFunInterpolKNN <- function(u, trajs, p, k) { # BEWARE: this will introduce 
 }
 
 derivFunKernelKNN <- function(u, trajs, k, kernel, bw) {
-  dstSqr <- rowSums((trajs$state - rep(u, each=nrow(trajs$state)))^2)
-  sel <- rank(dstSqr, ties.method="first") <= k
+  dst <- distToVec(trajs$state, u)
+  sel <- rank(dst, ties.method="first") <= k
   dus <- trajs$deriv[sel, , drop=FALSE]
-  dstSqrSel <- dstSqr[sel]
-  w <- kernel(sqrt(dstSqrSel) / bw)
+  dstSel <- dst[sel]
+  w <- kernel(dstSel / bw)
   w <- w / sum(w)
   w[!is.finite(w)] <- 1/length(w)
   w <- w / sum(w)
@@ -57,7 +56,7 @@ derivFunKernelKNN <- function(u, trajs, k, kernel, bw) {
 }
 
 derivFunLocalConst <- function(u, trajs, kernel, bw) {
-  dst <- sqrt(rowSums((rep(u, each=nrow(trajs$state)) - trajs$state)^2))
+  dst <- distToVec(trajs$state, u)
   w <- kernel(dst / bw)
   w <- w / sum(w)
   w[!is.finite(w)] <- 1/length(w)

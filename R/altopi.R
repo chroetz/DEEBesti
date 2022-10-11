@@ -1,7 +1,5 @@
 initAltopi <- function(obs, interSteps) {
-  trajIds <- getTrajIds(obs)
-  trajsList <- lapply(trajIds, \(trajId) {
-    trj <- getTrajsWithId(obs, trajId)
+  mapTrajs2Trajs(obs, \(trj) {
     n <- getCount(trj)
     steps <- (n-1) * interSteps + 1
     time <- seq(min(trj$time), max(trj$time), length.out = steps)
@@ -9,7 +7,6 @@ initAltopi <- function(obs, interSteps) {
     trj <- setDeriv(trj, "center")
     trj
   })
-  return(bindTrajs(trajsList))
 }
 
 
