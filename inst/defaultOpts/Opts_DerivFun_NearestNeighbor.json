@@ -1,5 +1,6 @@
 {
     "_class": ["NearestNeighbor", "DerivFun", "Opts"],
-    "_description": ""
+    "_description": "",
+    "target": "point"
 }
   

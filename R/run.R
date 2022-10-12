@@ -14,7 +14,7 @@ applyMethodToModel <- function(
     hyperParmsList <- makeOpts(c(method, "HyperParms"))
   }
 
-  outDir <- file.path(submissionPath, method)
+  outDir <- file.path(submissionPath, opts$name)
   if (!file.exists(outDir)) dir.create(outDir)
 
   writeOpts(hyperParmsList, dir = outDir)

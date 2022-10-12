@@ -10,6 +10,43 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// distSqrToSeg
+double distSqrToSeg(NumericVector u, NumericVector v0, NumericVector v1);
+RcppExport SEXP _NonParamODE_distSqrToSeg(SEXP uSEXP, SEXP v0SEXP, SEXP v1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type u(uSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type v0(v0SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type v1(v1SEXP);
+    rcpp_result_gen = Rcpp::wrap(distSqrToSeg(u, v0, v1));
+    return rcpp_result_gen;
+END_RCPP
+}
+// distSqrToPwLin
+NumericVector distSqrToPwLin(NumericMatrix path, NumericVector query);
+RcppExport SEXP _NonParamODE_distSqrToPwLin(SEXP pathSEXP, SEXP querySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type query(querySEXP);
+    rcpp_result_gen = Rcpp::wrap(distSqrToPwLin(path, query));
+    return rcpp_result_gen;
+END_RCPP
+}
+// whichMinDistToPwLin
+double whichMinDistToPwLin(NumericMatrix path, NumericVector query);
+RcppExport SEXP _NonParamODE_whichMinDistToPwLin(SEXP pathSEXP, SEXP querySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type query(querySEXP);
+    rcpp_result_gen = Rcpp::wrap(whichMinDistToPwLin(path, query));
+    return rcpp_result_gen;
+END_RCPP
+}
 // whichMinDist
 int whichMinDist(NumericMatrix x, NumericVector y);
 RcppExport SEXP _NonParamODE_whichMinDist(SEXP xSEXP, SEXP ySEXP) {
@@ -36,6 +73,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_NonParamODE_distSqrToSeg", (DL_FUNC) &_NonParamODE_distSqrToSeg, 3},
+    {"_NonParamODE_distSqrToPwLin", (DL_FUNC) &_NonParamODE_distSqrToPwLin, 2},
+    {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 2},
     {"_NonParamODE_whichMinDist", (DL_FUNC) &_NonParamODE_whichMinDist, 2},
     {"_NonParamODE_distToVec", (DL_FUNC) &_NonParamODE_distToVec, 2},
     {NULL, NULL, 0}

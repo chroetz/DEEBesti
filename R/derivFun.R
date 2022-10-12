@@ -5,7 +5,7 @@ buildDerivFun <- function(opts) {
     name,
     Null = \(t, u, parms) rep(0, length(u)),
     NearestNeighbor = \(t, u, parms) derivFunNearestNeighbor(
-      u, parms),
+      u, parms, opts$target),
     InterpolKNN = \(t, u, parms) derivFunInterpolKNN(
       u, parms, p = opts$p, k = opts$k),
     KernelKNN = \(t, u, parms) derivFunKernelKNN(
@@ -20,8 +20,23 @@ buildDerivFun <- function(opts) {
 }
 
 
-derivFunNearestNeighbor <- function(u, trajs) {
-  trajs$deriv[whichMinDist(trajs$state, u), ]
+derivFunNearestNeighbor <- function(u, trajs, target) {
+  if (target == "pointLine") { # assumes derivMethod forward
+    i <- whichMinDistToPwLin(trajs$state, u)
+    if (i %% 1 == 0 && i > 1) { # corner point
+      (trajs$deriv[i, ] + trajs$deriv[i-1, ]) / 2
+    } else {
+      trajs$deriv[floor(i), ]
+    }
+  } else if (target == "line") {
+    i <- whichMinDistToPwLin(trajs$state, u)
+    trajs$deriv[floor(i), ]
+  } else if (target == "point") {
+    i <- whichMinDist(trajs$state, u)
+    trajs$deriv[i, ]
+  } else {
+    stop("Unknown target ", target)
+  }
 }
 
 

@@ -1,6 +1,7 @@
 {
     "_class": ["Estimation", "Opts"],
     "_description": "",
+    "name": "Name",
     "method": {
         "_class": ["Method", "Opts"]
     },
@@ -13,6 +14,6 @@
     },
     "initialState": {
         "_class": ["InitialState", "Opts"]
-    } 
+    }
 }
   

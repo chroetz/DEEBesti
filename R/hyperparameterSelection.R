@@ -1,4 +1,27 @@
 selectHyperparams <- function(obs, hyperParmsListOpts, methodOpts, opts) {
+  name <- getClassAt(opts, 2)
+  switch(
+    name,
+    None = selectHyperparamsNone(hyperParmsListOpts, opts),
+    CrossValidation = selectHyperparamsCV(obs, hyperParmsListOpts, methodOpts, opts))
+}
+
+selectHyperparamsNone <- function(hyperParmsListOpts, opts) {
+  if (
+    !inheritsOptsClass(hyperParmsListOpts, "List") &&
+    inheritsOptsClass(hyperParmsListOpts, "HyperParms")
+  ) {
+    return(asOpts(hyperParmsListOpts, "HyperParms"))
+  } else {
+    hyperParmsList <- hyperParmsListOpts$list
+    len <- length(hyperParmsList)
+    if (len == 0) return(NULL)
+    if (len == 1) return(hyperParmsList[[1]])
+    return(hyperParmsList[[opts$selectIdx]])
+  }
+}
+
+selectHyperparamsCV <- function(obs, hyperParmsListOpts, methodOpts, opts) {
   hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
@@ -54,15 +77,8 @@ estimateWithHyperparameterSelection <- function(
   ) {
   normalization <- calculateNormalization(obs)
   obsNormed <- normalization$normalize(obs)
-  if (
-    !inheritsOptsClass(hyperParmsListOpts, "List") &&
-    inheritsOptsClass(hyperParmsListOpts, "HyperParms")
-  ) {
-    optiHyperParms <- asOpts(hyperParmsListOpts, "HyperParms")
-  } else {
-    optiHyperParms <- selectHyperparams(
+  optiHyperParms <- selectHyperparams(
       obsNormed, hyperParmsListOpts, opts$method, opts$hyperParmsSelection)
-  }
   if (verbose) printHyperParms(optiHyperParms)
   res <- getParmsAndIntitialState(obsNormed, optiHyperParms, opts$method)
   outTimes <- seq(0, max(obs$time), length.out = opts$odeSteps)
