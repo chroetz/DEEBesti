@@ -1,5 +1,13 @@
-prepareMemory <- function(opts, n) {
-  opts <- asOpts(opts, "Method")
-  method <- getClassAt(opts, 2)
-  if (method == "Altopi") utils::clrhash(altopiMemory)
+memory <- utils::hashtab()
+
+prepareMemory <- function() {
+  utils::clrhash(memory)
+}
+
+addToMemory <- function(key, value) {
+  utils::sethash(memory, key, value)
+}
+
+getFromMemory <- function(key) {
+  utils::gethash(memory, key, nomatch = NULL)
 }

@@ -1,13 +1,13 @@
-estimateParmsColloc <- function(obs, hyperParms, opts) {
-  opts <- asOpts(opts, c("Colloc", "Method"))
+estimateParmsColloc <- function(obs, hyperParms) {
+  hyperParms <- asOpts(hyperParms, c("Colloc", "HyperParms"))
   switch(
     hyperParms$smoothingMethod,
-    predict = estimateParmsCollocPredict(obs, hyperParms, opts),
-    fit = estimateParmsCollocFit(obs, hyperParms, opts),
+    predict = estimateParmsCollocPredict(obs, hyperParms),
+    fit = estimateParmsCollocFit(obs, hyperParms),
     stop("Unknown smoothing method: ", hyperParms$smoothingMethod))
 }
 
-estimateParmsCollocFit <- function(obs, hyperParms, opts) {
+estimateParmsCollocFit <- function(obs, hyperParms) {
   fitter <- buildFitter(hyperParms$fitter)
   mapTrajs2Trajs(obs, function(trj) {
     smoothed <- makeTrajs(
@@ -17,13 +17,13 @@ estimateParmsCollocFit <- function(obs, hyperParms, opts) {
   })
 }
 
-estimateParmsCollocPredict <- function(obs, hyperParms, opts) {
+estimateParmsCollocPredict <- function(obs, hyperParms) {
   stop("estimateParmsCollocPredict() is not working! need sub method of Colloc?")
   mapTrajs2Trajs(obs, function(trj) {
     time <- seq(
       min(obs$time),
       max(obs$time),
-      length.out = length(obs$time) * opts$interSteps)
+      length.out = length(obs$time) * hyperParms$interSteps)
     smoothed <- makeTrajs(
       time = time,
       state = sapply(

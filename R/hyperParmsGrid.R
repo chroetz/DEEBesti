@@ -1,4 +1,4 @@
-getOptsGridList <- function(optsClass, ...) {
+getOptsGridList <- function(optsClass, ...) { # TODO: move to ConfigOpts
   default <- getDefaultOpts(optsClass)
   args <- list(...)
   isSingleOptsInDefault <- sapply(default, \(x) isOpts(x) && !inheritsOptsClass(x, "List"))

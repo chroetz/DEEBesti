@@ -1,12 +1,13 @@
-selectHyperparams <- function(obs, hyperParmsListOpts, methodOpts, opts) {
+selectHyperparams <- function(obs, hyperParmsListOpts, opts) {
+  opts <- asOpts(opts, "HyperParmsSelection")
   name <- getClassAt(opts, 2)
   switch(
     name,
-    None = selectHyperparamsNone(hyperParmsListOpts, opts),
-    CrossValidation = selectHyperparamsCV(obs, hyperParmsListOpts, methodOpts, opts))
+    None = selectHyperparamsNone(hyperParmsListOpts),
+    CrossValidation = selectHyperparamsCV(obs, hyperParmsListOpts, opts))
 }
 
-selectHyperparamsNone <- function(hyperParmsListOpts, opts) {
+selectHyperparamsNone <- function(hyperParmsListOpts) {
   if (
     !inheritsOptsClass(hyperParmsListOpts, "List") &&
     inheritsOptsClass(hyperParmsListOpts, "HyperParms")
@@ -15,13 +16,12 @@ selectHyperparamsNone <- function(hyperParmsListOpts, opts) {
   } else {
     hyperParmsList <- hyperParmsListOpts$list
     len <- length(hyperParmsList)
-    if (len == 0) return(NULL)
     if (len == 1) return(hyperParmsList[[1]])
-    return(hyperParmsList[[opts$selectIdx]])
+    stop("There are ", len, " hyperparms to select from but selection method is `None`.")
   }
 }
 
-selectHyperparamsCV <- function(obs, hyperParmsListOpts, methodOpts, opts) {
+selectHyperparamsCV <- function(obs, hyperParmsListOpts, opts) {
   hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
@@ -36,7 +36,6 @@ selectHyperparamsCV <- function(obs, hyperParmsListOpts, methodOpts, opts) {
         splitedObs$train,
         splitedObs$vali,
         hyperParmsList,
-        methodOpts = methodOpts,
         opts = opts)
     },
     FUN.VALUE = double(len))
@@ -78,18 +77,10 @@ estimateWithHyperparameterSelection <- function(
   normalization <- calculateNormalization(obs)
   obsNormed <- normalization$normalize(obs)
   optiHyperParms <- selectHyperparams(
-      obsNormed, hyperParmsListOpts, opts$method, opts$hyperParmsSelection)
+      obsNormed, hyperParmsListOpts, opts$hyperParmsSelection)
   if (verbose) printHyperParms(optiHyperParms)
-  res <- getParmsAndIntitialState(obsNormed, optiHyperParms, opts$method)
-  outTimes <- seq(0, max(obs$time), length.out = opts$odeSteps)
-  trajFinal <- solveOde(
-    u0 = res$initial,
-    fun = buildDerivFun(optiHyperParms$derivFun),
-    times = outTimes,
-    opts = opts$odeSolver,
-    parms = res$parms)
-  trajDenormed <- normalization$denormalize(trajFinal)
-  return(c(list(trajs = trajDenormed, hyperParms = optiHyperParms)))
+  parms <- getParms(obsNormed, optiHyperParms)
+  return(list(parms = parms, hyperParms = optiHyperParms, normalization = normalization, obsNormed = obsNormed))
 }
 
 printHyperParms <- function(hyperParms) {

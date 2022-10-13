@@ -1,10 +1,6 @@
 {
     "_class": ["Estimation", "Opts"],
     "_description": "",
-    "name": "Name",
-    "method": {
-        "_class": ["Method", "Opts"]
-    },
     "hyperParmsSelection": {
         "_class": ["HyperParmsSelection", "Opts"]
     },

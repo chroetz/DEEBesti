@@ -1,6 +1,10 @@
 {
     "_class": ["Interp", "HyperParms", "Opts"],
     "_description": "",
+    "derivMethod": "forward",
+    "target": "point",
+    "_target_values": ["point", "line"],
+    "interSteps": 10,
     "derivFun": {
         "_class": ["DerivFun", "Opts"]
     }

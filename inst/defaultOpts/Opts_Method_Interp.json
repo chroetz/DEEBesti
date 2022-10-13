@@ -1,9 +1,0 @@
-{
-    "_class": ["Interp", "Method", "Opts"],
-    "_description": "",
-    "derivMethod": "forward",
-    "target": "point",
-    "_target_values": ["point", "line"],
-    "interSteps": 10
-}
-  

@@ -22,16 +22,15 @@ oneAltopiStep <- function(
 }
 
 
-getAltopiTraj <- function(obs, hyperParms, opts, memoize = FALSE) {
-  opts <- asOpts(opts, c("Altopi", "Method"))
+getAltopiTraj <- function(obs, hyperParms, memoize = FALSE) {
   hyperParms <- asOpts(hyperParms, c("Altopi", "HyperParms"))
-  if (hyperParms$steps <= 0) return(initAltopi(obs, opts$interSteps))
+  if (hyperParms$steps <= 0) return(initAltopi(obs, hyperParms$interSteps))
   if (memoize) {
-    traj <- getFromAltopiMemory(hyperParms)
+    traj <- getFromMemory(hyperParms)
     if (!is.null(traj)) return(traj)
   }
   preHyperParms <- getHyperParmPredecessorAltopi(hyperParms)
-  preTraj <- getAltopiTraj(obs, preHyperParms, opts, memoize)
+  preTraj <- getAltopiTraj(obs, preHyperParms, memoize)
   nextTraj <- oneAltopiStep(
     preTraj,
     obs,
@@ -39,24 +38,15 @@ getAltopiTraj <- function(obs, hyperParms, opts, memoize = FALSE) {
     fitDeriv = buildFitter(hyperParms$fitter),
     fitTraj = updateAltopiTraj)
   if (memoize) {
-    addToAltopiMemory(hyperParms, nextTraj)
+    addToMemory(hyperParms, nextTraj)
   }
   return(nextTraj)
 }
 
-
-altopiMemory <- utils::hashtab()
 
 getHyperParmPredecessorAltopi <- function(hyperParms) {
   hyperParms$steps <- hyperParms$steps - 1
   return(hyperParms)
 }
 
-addToAltopiMemory <- function(hyperParms, trajs) {
-  utils::sethash(altopiMemory, hyperParms, trajs)
-}
-
-getFromAltopiMemory <- function(hyperParms) {
-  utils::gethash(altopiMemory, hyperParms, nomatch = NULL)
-}
 

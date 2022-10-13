@@ -1,7 +1,5 @@
 {
     "_class": ["None", "HyperParmsSelection", "Opts"],
-    "_description": "No hyper parameter selection.",
-    "selectIdx": 1,
-    "_selectIdx_description": "If hyper parameters have to be selected from a list, choose this index."
+    "_description": "No hyper parameter selection."
 }
  
