@@ -82,8 +82,8 @@ writeTaskResultVelocity <- function(res, opts, info) {
   grid <- makeDerivTrajs(state = as.matrix(expand.grid(gridSides)))
   gridNormed <- res$normalization$normalize(grid)
   derivFun <- buildDerivFun(res$hyperParms$derivFun)
-  derivs <- t(apply(gridNormed$states, 1, \(s) derivFun(0, s, res$parms)[[1]]))
-  resultNormed <- makeDerivTrajs(state = gridNormed$states, deriv = derivs)
+  derivs <- t(apply(gridNormed$state, 1, \(s) derivFun(0, s, res$parms)[[1]]))
+  resultNormed <- makeDerivTrajs(state = gridNormed$state, deriv = derivs)
   result <- res$normalization$denormalize(resultNormed)
   writeDerivTrajs(
     result,
