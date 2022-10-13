@@ -1,0 +1,7 @@
+{
+    "_class": ["Interp", "HyperParms", "Opts"],
+    "_description": "",
+    "derivFun": {
+        "_class": ["DerivFun", "Opts"]
+    }
+}

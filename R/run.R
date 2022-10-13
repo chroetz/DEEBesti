@@ -15,7 +15,7 @@ applyMethodToModel <- function(
   }
 
   outDir <- file.path(submissionPath, opts$name)
-  if (!file.exists(outDir)) dir.create(outDir)
+  if (!file.exists(outDir)) dir.create(outDir, recursive=TRUE)
 
   writeOpts(hyperParmsList, dir = outDir)
   writeOpts(opts, dir = outDir)
@@ -24,7 +24,7 @@ applyMethodToModel <- function(
   meta <- DEEBpath::getMetaGeneric(
     observationPath,
     tagsFilter = c("truth", "obs"),
-    nrFilters = list(obs = obsNrFilter, truth = truthNrFilter))
+    nrFilters = list(obsNr = obsNrFilter, truthNr = truthNrFilter))
 
   for (i in seq_len(nrow(meta))) {
     info <- meta[i,]

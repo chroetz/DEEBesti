@@ -21,12 +21,20 @@ buildDerivFun <- function(opts) {
 
 
 derivFunNearestNeighbor <- function(u, trajs, target) {
-  if (target == "pointLine") { # assumes derivMethod forward
+  if (target == "pointLine") { # assumes deriv[i,] belongs to segement i; interpolate for corner points
     i <- whichMinDistToPwLin(trajs$state, u)
     if (i %% 1 == 0 && i > 1) { # corner point
       (trajs$deriv[i, ] + trajs$deriv[i-1, ]) / 2
     } else {
       trajs$deriv[floor(i), ]
+    }
+  } else if (target == "interp") { # assumes deriv[i,] belongs to point i; linearly interpolate between derivs for line
+    i <- whichMinDistToPwLin(trajs$state, u)
+    if (i %% 1 == 0) { # corner point
+      trajs$deriv[i, ]
+    } else {
+      t <- i - floor(i)
+      (1-t)*trajs$deriv[floor(i), ] + t*trajs$deriv[ceiling(i), ]
     }
   } else if (target == "line") {
     i <- whichMinDistToPwLin(trajs$state, u)

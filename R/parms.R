@@ -9,17 +9,15 @@ getParmsAndIntitialState <- function(obs, hyperParms, opts, memoize = FALSE) {
 getParms <- function(obs, hyperParms, opts, memoize = FALSE) {
   opts <- asOpts(opts, "Method")
   method <- getClassAt(opts, 2)
-  if (method == "Colloc") {
-    trajs <- estimateParmsColloc(obs, hyperParms, opts)
-  } else if (method == "Altopi") {
-    trajs <- getAltopiTraj(obs, hyperParms, opts, memoize = memoize)
-  } else if (method == "Trivial") {
-    trajs <- obs
-  } else if (method == "Const") {
-    trajs <- makeTrajsStateConst(obs, mean)
-  } else {
+  trajs <- switch(
+    method,
+    "Colloc" = estimateParmsColloc(obs, hyperParms, opts),
+    "Altopi" = getAltopiTraj(obs, hyperParms, opts, memoize = memoize),
+    "Trivial" = obs,
+    "Interp" = interpolate(obs, hyperParms, opts),
+    "Const" = makeTrajsStateConst(obs, mean),
     stop("Unknown method ", method)
-  }
+  )
   # TODO: check where it makes sense to set the derivative
   if (!hasDeriv(trajs)) trajs <- setDeriv(trajs, opts$derivMethod)
   return(trajs)
