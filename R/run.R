@@ -53,7 +53,11 @@ writeTaskResult <- function(res, opts, info) {
 }
 
 writeTaskResultNewTrajs <- function(res, opts, info) {
-  outTimes <- seq(
+  odeTimes <- seq(
+    info$task$predictionTime[1],
+    info$task$predictionTime[2],
+    length.out = opts$odeSteps)
+  targetTimes <- seq(
     info$task$predictionTime[1],
     info$task$predictionTime[2],
     by = info$task$timeStep)
@@ -61,15 +65,16 @@ writeTaskResultNewTrajs <- function(res, opts, info) {
     time = 0,
     trajId = seq_len(nrow(info$task$initialState)),
     state = info$task$initialState)
+  initNormed <- res$normalization$normalize(init)
   result <- solveOde(
-    u0 = init,
+    u0 = initNormed,
     fun = buildDerivFun(res$hyperParms$derivFun),
-    times = outTimes,
+    times = odeTimes,
     opts = opts$odeSolver,
     parms = res$parms)
   resultDenormed <- res$normalization$denormalize(result)
   writeTrajs(
-    resultDenormed,
+    interpolateTrajs(resultDenormed, targetTimes),
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
 
@@ -91,19 +96,19 @@ writeTaskResultVelocity <- function(res, opts, info) {
 }
 
 writeTaskResultEstiObsTrajs <- function(res, opts, info) {
+  init <- estimateInitialStateAndTime(res, opts, info$task$predictionTime[1], info$task$timeStep)
+  odeTimes <- seq(
+    init$time[1],
+    info$task$predictionTime[2],
+    length.out = opts$odeSteps)
   targetTimes <- seq(
     info$task$predictionTime[1],
-    info$task$predictionTime[2],
-    by = info$task$timeStep)
-  init <- estimateInitialStateAndTime(res, opts, info$task$predictionTime[1], info$task$timeStep)
-  outTimes <- seq(
-    init$time[1],
     info$task$predictionTime[2],
     by = info$task$timeStep)
   result <- solveOde(
     u0 = init$initial,
     fun = buildDerivFun(res$hyperParms$derivFun),
-    times = outTimes,
+    times = odeTimes,
     opts = opts$odeSolver,
     parms = res$parms)
   resultDenormed <- res$normalization$denormalize(result)

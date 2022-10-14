@@ -27,11 +27,11 @@ int whichMinDist(NumericMatrix x, NumericVector y) {
 
 // [[Rcpp::export]]
 NumericVector distToVec(NumericMatrix x, NumericVector y) {
-  int nrow = x.nrow(), ncol = x.ncol();
-  NumericVector out(nrow);
-  for (int i = 1; i < nrow; ++i) {
+  int n = x.nrow(), d = x.ncol();
+  NumericVector out(n);
+  for (int i = 0; i < n; ++i) {
     double z = 0;
-    for (int j = 0; j < ncol; ++j) {
+    for (int j = 0; j < d; ++j) {
       double v = x(i, j)-y(j);
       z += v*v;
     }
