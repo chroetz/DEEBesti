@@ -27,21 +27,12 @@ NumericMatrix expKernelMatrix(NumericMatrix state, double bandwidth, double regu
 }
 
 // [[Rcpp::export]]
-NumericVector expKernelVector(NumericMatrix state, NumericVector query, double bandwidth) {
-  int n = state.nrow();
-  int d = state.ncol();
+NumericVector expKernelVector(NumericVector distSqr, double bandwidth) {
+  int n = distSqr.length();
   NumericVector out(n);
   double bwSqr = bandwidth*bandwidth;
-  double dst, v;
-
   for (int i = 0; i < n; ++i) {
-    dst = 0;
-    for (int k = 0; k < d; ++k) {
-      v = state(i,k)-query(k);
-      dst += v*v;
-    }
-    out(i) = exp(-0.5*dst/bwSqr);
+    out(i) = exp(-0.5*distSqr(i)/bwSqr);
   }
-
   return out;
 }

@@ -15,6 +15,7 @@ validate <- function(
     times = seq(0, max(obsVali$time), length.out = opts$odeSteps),
     opts = opts$odeSolver,
     parms = res$parms)
+  cleanUpParms(res$parms)
   err <- l2err(esti, obsVali) # TODO: make error type an option
   return(err)
 }

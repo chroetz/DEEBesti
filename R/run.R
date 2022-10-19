@@ -37,6 +37,8 @@ applyMethodToModel <- function(
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
       writeTaskResult(res, opts, allInfo)
     }
+
+    cleanUpParms(res$parms)
   }
 }
 

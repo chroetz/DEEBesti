@@ -25,10 +25,18 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
   if ("derivFun" %in% names(hyperParms)) {
     derivFunClass <- getClassAt(hyperParms$derivFun, 2)
     if (derivFunClass == "GaussianProcess") {
-      result$look <- buildLookUpGrid(trajs, distance=hyperParms$derivFun$maxDist)
+      result$knnFun <- FastKNN::buildKnnFunction(
+        trajs$state,
+        hyperParms$derivFun$kMax)
     }
   }
   return(result)
 }
 
+
+cleanUpParms <- function(parms) {
+  if ("knnFun" %in% names(parms)) {
+    FastKNN::deleteQueryFunction(parms$knnFun)
+  }
+}
 

@@ -17,6 +17,7 @@ Imports:
     DEEBpath,
     DEEBtrajs,
     deSolve,
+    FastKNN,
     Matrix,
     Rcpp,
     rlang,

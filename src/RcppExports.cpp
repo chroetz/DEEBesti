@@ -61,15 +61,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // expKernelVector
-NumericVector expKernelVector(NumericMatrix state, NumericVector query, double bandwidth);
-RcppExport SEXP _NonParamODE_expKernelVector(SEXP stateSEXP, SEXP querySEXP, SEXP bandwidthSEXP) {
+NumericVector expKernelVector(NumericVector distSqr, double bandwidth);
+RcppExport SEXP _NonParamODE_expKernelVector(SEXP distSqrSEXP, SEXP bandwidthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type state(stateSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type query(querySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type distSqr(distSqrSEXP);
     Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
-    rcpp_result_gen = Rcpp::wrap(expKernelVector(state, query, bandwidth));
+    rcpp_result_gen = Rcpp::wrap(expKernelVector(distSqr, bandwidth));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -97,15 +96,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// distSqrToVec
+NumericVector distSqrToVec(NumericMatrix target, NumericVector query);
+RcppExport SEXP _NonParamODE_distSqrToVec(SEXP targetSEXP, SEXP querySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type target(targetSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type query(querySEXP);
+    rcpp_result_gen = Rcpp::wrap(distSqrToVec(target, query));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_NonParamODE_distSqrToSeg", (DL_FUNC) &_NonParamODE_distSqrToSeg, 3},
     {"_NonParamODE_distSqrToPwLin", (DL_FUNC) &_NonParamODE_distSqrToPwLin, 2},
     {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 2},
     {"_NonParamODE_expKernelMatrix", (DL_FUNC) &_NonParamODE_expKernelMatrix, 3},
-    {"_NonParamODE_expKernelVector", (DL_FUNC) &_NonParamODE_expKernelVector, 3},
+    {"_NonParamODE_expKernelVector", (DL_FUNC) &_NonParamODE_expKernelVector, 2},
     {"_NonParamODE_whichMinDist", (DL_FUNC) &_NonParamODE_whichMinDist, 2},
     {"_NonParamODE_distToVec", (DL_FUNC) &_NonParamODE_distToVec, 2},
+    {"_NonParamODE_distSqrToVec", (DL_FUNC) &_NonParamODE_distSqrToVec, 2},
     {NULL, NULL, 0}
 };
 

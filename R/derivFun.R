@@ -15,8 +15,7 @@ buildDerivFun <- function(opts) {
     LocalLinear = \(t, u, parms) derivFunLocalLinear(
       u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     GaussianProcess = \(t, u, parms) derivFunGaussianProcess(
-      u, parms, bandwidth = opts$bandwidth, regulation = opts$regulation,
-      kMax = opts$kMax),
+      u, parms, bandwidth = opts$bandwidth, regulation = opts$regulation),
     InverseDistance = \(t, u, parms) derivFunInverseDistance(
       u, parms$trajs, p = opts$p),
     stop("Unknown derivFun name: ", name)
