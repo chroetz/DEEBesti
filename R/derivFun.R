@@ -5,15 +5,20 @@ buildDerivFun <- function(opts) {
     name,
     Null = \(t, u, parms) rep(0, length(u)),
     NearestNeighbor = \(t, u, parms) derivFunNearestNeighbor(
-      u, parms, opts$target),
+      u, parms$trajs, opts$target),
     InterpolKNN = \(t, u, parms) derivFunInterpolKNN(
-      u, parms, p = opts$p, k = opts$k),
+      u, parms$trajs, p = opts$p, k = opts$k),
     KernelKNN = \(t, u, parms) derivFunKernelKNN(
-      u, parms, k = opts$k, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+      u, parms$trajs, k = opts$k, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     LocalConst = \(t, u, parms) derivFunLocalConst(
-      u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+      u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     LocalLinear = \(t, u, parms) derivFunLocalLinear(
-      u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+      u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+    GaussianProcess = \(t, u, parms) derivFunGaussianProcess(
+      u, parms, bandwidth = opts$bandwidth, regulation = opts$regulation,
+      kMax = opts$kMax),
+    InverseDistance = \(t, u, parms) derivFunInverseDistance(
+      u, parms$trajs, p = opts$p),
     stop("Unknown derivFun name: ", name)
   )
   function(t, u, parms) list(derivFunUnlisted(t, u, parms))
@@ -52,16 +57,26 @@ derivFunInterpolKNN <- function(u, trajs, p, k) { # BEWARE: this will introduce 
   dst <- distToVec(trajs$state, u)
   sel <- rank(dst) <= k
   dus <- trajs$deriv[sel, , drop=FALSE]
-  if (p > 0) { # p > 0 (p==2): interpolation weights, for p = 0: no weights
-    dstSel <- dst[sel]^p
-    w <- 1/dstSel
+  if (p > 0) { # p > 0: inverse distance weights
+    dstSel <- dst[sel]
+    w <- dstSel^(-p)
     w <- w / sum(w)
     w[!is.finite(w)] <- 1/length(w)
     w <- w / sum(w)
-    du <- colMeans(dus * w)
-  } else {
+    du <- colSums(dus * w)
+  } else { # for p = 0: no weights
     du <- colMeans(dus)
   }
+  return(du)
+}
+
+derivFunInverseDistance <- function(u, trajs, p) {
+  dst <- distToVec(trajs$state, u)
+  w <- 1/(exp(dst*p)-1)
+  w <- w / sum(w)
+  w[!is.finite(w)] <- 1/length(w)
+  w <- w / sum(w)
+  du <- colSums(trajs$deriv * w)
   return(du)
 }
 
@@ -74,7 +89,7 @@ derivFunKernelKNN <- function(u, trajs, k, kernel, bw) {
   w <- w / sum(w)
   w[!is.finite(w)] <- 1/length(w)
   w <- w / sum(w)
-  du <- colMeans(dus * w)
+  du <- colSums(dus * w)
   return(du)
 }
 

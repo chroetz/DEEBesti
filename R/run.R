@@ -121,11 +121,11 @@ estimateInitialStateAndTime <- function(res, opts, startTime, timeStep) {
   name <- getClassAt(opts$initialState, 2)
   if (
     name == "FromTrajs" ||
-    (name == "Choose" && isTrajs(res$parms) && startTime == res$parms$time[1])) {
-    return(list(time = startTime, initial = getInitialState(res$parms, startTime)))
+    (name == "Choose" && "trajs" %in% names(res) && startTime == res$parms$trajs$time[1])) {
+    return(list(time = startTime, initial = getInitialState(res$parms$trajs, startTime)))
   } else if (
     name == "FromObs" ||
-    (name == "Choose" && (!isTrajs(res$parms) || startTime > res$parms$time[1]))) {
+    (name == "Choose" && (!"trajs" %in% names(res) || startTime > res$parms$trajs$time[1]))) {
     startObs <- getClosestInTime(res$obsNormed, startTime)
     return(list(time = mean(startObs$time), initial = startObs))
   } else {

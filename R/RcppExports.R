@@ -13,6 +13,14 @@ whichMinDistToPwLin <- function(path, query) {
     .Call(`_NonParamODE_whichMinDistToPwLin`, path, query)
 }
 
+expKernelMatrix <- function(state, bandwidth, regulation) {
+    .Call(`_NonParamODE_expKernelMatrix`, state, bandwidth, regulation)
+}
+
+expKernelVector <- function(state, query, bandwidth) {
+    .Call(`_NonParamODE_expKernelVector`, state, query, bandwidth)
+}
+
 whichMinDist <- function(x, y) {
     .Call(`_NonParamODE_whichMinDist`, x, y)
 }

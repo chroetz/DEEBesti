@@ -1,0 +1,9 @@
+{
+    "_class": ["GaussianProcess", "DerivFun", "Opts"],
+    "_description": "",
+    "maxDist": 1,
+    "kMax": 100,
+    "bandwidth": 1,
+    "regulation": 0.00000001
+}
+  

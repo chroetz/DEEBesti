@@ -11,11 +11,11 @@ solveOde <- function(fun, u0, times, opts, parms = NULL) {
     u0 <- makeTrajs(time = 0, state = u0, trajId = seq_len(n))
   }
   mapTrajs2Trajs(u0, function(init) {
-    suppressWarnings(suppressMessages(utils::capture.output( # make silent
+    suppressWarnings(utils::capture.output( # make silent
       u <- do.call(
         deSolve::ode,
         c(list(y = init$state, times = times, func = fun, parms = parms), opts))
-    )))
+    ))
     colnames(u) <- c("time", paste0("state", seq_len(ncol(u)-1)))
     asTrajs(u)
   })

@@ -47,6 +47,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// expKernelMatrix
+NumericMatrix expKernelMatrix(NumericMatrix state, double bandwidth, double regulation);
+RcppExport SEXP _NonParamODE_expKernelMatrix(SEXP stateSEXP, SEXP bandwidthSEXP, SEXP regulationSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
+    Rcpp::traits::input_parameter< double >::type regulation(regulationSEXP);
+    rcpp_result_gen = Rcpp::wrap(expKernelMatrix(state, bandwidth, regulation));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expKernelVector
+NumericVector expKernelVector(NumericMatrix state, NumericVector query, double bandwidth);
+RcppExport SEXP _NonParamODE_expKernelVector(SEXP stateSEXP, SEXP querySEXP, SEXP bandwidthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type query(querySEXP);
+    Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
+    rcpp_result_gen = Rcpp::wrap(expKernelVector(state, query, bandwidth));
+    return rcpp_result_gen;
+END_RCPP
+}
 // whichMinDist
 int whichMinDist(NumericMatrix x, NumericVector y);
 RcppExport SEXP _NonParamODE_whichMinDist(SEXP xSEXP, SEXP ySEXP) {
@@ -76,6 +102,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_NonParamODE_distSqrToSeg", (DL_FUNC) &_NonParamODE_distSqrToSeg, 3},
     {"_NonParamODE_distSqrToPwLin", (DL_FUNC) &_NonParamODE_distSqrToPwLin, 2},
     {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 2},
+    {"_NonParamODE_expKernelMatrix", (DL_FUNC) &_NonParamODE_expKernelMatrix, 3},
+    {"_NonParamODE_expKernelVector", (DL_FUNC) &_NonParamODE_expKernelVector, 3},
     {"_NonParamODE_whichMinDist", (DL_FUNC) &_NonParamODE_whichMinDist, 2},
     {"_NonParamODE_distToVec", (DL_FUNC) &_NonParamODE_distToVec, 2},
     {NULL, NULL, 0}

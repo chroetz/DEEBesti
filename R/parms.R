@@ -21,7 +21,14 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
   if (!hasDeriv(trajs) && "derivMethod" %in% names(hyperParms)) {
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }
-  return(trajs)
+  result <- list(trajs = trajs)
+  if ("derivFun" %in% names(hyperParms)) {
+    derivFunClass <- getClassAt(hyperParms$derivFun, 2)
+    if (derivFunClass == "GaussianProcess") {
+      result$look <- buildLookUpGrid(trajs, distance=hyperParms$derivFun$maxDist)
+    }
+  }
+  return(result)
 }
 
 

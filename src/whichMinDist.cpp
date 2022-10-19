@@ -4,38 +4,37 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 int whichMinDist(NumericMatrix x, NumericVector y) {
   int nrow = x.nrow(), ncol = x.ncol();
-  int minI = 0;
-  double minV = 0;
-  for (int j = 0; j < ncol; ++j) {
-    double v = x(0, j)-y(j);
-    minV += v*v;
-  }
-  double z = 0;
-  for (int i = 1; i < nrow; ++i) {
-    z = 0;
+  double minDist = INFINITY;
+  double minIdx;
+  double dst;
+  double v;
+  for (int i = 0; i < nrow; ++i) {
+    dst = 0;
     for (int j = 0; j < ncol; ++j) {
-      double v = x(i, j)-y(j);
-      z += v*v;
+      v = x(i, j) - y(j);
+      dst += v*v;
     }
-    if (z < minV) {
-      minV = z;
-      minI = i;
+    if (dst < minDist) {
+      minDist = dst;
+      minIdx = i;
     }
   }
-  return minI+1;
+  return minIdx+1;
 }
 
 // [[Rcpp::export]]
 NumericVector distToVec(NumericMatrix x, NumericVector y) {
   int n = x.nrow(), d = x.ncol();
   NumericVector out(n);
+  double dst;
+  double v;
   for (int i = 0; i < n; ++i) {
-    double z = 0;
+    dst = 0;
     for (int j = 0; j < d; ++j) {
-      double v = x(i, j)-y(j);
-      z += v*v;
+      v = x(i, j) - y(j);
+      dst += v*v;
     }
-    out[i] = sqrt(z);
+    out[i] = sqrt(dst);
   }
   return out;
 }
