@@ -5,17 +5,23 @@ validate <- function(
     memoize,
     opts
   ) {
-  res <- getParmsAndIntitialState(
+
+  parms <- getParms(
     obsTrain,
     hyperParms,
     memoize = memoize)
+
   esti <- solveOde(
-    u0 = res$initial,
+    u0 = getInitialState(parms$trajs),
     fun = buildDerivFun(hyperParms$derivFun),
     times = seq(0, max(obsVali$time), length.out = opts$odeSteps),
     opts = opts$odeSolver,
-    parms = res$parms)
-  cleanUpParms(res$parms)
+    parms = parms)
+
+  obsVali <- parms$normalization$normalize(obsVali)
+
+  cleanUpParms(parms)
+
   err <- l2err(esti, obsVali) # TODO: make error type an option
   return(err)
 }

@@ -7,6 +7,8 @@
     },
     "derivFun": {
         "_class": ["DerivFun", "Opts"]
-    }
+    },
+    "normalize": "MeanAndCov",
+    "_normalize_description": "'MeanAndCov' or 'None'. See DEEBtrajs::calculateNormalization()."
 }
   

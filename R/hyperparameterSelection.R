@@ -74,13 +74,15 @@ estimateWithHyperparameterSelection <- function(
     opts,
     verbose = FALSE
   ) {
-  normalization <- calculateNormalization(obs)
-  obsNormed <- normalization$normalize(obs)
   optiHyperParms <- selectHyperparams(
-      obsNormed, hyperParmsListOpts, opts$hyperParmsSelection)
+      obs,
+      hyperParmsListOpts,
+      opts$hyperParmsSelection)
   if (verbose) printHyperParms(optiHyperParms)
-  parms <- getParms(obsNormed, optiHyperParms)
-  return(list(parms = parms, hyperParms = optiHyperParms, normalization = normalization, obsNormed = obsNormed))
+  parms <- getParms(obs, optiHyperParms)
+  return(list(
+    parms = parms,
+    hyperParms = optiHyperParms))
 }
 
 printHyperParms <- function(hyperParms) {

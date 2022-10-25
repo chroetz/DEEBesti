@@ -10,6 +10,8 @@ buildDerivFun <- function(opts) {
       u, parms$trajs, opts$target),
     Knn = \(t, u, parms) derivFunKnn(
       u, parms),
+    GlobalLm = \(t, u, parms) derivFunGlobalLm(
+      u, parms),
     LocalConst = \(t, u, parms) derivFunLocalConst(
       u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     LocalLinear = \(t, u, parms) derivFunLocalLinear(
@@ -55,6 +57,13 @@ derivFunKnn <- function(u, parms) {
   knn <- parms$knnFun(u)
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   du <- colMeans(deriv)
+  return(du)
+}
+
+derivFunGlobalLm <- function(u, parms) {
+  newdata <- list(state = matrix(u, nrow = 1))
+  # NOTE: stats::predict is slow
+  du <- vapply(parms$fit, stats::predict, double(1), newdata = newdata)
   return(du)
 }
 

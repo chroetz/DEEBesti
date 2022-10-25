@@ -1,13 +1,13 @@
-
-getParmsAndIntitialState <- function(obs, hyperParms, memoize = FALSE) {
-  parms <- getParms(obs, hyperParms, memoize = FALSE)
-  list(
-    parms = parms,
-    initial = getInitialState(parms))
-}
-
 getParms <- function(obs, hyperParms, memoize = FALSE) {
+
   hyperParms <- asOpts(hyperParms, "HyperParms")
+  parms <- list()
+
+  # Preprocessing: Normalization.
+  parms$normalization <- calculateNormalization(obs, hyperParms$normalize)
+  obs <- parms$normalization$normalize(obs)
+
+  # Fit the trajectory.
   method <- getClassAt(hyperParms, 2)
   trajs <- switch(
     method,
@@ -21,13 +21,27 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
   if (!hasDeriv(trajs) && "derivMethod" %in% names(hyperParms)) {
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }
-  result <- list(trajs = trajs)
+  parms$trajs <- trajs
+
+  # Pre-calculations for derivFuns.
   if (hyperParms$derivFun$neighbors >= 1) {
-    result$knnFun <- FastKNN::buildKnnFunction(
+    parms$knnFun <- FastKNN::buildKnnFunction(
       trajs$state,
       hyperParms$derivFun$neighbors)
   }
-  return(result)
+  if (getClassAt(hyperParms$derivFun, 2) == "GlobalLm") {
+    frmlStr <- gsub("\\bx(\\d+)\\b", "state[,\\1]", hyperParms$derivFun$formula)
+    frmlStr <- gsub("\\by(\\d+)\\b", "deriv[,\\1]", frmlStr)
+    frmlStr <- gsub("\\bx\\b", "state", frmlStr)
+    if (length(frmlStr) == 1) frmlStr <- rep(frmlStr, getDim(trajs))
+    frmlStr <- sapply(
+      seq_along(frmlStr),
+      \(i) gsub("\\by\\b", sprintf("deriv[,%d]", i), frmlStr[i]))
+    stopifnot(length(frmlStr) == getDim(trajs))
+    parms$fit <- lapply(frmlStr, \(s) stats::lm(s, data = trajs))
+  }
+
+  return(parms)
 }
 
 
