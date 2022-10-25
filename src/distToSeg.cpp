@@ -98,7 +98,7 @@ NumericVector distSqrToPwLin(NumericMatrix path, NumericVector query) {
 }
 
 // expects points of the same trajectory to be next to each other, i.e.,
-// when id changes from one index to the next, a completly new trajectory starts
+// when id changes from one index to the next, a completely new trajectory starts
 // [[Rcpp::export]]
 double whichMinDistToPwLin(NumericMatrix path, NumericVector id, NumericVector query) {
   int d = query.length();
