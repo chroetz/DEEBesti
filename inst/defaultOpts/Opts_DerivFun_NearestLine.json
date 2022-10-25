@@ -1,0 +1,7 @@
+{
+    "_class": ["NearestLine", "DerivFun", "Opts"],
+    "_description": "",
+    "target": "line",
+    "_target_values": ["line", "pointLine", "interp"]
+}
+  

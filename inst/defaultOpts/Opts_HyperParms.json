@@ -1,6 +1,12 @@
 {
     "_class": ["HyperParms", "Opts"],
     "_defaultSubClass": "empty",
-    "_description": ""
+    "_description": "",
+    "initialState": {
+        "_class": ["InitialState", "Opts"]
+    },
+    "derivFun": {
+        "_class": ["DerivFun", "Opts"]
+    }
 }
   

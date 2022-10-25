@@ -22,13 +22,10 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }
   result <- list(trajs = trajs)
-  if ("derivFun" %in% names(hyperParms)) {
-    derivFunClass <- getClassAt(hyperParms$derivFun, 2)
-    if (derivFunClass == "GaussianProcess") {
-      result$knnFun <- FastKNN::buildKnnFunction(
-        trajs$state,
-        hyperParms$derivFun$kMax)
-    }
+  if (hyperParms$derivFun$neighbors >= 1) {
+    result$knnFun <- FastKNN::buildKnnFunction(
+      trajs$state,
+      hyperParms$derivFun$neighbors)
   }
   return(result)
 }

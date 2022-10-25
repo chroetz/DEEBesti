@@ -9,8 +9,8 @@ distSqrToPwLin <- function(path, query) {
     .Call(`_NonParamODE_distSqrToPwLin`, path, query)
 }
 
-whichMinDistToPwLin <- function(path, query) {
-    .Call(`_NonParamODE_whichMinDistToPwLin`, path, query)
+whichMinDistToPwLin <- function(path, id, query) {
+    .Call(`_NonParamODE_whichMinDistToPwLin`, path, id, query)
 }
 
 expKernelMatrix <- function(state, bandwidth, regulation) {

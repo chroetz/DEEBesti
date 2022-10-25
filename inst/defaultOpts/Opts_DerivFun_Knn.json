@@ -1,0 +1,6 @@
+{
+    "_class": ["Knn", "DerivFun", "Opts"],
+    "_description": "",
+    "neighbors": 1
+}
+  

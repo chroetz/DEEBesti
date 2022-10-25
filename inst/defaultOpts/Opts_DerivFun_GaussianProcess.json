@@ -1,8 +1,8 @@
 {
     "_class": ["GaussianProcess", "DerivFun", "Opts"],
     "_description": "",
-    "kMax": 100,
     "bandwidth": 1,
-    "regulation": 1e-10
+    "regulation": 1e-10,
+    "neighbors": 100
 }
   

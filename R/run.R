@@ -5,7 +5,8 @@ applyMethodToModel <- function(
     taskPath = observationPath,
     submissionPath = observationPath,
     obsNrFilter = NULL,
-    truthNrFilter = NULL
+    truthNrFilter = NULL,
+    verbose = TRUE
 ) {
 
   opts <- asOpts(opts, "Estimation")
@@ -29,7 +30,7 @@ applyMethodToModel <- function(
       obs,
       hyperParmsList,
       opts,
-      verbose = TRUE)
+      verbose = verbose)
     hpPath <- file.path(outDir, DEEBpath::hyperParmsFile(info))
     writeOpts(res$hyperParms, hpPath)
 
@@ -98,7 +99,7 @@ writeTaskResultVelocity <- function(res, opts, info) {
 }
 
 writeTaskResultEstiObsTrajs <- function(res, opts, info) {
-  init <- estimateInitialStateAndTime(res, opts, info$task$predictionTime[1], info$task$timeStep)
+  init <- estimateInitialStateAndTime(res, res$hyperParms, info$task$predictionTime[1], info$task$timeStep)
   odeTimes <- seq(
     init$time[1],
     info$task$predictionTime[2],
@@ -119,8 +120,8 @@ writeTaskResultEstiObsTrajs <- function(res, opts, info) {
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
 
-estimateInitialStateAndTime <- function(res, opts, startTime, timeStep) {
-  name <- getClassAt(opts$initialState, 2)
+estimateInitialStateAndTime <- function(res, hyperParms, startTime, timeStep) {
+  name <- getClassAt(hyperParms$initialState, 2)
   if (
     name == "FromTrajs" ||
     (name == "Choose" && "trajs" %in% names(res) && startTime == res$parms$trajs$time[1])) {

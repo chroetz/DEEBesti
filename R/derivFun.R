@@ -1,15 +1,15 @@
 buildDerivFun <- function(opts) {
   opts <- asOpts(opts, "DerivFun")
   name <- getClassAt(opts, 2)
+  # KNN selection is only implemented for some derivFuns. For all others the field neighbors should be 0.
+  stopifnot(opts$neighbors == 0 || name %in% c("Knn", "GaussianProcess"))
   derivFunUnlisted <- switch(
     name,
     Null = \(t, u, parms) rep(0, length(u)),
-    NearestNeighbor = \(t, u, parms) derivFunNearestNeighbor(
+    NearestLine = \(t, u, parms) derivFunNearestLine(
       u, parms$trajs, opts$target),
-    InterpolKNN = \(t, u, parms) derivFunInterpolKNN(
-      u, parms$trajs, p = opts$p, k = opts$k),
-    KernelKNN = \(t, u, parms) derivFunKernelKNN(
-      u, parms$trajs, k = opts$k, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+    Knn = \(t, u, parms) derivFunKnn(
+      u, parms),
     LocalConst = \(t, u, parms) derivFunLocalConst(
       u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     LocalLinear = \(t, u, parms) derivFunLocalLinear(
@@ -24,82 +24,67 @@ buildDerivFun <- function(opts) {
 }
 
 
-derivFunNearestNeighbor <- function(u, trajs, target) {
-  if (target == "pointLine") { # assumes deriv[i,] belongs to segement i; interpolate for corner points
-    i <- whichMinDistToPwLin(trajs$state, u)
-    if (i %% 1 == 0 && i > 1) { # corner point
-      (trajs$deriv[i, ] + trajs$deriv[i-1, ]) / 2
+derivFunNearestLine <- function(u, trajs, target) {
+  idxMin <- whichMinDistToPwLin(trajs$state, trajs$trajId, u)
+  if (target == "pointLine") {
+    # assumes deriv[idxMin,] belongs to segement idxMin;
+    # interpolate for corner points
+    if (idxMin %% 1 == 0 && idxMin > 1) { # corner point
+      du <- (trajs$deriv[idxMin, ] + trajs$deriv[idxMin-1, ]) / 2
     } else {
-      trajs$deriv[floor(i), ]
+      du <- trajs$deriv[floor(idxMin), ]
     }
-  } else if (target == "interp") { # assumes deriv[i,] belongs to point i; linearly interpolate between derivs for line
-    i <- whichMinDistToPwLin(trajs$state, u)
-    if (i %% 1 == 0) { # corner point
-      trajs$deriv[i, ]
+  } else if (target == "interp") {
+    # assumes deriv[idxMin,] belongs to point idxMin;
+    # linearly interpolate between derivs for line
+    if (idxMin %% 1 == 0) { # corner point
+      du <- trajs$deriv[idxMin, ]
     } else {
-      t <- i - floor(i)
-      (1-t)*trajs$deriv[floor(i), ] + t*trajs$deriv[ceiling(i), ]
+      t <- idxMin - floor(idxMin)
+      du <- (1-t)*trajs$deriv[floor(idxMin), ] + t*trajs$deriv[ceiling(idxMin), ]
     }
   } else if (target == "line") {
-    i <- whichMinDistToPwLin(trajs$state, u)
-    trajs$deriv[floor(i), ]
-  } else if (target == "point") {
-    i <- whichMinDist(trajs$state, u)
-    trajs$deriv[i, ]
+    du <- trajs$deriv[floor(idxMin), ]
   } else {
     stop("Unknown target ", target)
   }
+  return(du)
 }
 
-
-derivFunInterpolKNN <- function(u, trajs, p, k) { # BEWARE: this will introduce discontinuities
-  dst <- distToVec(trajs$state, u)
-  sel <- rank(dst) <= k
-  dus <- trajs$deriv[sel, , drop=FALSE]
-  if (p > 0) { # p > 0: inverse distance weights
-    dstSel <- dst[sel]
-    w <- dstSel^(-p)
-    w <- w / sum(w)
-    w[!is.finite(w)] <- 1/length(w)
-    w <- w / sum(w)
-    du <- colSums(dus * w)
-  } else { # for p = 0: no weights
-    du <- colMeans(dus)
-  }
+derivFunKnn <- function(u, parms) {
+  knn <- parms$knnFun(u)
+  deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
+  du <- colMeans(deriv)
   return(du)
+}
+
+derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
+  knn <- parms$knnFun(u)
+  state <- parms$trajs$state[knn$idx, , drop=FALSE]
+  deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
+  kernelMatrix <- expKernelMatrix(state, bandwidth, regulation)
+  kernelVector <- expKernelVector(knn$distSqr, bandwidth)
+  crossprod(kernelVector, solve.default(kernelMatrix, deriv))
+}
+
+weightedMean <- function(x, w) {
+  w <- w / sum(w)
+  w[!is.finite(w)] <- 1/length(w)
+  w <- w / sum(w)
+  colSums(x * w)
 }
 
 derivFunInverseDistance <- function(u, trajs, p) {
   dst <- distToVec(trajs$state, u)
   w <- 1/(exp(dst*p)-1)
-  w <- w / sum(w)
-  w[!is.finite(w)] <- 1/length(w)
-  w <- w / sum(w)
-  du <- colSums(trajs$deriv * w)
-  return(du)
-}
-
-derivFunKernelKNN <- function(u, trajs, k, kernel, bw) {
-  dst <- distToVec(trajs$state, u)
-  sel <- rank(dst, ties.method="first") <= k
-  dus <- trajs$deriv[sel, , drop=FALSE]
-  dstSel <- dst[sel]
-  w <- kernel(dstSel / bw)
-  w <- w / sum(w)
-  w[!is.finite(w)] <- 1/length(w)
-  w <- w / sum(w)
-  du <- colSums(dus * w)
+  du <- weightedMean(trajs$deriv, w)
   return(du)
 }
 
 derivFunLocalConst <- function(u, trajs, kernel, bw) {
   dst <- distToVec(trajs$state, u)
   w <- kernel(dst / bw)
-  w <- w / sum(w)
-  w[!is.finite(w)] <- 1/length(w)
-  w <- w / sum(w)
-  du <- colSums(trajs$deriv * w)
-  du[is.na(du)] <- 0
+  du <- weightedMean(trajs$deriv, w)
   return(du)
 }
 

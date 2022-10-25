@@ -36,14 +36,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // whichMinDistToPwLin
-double whichMinDistToPwLin(NumericMatrix path, NumericVector query);
-RcppExport SEXP _NonParamODE_whichMinDistToPwLin(SEXP pathSEXP, SEXP querySEXP) {
+double whichMinDistToPwLin(NumericMatrix path, NumericVector id, NumericVector query);
+RcppExport SEXP _NonParamODE_whichMinDistToPwLin(SEXP pathSEXP, SEXP idSEXP, SEXP querySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type id(idSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type query(querySEXP);
-    rcpp_result_gen = Rcpp::wrap(whichMinDistToPwLin(path, query));
+    rcpp_result_gen = Rcpp::wrap(whichMinDistToPwLin(path, id, query));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -112,7 +113,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_NonParamODE_distSqrToSeg", (DL_FUNC) &_NonParamODE_distSqrToSeg, 3},
     {"_NonParamODE_distSqrToPwLin", (DL_FUNC) &_NonParamODE_distSqrToPwLin, 2},
-    {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 2},
+    {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 3},
     {"_NonParamODE_expKernelMatrix", (DL_FUNC) &_NonParamODE_expKernelMatrix, 3},
     {"_NonParamODE_expKernelVector", (DL_FUNC) &_NonParamODE_expKernelVector, 2},
     {"_NonParamODE_whichMinDist", (DL_FUNC) &_NonParamODE_whichMinDist, 2},
