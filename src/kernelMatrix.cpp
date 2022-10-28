@@ -75,3 +75,20 @@ NumericMatrix expKernelVectors1D(NumericVector x, NumericVector xout, double ban
   return out;
 }
 
+// [[Rcpp::export]]
+NumericMatrix expKernelDerivVectors1D(NumericVector x, NumericVector xout, double bandwidth) {
+  int n = x.length();
+  int m = xout.length();
+  NumericMatrix out(n, m);
+  double bwSqr = bandwidth*bandwidth;
+  double v;
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+      v = x(i)-xout(j);
+      out(i, j) = v/bwSqr*exp(-0.5*v*v/bwSqr);
+    }
+  }
+
+  return out;
+}

@@ -4,6 +4,7 @@
     "bandwidth": 1,
     "regulation": 1e-10,
     "neighborsHalf": 10,
+    "deriv": true,
     "interSteps": 10
 }
   

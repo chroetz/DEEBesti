@@ -29,6 +29,10 @@ expKernelVectors1D <- function(x, xout, bandwidth) {
     .Call(`_DEEBesti_expKernelVectors1D`, x, xout, bandwidth)
 }
 
+expKernelDerivVectors1D <- function(x, xout, bandwidth) {
+    .Call(`_DEEBesti_expKernelDerivVectors1D`, x, xout, bandwidth)
+}
+
 whichMinDist <- function(x, y) {
     .Call(`_DEEBesti_whichMinDist`, x, y)
 }

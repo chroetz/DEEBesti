@@ -99,6 +99,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// expKernelDerivVectors1D
+NumericMatrix expKernelDerivVectors1D(NumericVector x, NumericVector xout, double bandwidth);
+RcppExport SEXP _DEEBesti_expKernelDerivVectors1D(SEXP xSEXP, SEXP xoutSEXP, SEXP bandwidthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type xout(xoutSEXP);
+    Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
+    rcpp_result_gen = Rcpp::wrap(expKernelDerivVectors1D(x, xout, bandwidth));
+    return rcpp_result_gen;
+END_RCPP
+}
 // whichMinDist
 int whichMinDist(NumericMatrix x, NumericVector y);
 RcppExport SEXP _DEEBesti_whichMinDist(SEXP xSEXP, SEXP ySEXP) {
@@ -144,6 +157,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DEEBesti_expKernelVectorFromDistSqr", (DL_FUNC) &_DEEBesti_expKernelVectorFromDistSqr, 2},
     {"_DEEBesti_expKernelMatrix1D", (DL_FUNC) &_DEEBesti_expKernelMatrix1D, 3},
     {"_DEEBesti_expKernelVectors1D", (DL_FUNC) &_DEEBesti_expKernelVectors1D, 3},
+    {"_DEEBesti_expKernelDerivVectors1D", (DL_FUNC) &_DEEBesti_expKernelDerivVectors1D, 3},
     {"_DEEBesti_whichMinDist", (DL_FUNC) &_DEEBesti_whichMinDist, 2},
     {"_DEEBesti_distToVec", (DL_FUNC) &_DEEBesti_distToVec, 2},
     {"_DEEBesti_distSqrToVec", (DL_FUNC) &_DEEBesti_distSqrToVec, 2},
