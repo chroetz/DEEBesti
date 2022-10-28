@@ -1,4 +1,56 @@
-updateAltopiTraj <- function(trajs, obs, gamma) {
+initAltOpt <- function(obs, interSteps) {
+  mapTrajs2Trajs(obs, \(trj) {
+    n <- getCount(trj)
+    steps <- (n-1) * interSteps + 1
+    time <- seq(min(trj$time), max(trj$time), length.out = steps)
+    trj <- interpolateTrajs(trj, time)
+    trj <- setDeriv(trj, "center")
+    trj
+  })
+}
+
+
+oneAltOptStep <- function(
+    trajs, obs, gamma,
+    fitDeriv, fitDerivOpts=NULL,
+    updateTraj, updateTrajOpts=NULL
+  ) {
+  newTrajs <- trajs
+  newTrajs$deriv <- do.call(fitDeriv, c(list(x=trajs$state, y=trajs$deriv), fitDerivOpts))
+  newTrajs$state <- do.call(updateTraj, c(list(traj=newTrajs, obs=obs, gamma=gamma), updateTrajOpts))
+  return(newTrajs)
+}
+
+
+fitTrajsAltOpt <- function(obs, hyperParms, memoize = FALSE) {
+  hyperParms <- asOpts(hyperParms, c("AltOpt", "HyperParms"))
+  if (hyperParms$steps <= 0) return(initAltOpt(obs, hyperParms$interSteps))
+  if (memoize) {
+    traj <- getFromMemory(hyperParms)
+    if (!is.null(traj)) return(traj)
+  }
+  preHyperParms <- getHyperParmPredecessorAltOpt(hyperParms)
+  preTraj <- fitTrajsAltOpt(obs, preHyperParms, memoize)
+  nextTraj <- oneAltOptStep(
+    preTraj,
+    obs,
+    gamma = hyperParms$gamma,
+    fitDeriv = buildFitter(hyperParms$fitter),
+    updateTraj = updateAltOptTraj)
+  if (memoize) {
+    addToMemory(hyperParms, nextTraj)
+  }
+  return(nextTraj)
+}
+
+
+getHyperParmPredecessorAltOpt <- function(hyperParms) {
+  hyperParms$steps <- hyperParms$steps - 1
+  return(hyperParms)
+}
+
+
+updateAltOptTraj <- function(trajs, obs, gamma) {
 
   stepSize <- trajs$time[2] - trajs$time[1]
   counts <- unname(getCount(trajs))
@@ -49,3 +101,6 @@ updateAltopiTraj <- function(trajs, obs, gamma) {
 
   return(newState)
 }
+
+
+

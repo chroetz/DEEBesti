@@ -86,15 +86,6 @@ estimateWithHyperparameterSelection <- function(
 }
 
 printHyperParms <- function(hyperParms) {
-  method <- getClassAt(hyperParms, 2)
-  cat(
-    "[", method, "] ",
-    paste0(
-      names(hyperParms), ": ",
-      sapply(
-        hyperParms,
-        \(x) if (isOpts(x)) paste(oldClass(x)[-length(oldClass(x))], collapse="_") else format(x)),
-      collapse=", "),
-    "\n",
-    sep="")
+  # TODO
+  cat(".")
 }

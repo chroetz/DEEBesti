@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // distSqrToSeg
 double distSqrToSeg(NumericVector u, NumericVector v0, NumericVector v1);
-RcppExport SEXP _NonParamODE_distSqrToSeg(SEXP uSEXP, SEXP v0SEXP, SEXP v1SEXP) {
+RcppExport SEXP _DEEBesti_distSqrToSeg(SEXP uSEXP, SEXP v0SEXP, SEXP v1SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,7 +25,7 @@ END_RCPP
 }
 // distSqrToPwLin
 NumericVector distSqrToPwLin(NumericMatrix path, NumericVector query);
-RcppExport SEXP _NonParamODE_distSqrToPwLin(SEXP pathSEXP, SEXP querySEXP) {
+RcppExport SEXP _DEEBesti_distSqrToPwLin(SEXP pathSEXP, SEXP querySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,7 +37,7 @@ END_RCPP
 }
 // whichMinDistToPwLin
 double whichMinDistToPwLin(NumericMatrix path, NumericVector id, NumericVector query);
-RcppExport SEXP _NonParamODE_whichMinDistToPwLin(SEXP pathSEXP, SEXP idSEXP, SEXP querySEXP) {
+RcppExport SEXP _DEEBesti_whichMinDistToPwLin(SEXP pathSEXP, SEXP idSEXP, SEXP querySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,7 +50,7 @@ END_RCPP
 }
 // expKernelMatrix
 NumericMatrix expKernelMatrix(NumericMatrix state, double bandwidth, double regulation);
-RcppExport SEXP _NonParamODE_expKernelMatrix(SEXP stateSEXP, SEXP bandwidthSEXP, SEXP regulationSEXP) {
+RcppExport SEXP _DEEBesti_expKernelMatrix(SEXP stateSEXP, SEXP bandwidthSEXP, SEXP regulationSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,7 +63,7 @@ END_RCPP
 }
 // expKernelVectorFromDistSqr
 NumericVector expKernelVectorFromDistSqr(NumericVector distSqr, double bandwidth);
-RcppExport SEXP _NonParamODE_expKernelVectorFromDistSqr(SEXP distSqrSEXP, SEXP bandwidthSEXP) {
+RcppExport SEXP _DEEBesti_expKernelVectorFromDistSqr(SEXP distSqrSEXP, SEXP bandwidthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +75,7 @@ END_RCPP
 }
 // expKernelMatrix1D
 NumericMatrix expKernelMatrix1D(NumericVector x, double bandwidth, double regulation);
-RcppExport SEXP _NonParamODE_expKernelMatrix1D(SEXP xSEXP, SEXP bandwidthSEXP, SEXP regulationSEXP) {
+RcppExport SEXP _DEEBesti_expKernelMatrix1D(SEXP xSEXP, SEXP bandwidthSEXP, SEXP regulationSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,7 @@ END_RCPP
 }
 // expKernelVectors1D
 NumericMatrix expKernelVectors1D(NumericVector x, NumericVector xout, double bandwidth);
-RcppExport SEXP _NonParamODE_expKernelVectors1D(SEXP xSEXP, SEXP xoutSEXP, SEXP bandwidthSEXP) {
+RcppExport SEXP _DEEBesti_expKernelVectors1D(SEXP xSEXP, SEXP xoutSEXP, SEXP bandwidthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -101,7 +101,7 @@ END_RCPP
 }
 // whichMinDist
 int whichMinDist(NumericMatrix x, NumericVector y);
-RcppExport SEXP _NonParamODE_whichMinDist(SEXP xSEXP, SEXP ySEXP) {
+RcppExport SEXP _DEEBesti_whichMinDist(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -113,7 +113,7 @@ END_RCPP
 }
 // distToVec
 NumericVector distToVec(NumericMatrix x, NumericVector y);
-RcppExport SEXP _NonParamODE_distToVec(SEXP xSEXP, SEXP ySEXP) {
+RcppExport SEXP _DEEBesti_distToVec(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -125,7 +125,7 @@ END_RCPP
 }
 // distSqrToVec
 NumericVector distSqrToVec(NumericMatrix target, NumericVector query);
-RcppExport SEXP _NonParamODE_distSqrToVec(SEXP targetSEXP, SEXP querySEXP) {
+RcppExport SEXP _DEEBesti_distSqrToVec(SEXP targetSEXP, SEXP querySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -137,20 +137,20 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_NonParamODE_distSqrToSeg", (DL_FUNC) &_NonParamODE_distSqrToSeg, 3},
-    {"_NonParamODE_distSqrToPwLin", (DL_FUNC) &_NonParamODE_distSqrToPwLin, 2},
-    {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 3},
-    {"_NonParamODE_expKernelMatrix", (DL_FUNC) &_NonParamODE_expKernelMatrix, 3},
-    {"_NonParamODE_expKernelVectorFromDistSqr", (DL_FUNC) &_NonParamODE_expKernelVectorFromDistSqr, 2},
-    {"_NonParamODE_expKernelMatrix1D", (DL_FUNC) &_NonParamODE_expKernelMatrix1D, 3},
-    {"_NonParamODE_expKernelVectors1D", (DL_FUNC) &_NonParamODE_expKernelVectors1D, 3},
-    {"_NonParamODE_whichMinDist", (DL_FUNC) &_NonParamODE_whichMinDist, 2},
-    {"_NonParamODE_distToVec", (DL_FUNC) &_NonParamODE_distToVec, 2},
-    {"_NonParamODE_distSqrToVec", (DL_FUNC) &_NonParamODE_distSqrToVec, 2},
+    {"_DEEBesti_distSqrToSeg", (DL_FUNC) &_DEEBesti_distSqrToSeg, 3},
+    {"_DEEBesti_distSqrToPwLin", (DL_FUNC) &_DEEBesti_distSqrToPwLin, 2},
+    {"_DEEBesti_whichMinDistToPwLin", (DL_FUNC) &_DEEBesti_whichMinDistToPwLin, 3},
+    {"_DEEBesti_expKernelMatrix", (DL_FUNC) &_DEEBesti_expKernelMatrix, 3},
+    {"_DEEBesti_expKernelVectorFromDistSqr", (DL_FUNC) &_DEEBesti_expKernelVectorFromDistSqr, 2},
+    {"_DEEBesti_expKernelMatrix1D", (DL_FUNC) &_DEEBesti_expKernelMatrix1D, 3},
+    {"_DEEBesti_expKernelVectors1D", (DL_FUNC) &_DEEBesti_expKernelVectors1D, 3},
+    {"_DEEBesti_whichMinDist", (DL_FUNC) &_DEEBesti_whichMinDist, 2},
+    {"_DEEBesti_distToVec", (DL_FUNC) &_DEEBesti_distToVec, 2},
+    {"_DEEBesti_distSqrToVec", (DL_FUNC) &_DEEBesti_distSqrToVec, 2},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_NonParamODE(DllInfo *dll) {
+RcppExport void R_init_DEEBesti(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

@@ -8,17 +8,18 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
   obs <- parms$normalization$normalize(obs)
 
   # Fit the trajectory.
-  method <- getClassAt(hyperParms, 2)
+  method <- getClassAt(hyperParms$fitTrajs, 2)
   trajs <- switch(
     method,
-    "Colloc" = estimateParmsColloc(obs, hyperParms),
-    "Altopi" = getAltopiTraj(obs, hyperParms, memoize = memoize),
-    "Trivial" = obs,
-    "Interp" = interpolate(obs, hyperParms),
+    "Identity" = obs,
     "Const" = makeTrajsStateConst(obs, mean),
+    "InterpolationSpline" = fitTrajsInterpolationSpline(obs, hyperParms$fitTraj),
+    "GaussianProcess" = fitTrajsGaussianProcess(obs, hyperParms$fitTraj),
+    "LocalPolynomial" = fitTrajsLocalPolynomial(obs, hyperParms$fitTraj),
+    "AltOpt" = fitTrajsAltOpt(obs, hyperParms$fitTraj, memoize = memoize),
     stop("Unknown method ", method)
   )
-  if (!hasDeriv(trajs) && "derivMethod" %in% names(hyperParms)) {
+  if (!hasDeriv(trajs)) {
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }
   parms$trajs <- trajs

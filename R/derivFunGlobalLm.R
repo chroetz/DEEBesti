@@ -1,3 +1,15 @@
+derivFunGlobalLm <- function(u, parms) {
+  d <- length(u)
+  z <- double(d)
+  for (j in seq_len(d)) {
+    fea <- parms$lmFuns$vector$features(u, j)
+    z[j] <- sum(parms$coef[[j]] * fea)
+  }
+  du <- parms$lmFuns$vector$invTransform(u, z)
+  return(du)
+}
+
+
 buildLmFuns <- function(opts) {
 
   opts <- asOpts(opts, c("GlobalLm", "DerivFun"))

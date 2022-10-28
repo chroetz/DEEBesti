@@ -53,6 +53,7 @@ derivFunNearestLine <- function(u, trajs, target) {
   return(du)
 }
 
+
 derivFunKnn <- function(u, parms) {
   knn <- parms$knnFun(u)
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
@@ -60,16 +61,6 @@ derivFunKnn <- function(u, parms) {
   return(du)
 }
 
-derivFunGlobalLm <- function(u, parms) {
-  d <- length(u)
-  z <- double(d)
-  for (j in seq_len(d)) {
-    fea <- parms$lmFuns$vector$features(u, j)
-    z[j] <- sum(parms$coef[[j]] * fea)
-  }
-  du <- parms$lmFuns$vector$invTransform(u, z)
-  return(du)
-}
 
 derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
   knn <- parms$knnFun(u)
@@ -80,12 +71,6 @@ derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
   crossprod(kernelVector, solve.default(kernelMatrix, deriv))
 }
 
-weightedMean <- function(x, w) {
-  w <- w / sum(w)
-  w[!is.finite(w)] <- 1/length(w)
-  w <- w / sum(w)
-  colSums(x * w)
-}
 
 derivFunInverseDistance <- function(u, trajs, p) {
   dst <- distToVec(trajs$state, u)
@@ -94,6 +79,7 @@ derivFunInverseDistance <- function(u, trajs, p) {
   return(du)
 }
 
+
 derivFunLocalConst <- function(u, trajs, kernel, bw) {
   dst <- distToVec(trajs$state, u)
   w <- kernel(dst / bw)
@@ -101,8 +87,17 @@ derivFunLocalConst <- function(u, trajs, kernel, bw) {
   return(du)
 }
 
+
 derivFunLocalLinear <- function(u, trajs, kernel, bw) {
   # TODO
   stop("derivFunLocalLinear is not implemented yet")
+}
+
+
+weightedMean <- function(x, w) {
+  w <- w / sum(w)
+  w[!is.finite(w)] <- 1/length(w)
+  w <- w / sum(w)
+  colSums(x * w)
 }
 

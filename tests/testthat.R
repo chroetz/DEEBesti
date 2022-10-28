@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(NonParamODE)
+library(DEEBesti)
 
-test_check("NonParamODE")
+test_check("DEEBesti")

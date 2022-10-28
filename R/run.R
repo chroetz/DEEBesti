@@ -93,6 +93,8 @@ writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
   derivs <- t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
   resultNormed <- makeDerivTrajs(state = gridNormed$state, deriv = derivs)
   result <- parms$normalization$denormalize(resultNormed)
+  stopifnot(max(abs(result$state - grid$state)) < sqrt(.Machine$double.eps))
+  result$state <- grid$state # more robust against machine imprecision
   writeDerivTrajs(
     result,
     file.path(info$outDir, DEEBpath::estiFile(info)))

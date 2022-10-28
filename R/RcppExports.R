@@ -2,42 +2,42 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 distSqrToSeg <- function(u, v0, v1) {
-    .Call(`_NonParamODE_distSqrToSeg`, u, v0, v1)
+    .Call(`_DEEBesti_distSqrToSeg`, u, v0, v1)
 }
 
 distSqrToPwLin <- function(path, query) {
-    .Call(`_NonParamODE_distSqrToPwLin`, path, query)
+    .Call(`_DEEBesti_distSqrToPwLin`, path, query)
 }
 
 whichMinDistToPwLin <- function(path, id, query) {
-    .Call(`_NonParamODE_whichMinDistToPwLin`, path, id, query)
+    .Call(`_DEEBesti_whichMinDistToPwLin`, path, id, query)
 }
 
 expKernelMatrix <- function(state, bandwidth, regulation) {
-    .Call(`_NonParamODE_expKernelMatrix`, state, bandwidth, regulation)
+    .Call(`_DEEBesti_expKernelMatrix`, state, bandwidth, regulation)
 }
 
 expKernelVectorFromDistSqr <- function(distSqr, bandwidth) {
-    .Call(`_NonParamODE_expKernelVectorFromDistSqr`, distSqr, bandwidth)
+    .Call(`_DEEBesti_expKernelVectorFromDistSqr`, distSqr, bandwidth)
 }
 
 expKernelMatrix1D <- function(x, bandwidth, regulation) {
-    .Call(`_NonParamODE_expKernelMatrix1D`, x, bandwidth, regulation)
+    .Call(`_DEEBesti_expKernelMatrix1D`, x, bandwidth, regulation)
 }
 
 expKernelVectors1D <- function(x, xout, bandwidth) {
-    .Call(`_NonParamODE_expKernelVectors1D`, x, xout, bandwidth)
+    .Call(`_DEEBesti_expKernelVectors1D`, x, xout, bandwidth)
 }
 
 whichMinDist <- function(x, y) {
-    .Call(`_NonParamODE_whichMinDist`, x, y)
+    .Call(`_DEEBesti_whichMinDist`, x, y)
 }
 
 distToVec <- function(x, y) {
-    .Call(`_NonParamODE_distToVec`, x, y)
+    .Call(`_DEEBesti_distToVec`, x, y)
 }
 
 distSqrToVec <- function(target, query) {
-    .Call(`_NonParamODE_distSqrToVec`, target, query)
+    .Call(`_DEEBesti_distSqrToVec`, target, query)
 }
 
