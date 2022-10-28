@@ -1,0 +1,12 @@
+{
+    "_class": ["AltOpt", "FitTraj", "Opts"],
+    "_description": "",
+    "steps": 1,
+    "gamma": 0.5,
+    "interSteps": 3,
+    "derivMethod": "center",
+    "fitter": {
+        "_class": ["FitDeriv", "Opts"]
+    }
+}
+  

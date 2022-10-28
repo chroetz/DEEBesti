@@ -61,15 +61,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// expKernelVector
-NumericVector expKernelVector(NumericVector distSqr, double bandwidth);
-RcppExport SEXP _NonParamODE_expKernelVector(SEXP distSqrSEXP, SEXP bandwidthSEXP) {
+// expKernelVectorFromDistSqr
+NumericVector expKernelVectorFromDistSqr(NumericVector distSqr, double bandwidth);
+RcppExport SEXP _NonParamODE_expKernelVectorFromDistSqr(SEXP distSqrSEXP, SEXP bandwidthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type distSqr(distSqrSEXP);
     Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
-    rcpp_result_gen = Rcpp::wrap(expKernelVector(distSqr, bandwidth));
+    rcpp_result_gen = Rcpp::wrap(expKernelVectorFromDistSqr(distSqr, bandwidth));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expKernelMatrix1D
+NumericMatrix expKernelMatrix1D(NumericVector x, double bandwidth, double regulation);
+RcppExport SEXP _NonParamODE_expKernelMatrix1D(SEXP xSEXP, SEXP bandwidthSEXP, SEXP regulationSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
+    Rcpp::traits::input_parameter< double >::type regulation(regulationSEXP);
+    rcpp_result_gen = Rcpp::wrap(expKernelMatrix1D(x, bandwidth, regulation));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expKernelVectors1D
+NumericMatrix expKernelVectors1D(NumericVector x, NumericVector xout, double bandwidth);
+RcppExport SEXP _NonParamODE_expKernelVectors1D(SEXP xSEXP, SEXP xoutSEXP, SEXP bandwidthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type xout(xoutSEXP);
+    Rcpp::traits::input_parameter< double >::type bandwidth(bandwidthSEXP);
+    rcpp_result_gen = Rcpp::wrap(expKernelVectors1D(x, xout, bandwidth));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -115,7 +141,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_NonParamODE_distSqrToPwLin", (DL_FUNC) &_NonParamODE_distSqrToPwLin, 2},
     {"_NonParamODE_whichMinDistToPwLin", (DL_FUNC) &_NonParamODE_whichMinDistToPwLin, 3},
     {"_NonParamODE_expKernelMatrix", (DL_FUNC) &_NonParamODE_expKernelMatrix, 3},
-    {"_NonParamODE_expKernelVector", (DL_FUNC) &_NonParamODE_expKernelVector, 2},
+    {"_NonParamODE_expKernelVectorFromDistSqr", (DL_FUNC) &_NonParamODE_expKernelVectorFromDistSqr, 2},
+    {"_NonParamODE_expKernelMatrix1D", (DL_FUNC) &_NonParamODE_expKernelMatrix1D, 3},
+    {"_NonParamODE_expKernelVectors1D", (DL_FUNC) &_NonParamODE_expKernelVectors1D, 3},
     {"_NonParamODE_whichMinDist", (DL_FUNC) &_NonParamODE_whichMinDist, 2},
     {"_NonParamODE_distToVec", (DL_FUNC) &_NonParamODE_distToVec, 2},
     {"_NonParamODE_distSqrToVec", (DL_FUNC) &_NonParamODE_distSqrToVec, 2},

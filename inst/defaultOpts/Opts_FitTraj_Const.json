@@ -1,5 +1,5 @@
 {
-    "_class": ["LocalConst", "Fitter", "Opts"],
+    "_class": ["LocalConst", "FitTraj", "Opts"],
     "_description": "",
     "kernel": "Normal",
     "bandwidth": 1

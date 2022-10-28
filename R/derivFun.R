@@ -61,9 +61,13 @@ derivFunKnn <- function(u, parms) {
 }
 
 derivFunGlobalLm <- function(u, parms) {
-  newdata <- list(state = matrix(u, nrow = 1))
-  # NOTE: stats::predict is slow
-  du <- vapply(parms$fit, stats::predict, double(1), newdata = newdata)
+  d <- length(u)
+  z <- double(d)
+  for (j in seq_len(d)) {
+    fea <- parms$lmFuns$vector$features(u, j)
+    z[j] <- sum(parms$coef[[j]] * fea)
+  }
+  du <- parms$lmFuns$vector$invTransform(u, z)
   return(du)
 }
 
@@ -72,7 +76,7 @@ derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
   state <- parms$trajs$state[knn$idx, , drop=FALSE]
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   kernelMatrix <- expKernelMatrix(state, bandwidth, regulation)
-  kernelVector <- expKernelVector(knn$distSqr, bandwidth)
+  kernelVector <- expKernelVectorFromDistSqr(knn$distSqr, bandwidth)
   crossprod(kernelVector, solve.default(kernelMatrix, deriv))
 }
 

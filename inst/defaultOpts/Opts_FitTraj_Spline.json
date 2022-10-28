@@ -1,0 +1,8 @@
+{
+    "_class": ["Spline", "FitTraj", "Opts"],
+    "_description": "",
+    "target": "point",
+    "_target_values": ["point", "line"],
+    "interSteps": 10
+}
+  

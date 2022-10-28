@@ -1,0 +1,8 @@
+{
+    "_class": ["GaussianProcess", "FitTraj", "Opts"],
+    "_description": "",
+    "bandwidth": 1,
+    "regulation": 1e-10,
+    "neighbors": 100
+}
+  

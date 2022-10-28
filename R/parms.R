@@ -30,15 +30,14 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
       hyperParms$derivFun$neighbors)
   }
   if (getClassAt(hyperParms$derivFun, 2) == "GlobalLm") {
-    frmlStr <- gsub("\\bx(\\d+)\\b", "state[,\\1]", hyperParms$derivFun$formula)
-    frmlStr <- gsub("\\by(\\d+)\\b", "deriv[,\\1]", frmlStr)
-    frmlStr <- gsub("\\bx\\b", "state", frmlStr)
-    if (length(frmlStr) == 1) frmlStr <- rep(frmlStr, getDim(trajs))
-    frmlStr <- sapply(
-      seq_along(frmlStr),
-      \(i) gsub("\\by\\b", sprintf("deriv[,%d]", i), frmlStr[i]))
-    stopifnot(length(frmlStr) == getDim(trajs))
-    parms$fit <- lapply(frmlStr, \(s) stats::lm(s, data = trajs))
+    lmFuns <- buildLmFuns(hyperParms$derivFun)
+    z <- lmFuns$matrix$transform(trajs$state, trajs$deriv)
+    coef <- lapply(seq_len(ncol(z)), \(j) {
+      X <- lmFuns$matrix$features(trajs$state, j)
+      solve.default(crossprod(X), crossprod(X, z[,j]))
+    })
+    parms$lmFuns <- lmFuns
+    parms$coef <- coef
   }
 
   return(parms)

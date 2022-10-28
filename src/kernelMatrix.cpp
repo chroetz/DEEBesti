@@ -27,7 +27,7 @@ NumericMatrix expKernelMatrix(NumericMatrix state, double bandwidth, double regu
 }
 
 // [[Rcpp::export]]
-NumericVector expKernelVector(NumericVector distSqr, double bandwidth) {
+NumericVector expKernelVectorFromDistSqr(NumericVector distSqr, double bandwidth) {
   int n = distSqr.length();
   NumericVector out(n);
   double bwSqr = bandwidth*bandwidth;
@@ -36,3 +36,42 @@ NumericVector expKernelVector(NumericVector distSqr, double bandwidth) {
   }
   return out;
 }
+
+// [[Rcpp::export]]
+NumericMatrix expKernelMatrix1D(NumericVector x, double bandwidth, double regulation) {
+  int n = x.length();
+  NumericMatrix out(n,n);
+  double bwSqr = bandwidth*bandwidth;
+  double dst, v;
+
+  for (int i = 1; i < n; ++i) {
+    for (int j = 0; j < i; ++j) {
+      v = x(i)-x(j);
+      dst = exp(-0.5*v*v/bwSqr);
+      out(i, j) = dst;
+      out(j, i) = dst;
+    }
+  }
+  out.fill_diag(1 + regulation);
+
+  return out;
+}
+
+// [[Rcpp::export]]
+NumericMatrix expKernelVectors1D(NumericVector x, NumericVector xout, double bandwidth) {
+  int n = x.length();
+  int m = xout.length();
+  NumericMatrix out(n, m);
+  double bwSqr = bandwidth*bandwidth;
+  double v;
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+      v = x(i)-xout(j);
+      out(i, j) = exp(-0.5*v*v/bwSqr);
+    }
+  }
+
+  return out;
+}
+

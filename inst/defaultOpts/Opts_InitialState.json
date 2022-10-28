@@ -1,6 +1,6 @@
 {
     "_class": ["InitialState", "Opts"],
     "_description": "",
-    "_defaultSubClass": "Choose"
+    "_defaultSubClass": "FromObs"
 }
   

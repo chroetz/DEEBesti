@@ -1,7 +1,11 @@
 {
     "_class": ["GlobalLm", "DerivFun", "Opts"],
     "_description": "",
-    "formula": "y ~ x",
-    "_formula_description": "One R formula string with y (alias for deriv) on the left-hand side and mathematical expresseion with x or x1, x2, ... on the right-hand side. Alternatively, one formula string for each dimension using y1, y2, ... as a left-hand side."
+    "features": {
+        "z1": ["1", "x"], 
+        "z2": ["1", "x"]
+    },
+    "transform": {},
+    "invTransform": {}
 }
   

@@ -5,10 +5,16 @@
     "initialState": {
         "_class": ["InitialState", "Opts"]
     },
+    "fitTraj": {
+        "_class": ["FitTraj", "Opts"]
+    },
+    "derivMethod": "center",
+    "_values_derivMethod": ["forward", "center", "backward"],
     "derivFun": {
         "_class": ["DerivFun", "Opts"]
     },
     "normalize": "MeanAndCov",
-    "_normalize_description": "'MeanAndCov' or 'None'. See DEEBtrajs::calculateNormalization()."
+    "_values_normalize": ["MeanAndCov", "None"],
+    "_normalize_description": "See DEEBtrajs::calculateNormalization()."
 }
   

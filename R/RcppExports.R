@@ -17,8 +17,16 @@ expKernelMatrix <- function(state, bandwidth, regulation) {
     .Call(`_NonParamODE_expKernelMatrix`, state, bandwidth, regulation)
 }
 
-expKernelVector <- function(distSqr, bandwidth) {
-    .Call(`_NonParamODE_expKernelVector`, distSqr, bandwidth)
+expKernelVectorFromDistSqr <- function(distSqr, bandwidth) {
+    .Call(`_NonParamODE_expKernelVectorFromDistSqr`, distSqr, bandwidth)
+}
+
+expKernelMatrix1D <- function(x, bandwidth, regulation) {
+    .Call(`_NonParamODE_expKernelMatrix1D`, x, bandwidth, regulation)
+}
+
+expKernelVectors1D <- function(x, xout, bandwidth) {
+    .Call(`_NonParamODE_expKernelVectors1D`, x, xout, bandwidth)
 }
 
 whichMinDist <- function(x, y) {
