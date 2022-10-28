@@ -1,5 +1,5 @@
 {
-    "_class": ["AltOpt", "FitTraj", "Opts"],
+    "_class": ["AltOpt", "FitTrajs", "Opts"],
     "_description": "",
     "steps": 1,
     "gamma": 0.5,

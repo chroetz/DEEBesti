@@ -1,0 +1,23 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "Spline-Nn",
+  "list": [
+    {
+      "_class": ["HyperParms", "Opts"],
+      "normalize": "meanAndCov",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
+        "target": "point",
+        "interSteps": 50
+      },
+      "derivMethod": "none",
+      "derivFun": {
+        "_class": ["Knn", "DerivFun", "Opts"],
+        "neighbors": 1
+      }
+    }
+  ]
+}

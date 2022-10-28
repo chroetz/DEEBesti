@@ -1,20 +1,19 @@
 {
     "_class": ["HyperParms", "Opts"],
-    "_defaultSubClass": "empty",
     "_description": "",
+    "normalize": "meanAndCov",
+    "_values_normalize": ["meanAndCov", "none"],
+    "_normalize_description": "See DEEBtrajs::calculateNormalization().",
     "initialState": {
         "_class": ["InitialState", "Opts"]
     },
-    "fitTraj": {
-        "_class": ["FitTraj", "Opts"]
+    "fitTrajs": {
+        "_class": ["FitTrajs", "Opts"]
     },
-    "derivMethod": "center",
-    "_values_derivMethod": ["forward", "center", "backward"],
+    "derivMethod": "none",
+    "_values_derivMethod": ["forward", "center", "backward", "none"],
     "derivFun": {
         "_class": ["DerivFun", "Opts"]
-    },
-    "normalize": "MeanAndCov",
-    "_values_normalize": ["MeanAndCov", "None"],
-    "_normalize_description": "See DEEBtrajs::calculateNormalization()."
+    }
 }
   

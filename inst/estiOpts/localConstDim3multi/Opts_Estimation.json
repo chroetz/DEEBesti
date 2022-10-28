@@ -1,0 +1,4 @@
+{
+  "_class": ["Estimation", "Opts"],
+  "odeSteps": 1000
+}

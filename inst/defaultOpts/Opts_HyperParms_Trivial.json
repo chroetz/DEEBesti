@@ -1,8 +1,0 @@
-{
-    "_class": ["Trivial", "HyperParms", "Opts"],
-    "_description": "",
-    "derivMethod": "center",
-    "derivFun": {
-        "_class": ["DerivFun", "Opts"]
-    }
-}

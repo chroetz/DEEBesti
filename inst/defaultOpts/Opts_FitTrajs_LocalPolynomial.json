@@ -1,0 +1,10 @@
+{
+    "_class": ["GaussianProcess", "FitTrajs", "Opts"],
+    "_description": "",
+    "interSteps": 10,
+    "bandwidth": 1,
+    "kernel": "Normal"
+}
+    
+    
+  

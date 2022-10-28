@@ -1,7 +1,0 @@
-{
-    "_class": ["LocalConst", "FitTraj", "Opts"],
-    "_description": "",
-    "kernel": "Normal",
-    "bandwidth": 1
-}
-  

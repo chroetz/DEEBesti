@@ -1,5 +1,5 @@
 {
-    "_class": ["Spline", "FitTraj", "Opts"],
+    "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
     "_description": "",
     "target": "point",
     "_target_values": ["point", "line"],
