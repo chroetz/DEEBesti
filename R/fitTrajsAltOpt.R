@@ -52,7 +52,7 @@ getHyperParmPredecessorAltOpt <- function(hyperParms) {
 
 updateAltOptTraj <- function(trajs, obs, gamma) {
 
-  stepSize <- trajs$time[2] - trajs$time[1]
+  timeStep <- trajs$time[2] - trajs$time[1] # assumes constant time step
   counts <- unname(getCount(trajs))
   countTotal <- sum(counts)
   nTotal <- sum(getCount(obs))
@@ -65,7 +65,7 @@ updateAltOptTraj <- function(trajs, obs, gamma) {
     diagonals = list(
       diagLeft[-1],
       diagMiddle,
-      diagRight[-countTotal])) / stepSize
+      diagRight[-countTotal])) / timeStep
   matDerivSymm <- Matrix::crossprod(matDeriv)
 
   hasObs <- apply2TrajId(

@@ -4,7 +4,6 @@
     "hyperParmsSelection": {
         "_class": ["HyperParmsSelection", "Opts"]
     },
-    "odeSteps": 1000,
     "odeSolver": {
         "_class": ["OdeSolver", "Opts"]
     }

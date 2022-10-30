@@ -14,7 +14,7 @@ validate <- function(
   esti <- solveOde(
     u0 = getInitialState(parms$trajs),
     fun = buildDerivFun(hyperParms$derivFun),
-    times = seq(0, max(obsVali$time), length.out = opts$odeSteps),
+    timeRange = c(0, max(obsVali$time)),
     opts = opts$odeSolver,
     parms = parms)
 

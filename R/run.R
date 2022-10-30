@@ -56,10 +56,6 @@ writeTaskResult <- function(parms, hyperParms, obs, opts, info) {
 }
 
 writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
-  odeTimes <- seq(
-    info$task$predictionTime[1],
-    info$task$predictionTime[2],
-    length.out = opts$odeSteps)
   targetTimes <- seq(
     info$task$predictionTime[1],
     info$task$predictionTime[2],
@@ -72,7 +68,7 @@ writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
   result <- solveOde(
     u0 = init,
     fun = buildDerivFun(hyperParms$derivFun),
-    times = odeTimes,
+    timeRange = info$task$predictionTime,
     opts = opts$odeSolver,
     parms = parms)
   result <- parms$normalization$denormalize(result)
@@ -101,11 +97,12 @@ writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
 }
 
 writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
-  init <- estimateInitialStateAndTime(parms, hyperParms, obs, info$task$predictionTime[1], info$task$timeStep)
-  odeTimes <- seq(
-    init$time[1],
-    info$task$predictionTime[2],
-    length.out = opts$odeSteps)
+  init <- estimateInitialStateAndTime(
+    parms,
+    hyperParms,
+    obs,
+    info$task$predictionTime[1],
+    info$task$timeStep)
   targetTimes <- seq(
     info$task$predictionTime[1],
     info$task$predictionTime[2],
@@ -113,7 +110,7 @@ writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
   result <- solveOde(
     u0 = init$initial,
     fun = buildDerivFun(hyperParms$derivFun),
-    times = odeTimes,
+    timeRange = c(init$time[1], info$task$predictionTime[2]),
     opts = opts$odeSolver,
     parms = parms)
   resultDenormed <- parms$normalization$denormalize(result)

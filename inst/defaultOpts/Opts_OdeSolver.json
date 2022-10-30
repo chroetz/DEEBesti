@@ -1,5 +1,7 @@
 {
     "_class": ["OdeSolver", "Opts"],
-    "method": "rk4"
+    "method": "rk4",
+    "timeStep": 0.1,
+    "additionalArgs": {}
 }
  
