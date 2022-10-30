@@ -15,7 +15,12 @@ solveOde <- function(fun, u0, timeRange, opts, parms = NULL) {
     u <- do.call(
       deSolve::ode,
       c(
-        list(y = init$state, times = times, func = fun, parms = parms),
+        list(
+          y = init$state,
+          times = times,
+          func = fun,
+          parms = parms,
+          method = opts$method),
         opts$additionalArgs
       )
     )
