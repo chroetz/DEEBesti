@@ -1,4 +1,7 @@
 {
   "_class": ["Estimation", "Opts"],
-  "timeStep": 0.05
+  "odeSolver": {
+    "_class": ["OdeSolver", "Opts"],
+    "timeStep": 0.05
+  }
 }
