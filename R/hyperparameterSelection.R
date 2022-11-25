@@ -1,11 +1,11 @@
-selectHyperparams <- function(obs, hyperParmsListOpts, opts) {
+selectHyperparams <- function(obs, hyperParmsListOpts, opts, verbose) {
   opts <- asOpts(opts, "HyperParmsSelection")
   name <- getClassAt(opts, 2)
   switch(
     name,
     None = selectHyperparamsNone(hyperParmsListOpts),
-    CrossValidation = selectHyperparamsCrossValidation(obs, hyperParmsListOpts, opts),
-    EndValidation = selectHyperparamsEndValidation(obs, hyperParmsListOpts, opts))
+    CrossValidation = selectHyperparamsCrossValidation(obs, hyperParmsListOpts, opts, verbose),
+    EndValidation = selectHyperparamsEndValidation(obs, hyperParmsListOpts, opts, verbose))
 }
 
 
@@ -24,7 +24,7 @@ selectHyperparamsNone <- function(hyperParmsListOpts) {
 }
 
 
-selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts) {
+selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts, verbose) {
   hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
@@ -44,11 +44,13 @@ selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts) {
     FUN.VALUE = double(len))
   validationFoldErrors <- matrix(validationFoldErrors, nrow = len)
   validationErrors <- rowMeans(validationFoldErrors)
-  message(
-    sprintf(
-      "%6.2fs, err:%6.2f",
-      as.vector((proc.time()-pt)["elapsed"]),
-    min(validationErrors)))
+  if (verbose) {
+    cat(
+      sprintf(
+        "CrossValidation: %6.2fs, err:%6.2f\n",
+        as.vector((proc.time()-pt)["elapsed"]),
+      min(validationErrors)))
+  }
   minRowIdx <- which.min(validationErrors)
   return(list(
     hyperParms = hyperParmsList[[minRowIdx]],
@@ -65,7 +67,7 @@ splitCrossValidation <- function(trajs, fold, maxFolds) { # TODO: options
 }
 
 
-selectHyperparamsEndValidation <- function(obs, hyperParmsListOpts, opts) {
+selectHyperparamsEndValidation <- function(obs, hyperParmsListOpts, opts, verbose) {
   hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
@@ -78,11 +80,13 @@ selectHyperparamsEndValidation <- function(obs, hyperParmsListOpts, opts) {
     splitedObs$vali,
     hyperParmsList,
     opts = opts)
-  message(
-    sprintf(
-      "%6.2fs, err:%6.2f",
-      as.vector((proc.time()-pt)["elapsed"]),
-    min(validationErrors)))
+  if (verbose) {
+    cat(
+      sprintf(
+        "EndValidation: %6.2fs, err:%6.2f\n",
+        as.vector((proc.time()-pt)["elapsed"]),
+      min(validationErrors)))
+  }
   minRowIdx <- which.min(validationErrors)
   return(list(
     hyperParms = hyperParmsList[[minRowIdx]],
@@ -107,7 +111,8 @@ estimateWithHyperparameterSelection <- function(
   selection <- selectHyperparams(
       obs,
       hyperParmsListOpts,
-      opts$hyperParmsSelection)
+      opts$hyperParmsSelection,
+      verbose)
   if (verbose) printHyperParms(selection)
   parms <- getParms(obs, selection$hyperParms)
   return(c(list(parms = parms), selection))

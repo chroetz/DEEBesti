@@ -34,7 +34,7 @@ applyMethodToModel <- function(
       opts,
       verbose = verbose)
     writeOpts(res$hyperParms, file.path(outDir, DEEBpath::hyperParmsFile(info)))
-    writeValidationErrorFile(res$validationErrors, outDir, info)
+    writeValidationErrorFile(res$validationErrors, info, outDir)
     writeParms(res$parms, obs, info, outDir)
 
     for (j in seq_len(nrow(taskMeta))) {
@@ -59,8 +59,8 @@ writeValidationErrorFile <- function(validationErrors, info, outDir) {
   if (!is.null(validationErrors)) {
     path <- file.path(outDir, DEEBpath::validationErrorFile(info))
     data <- data.frame(
-      idx = seq_along(selection$validationErrors),
-      validationError = selection$validationErrors)
+      idx = seq_along(validationErrors),
+      validationError = validationErrors)
     utils::write.csv(
       data,
       file = path,

@@ -1,32 +1,31 @@
 buildDerivFun <- function(opts) {
   opts <- asOpts(opts, "DerivFun")
   name <- getClassAt(opts, 2)
-  # KNN selection is only implemented for some derivFuns. For all others the field neighbors should be 0.
-  stopifnot(opts$neighbors == 0 || name %in% c("Knn", "GaussianProcess"))
   derivFunUnlisted <- switch(
     name,
     Null = \(t, u, parms) rep(0, length(u)),
     NearestLine = \(t, u, parms) derivFunNearestLine(
-      u, parms$trajs, opts$target),
+      u, parms, opts$target),
     Knn = \(t, u, parms) derivFunKnn(
       u, parms),
     GlobalLm = \(t, u, parms) derivFunGlobalLm(
       u, parms),
     LocalConst = \(t, u, parms) derivFunLocalConst(
-      u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+      u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     LocalLinear = \(t, u, parms) derivFunLocalLinear(
-      u, parms$trajs, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
+      u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     GaussianProcess = \(t, u, parms) derivFunGaussianProcess(
       u, parms, bandwidth = opts$bandwidth, regulation = opts$regulation),
     InverseDistance = \(t, u, parms) derivFunInverseDistance(
-      u, parms$trajs, p = opts$p),
+      u, parms, p = opts$p),
     stop("Unknown derivFun name: ", name)
   )
   function(t, u, parms) list(derivFunUnlisted(t, u, parms))
 }
 
 
-derivFunNearestLine <- function(u, trajs, target) {
+derivFunNearestLine <- function(u, parms, target) {
+  trajs <- parms$trajs
   idxMin <- whichMinDistToPwLin(trajs$state, trajs$trajId, u)
   if (target == "pointLine") {
     # assumes deriv[idxMin,] belongs to segement idxMin;
@@ -55,7 +54,9 @@ derivFunNearestLine <- function(u, trajs, target) {
 
 
 derivFunKnn <- function(u, parms) {
+  if (any(is.na(u))) return(rep(NA, length(u)))
   knn <- parms$knnFun(u)
+  if (any(knn$idx == 0)) return(rep(NA, length(u)))
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   du <- colMeans(deriv)
   return(du)
@@ -74,25 +75,39 @@ derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
 }
 
 
-derivFunInverseDistance <- function(u, trajs, p) {
-  dst <- distToVec(trajs$state, u)
-  w <- 1/(exp(dst*p)-1)
-  du <- weightedMean(trajs$deriv, w)
+derivFunInverseDistance <- function(u, parms, p) {
+  if (any(is.na(u))) return(rep(NA, length(u)))
+  knn <- parms$knnFun(u)
+  if (any(knn$idx == 0)) return(rep(NA, length(u)))
+  deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
+  w <- 1/(knn$distSqr^(p/2))
+  du <- weightedMean(deriv, w)
   return(du)
 }
 
 
-derivFunLocalConst <- function(u, trajs, kernel, bw) {
-  dst <- distToVec(trajs$state, u)
-  w <- kernel(dst / bw)
-  du <- weightedMean(trajs$deriv, w)
+derivFunLocalConst <- function(u, parms, kernel, bw) {
+  if (any(is.na(u))) return(rep(NA, length(u)))
+  knn <- parms$knnFun(u)
+  if (any(knn$idx == 0)) return(rep(NA, length(u)))
+  deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
+  w <- kernel(sqrt(knn$distSqr) / bw)
+  du <- weightedMean(deriv, w)
   return(du)
 }
 
 
-derivFunLocalLinear <- function(u, trajs, kernel, bw) {
-  # TODO
-  stop("derivFunLocalLinear is not implemented yet")
+derivFunLocalLinear <- function(u, parms, kernel, bw) {
+  if (any(is.na(u))) return(rep(NA, length(u)))
+  knn <- parms$knnFun(u)
+  if (any(knn$idx == 0)) return(rep(NA, length(u)))
+  state <- parms$trajs$state[knn$idx, , drop=FALSE]
+  deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
+  w <- kernel(sqrt(knn$distSqr) / bw)
+  X <- cbind(1, state)
+  Xw <- X * rep(w, each = nrow(X))
+  browser()
+  crossprod(c(1, u), solve.default(crossprod(Xw, X), crossprod(Xw, deriv)))
 }
 
 

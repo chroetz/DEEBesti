@@ -1,6 +1,7 @@
 {
     "_class": ["InverseDistance", "DerivFun", "Opts"],
     "_description": "",
+    "neighbors": 100,
     "p": 3
 }
   

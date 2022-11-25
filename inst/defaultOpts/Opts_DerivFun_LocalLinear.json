@@ -1,6 +1,7 @@
 {
     "_class": ["LocalLinear", "DerivFun", "Opts"],
     "_description": "",
+    "neighbors": 100,
     "kernel": "Normal",
     "bandwidth": 1
 }
