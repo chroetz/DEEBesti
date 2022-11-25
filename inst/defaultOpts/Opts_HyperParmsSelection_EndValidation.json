@@ -1,8 +1,9 @@
 {
-    "_class": ["CrossValidation", "HyperParmsSelection", "Opts"],
+    "_class": ["EndValidation", "HyperParmsSelection", "Opts"],
     "_description": "",
-    "folds": 5,
+    "ratio": 0.1,
     "errorPower": 2,
+    "trainErrorShare": 0,
     "odeSolver": {
         "_class": ["OdeSolver", "Opts"]
     } 

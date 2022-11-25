@@ -17,6 +17,8 @@ applyMethodToModel <- function(
   writeOpts(hyperParmsList, dir = outDir)
   writeOpts(opts, dir = outDir)
 
+  hyperParmsList <- expandList(hyperParmsList)
+
   taskMeta <- DEEBpath::getMetaGeneric(taskPath, tagsFilter = "task")
   meta <- DEEBpath::getMetaGeneric(
     observationPath,
@@ -31,8 +33,9 @@ applyMethodToModel <- function(
       hyperParmsList,
       opts,
       verbose = verbose)
-    hpPath <- file.path(outDir, DEEBpath::hyperParmsFile(info))
-    writeOpts(res$hyperParms, hpPath)
+    writeOpts(res$hyperParms, file.path(outDir, DEEBpath::hyperParmsFile(info)))
+    writeValidationErrorFile(res$validationErrors, outDir, info)
+    writeParms(res$parms, obs, info, outDir)
 
     for (j in seq_len(nrow(taskMeta))) {
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
@@ -42,6 +45,30 @@ applyMethodToModel <- function(
     cleanUpParms(res$parms)
   }
 }
+
+
+writeParms <- function(parms, obs, info, outDir) {
+  if (!is.null(parms$trajs)) {
+    smoothPath <- file.path(outDir, DEEBpath::smoothFile(info))
+    writeTrajs(parms$normalization$denormalize(parms$trajs), smoothPath)
+  }
+}
+
+
+writeValidationErrorFile <- function(validationErrors, info, outDir) {
+  if (!is.null(validationErrors)) {
+    path <- file.path(outDir, DEEBpath::validationErrorFile(info))
+    data <- data.frame(
+      idx = seq_along(selection$validationErrors),
+      validationError = selection$validationErrors)
+    utils::write.csv(
+      data,
+      file = path,
+      quote = FALSE,
+      row.names = FALSE)
+  }
+}
+
 
 writeTaskResult <- function(parms, hyperParms, obs, opts, info) {
   info$task <- ConfigOpts::readOptsBare(info$taskPath)
@@ -54,6 +81,7 @@ writeTaskResult <- function(parms, hyperParms, obs, opts, info) {
     stop("Unknown task class ", taskClass)
   )
 }
+
 
 writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
   targetTimes <- seq(
@@ -71,11 +99,20 @@ writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
     timeRange = info$task$predictionTime,
     opts = opts$odeSolver,
     parms = parms)
+  if (is.null(result)) {
+    writeTrajs(
+      makeTrajs(
+        state = matrix(nrow = length(targetTimes), ncol = ncol(info$task$initialState)),
+        time = targetTimes),
+      file.path(info$outDir, DEEBpath::estiFile(info)))
+    return(invisible(NULL))
+  }
   result <- parms$normalization$denormalize(result)
   writeTrajs(
     interpolateTrajs(result, targetTimes),
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
+
 
 writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
   gridSides <- lapply(seq_along(info$task$gridSteps), \(i) seq(
@@ -96,6 +133,7 @@ writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
 
+
 writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
   init <- estimateInitialStateAndTime(
     parms,
@@ -113,11 +151,20 @@ writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
     timeRange = c(init$time[1], info$task$predictionTime[2]),
     opts = opts$odeSolver,
     parms = parms)
+  if (is.null(result)) {
+    writeTrajs(
+      makeTrajs(
+        state = matrix(nrow = length(targetTimes), ncol = ncol(obs$state)),
+        time = targetTimes),
+      file.path(info$outDir, DEEBpath::estiFile(info)))
+    return(invisible(NULL))
+  }
   resultDenormed <- parms$normalization$denormalize(result)
   writeTrajs(
     interpolateTrajs(resultDenormed, targetTimes),
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
+
 
 estimateInitialStateAndTime <- function(parms, hyperParms, obs, startTime, timeStep) {
   name <- getClassAt(hyperParms$initialState, 2)

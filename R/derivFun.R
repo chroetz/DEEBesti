@@ -63,7 +63,9 @@ derivFunKnn <- function(u, parms) {
 
 
 derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
+  if (any(is.na(u))) return(rep(NA, length(u)))
   knn <- parms$knnFun(u)
+  if (any(knn$idx == 0)) return(rep(NA, length(u)))
   state <- parms$trajs$state[knn$idx, , drop=FALSE]
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   kernelMatrix <- expKernelMatrix(state, bandwidth, regulation)

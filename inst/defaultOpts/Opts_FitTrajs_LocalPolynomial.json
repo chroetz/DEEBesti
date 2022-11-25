@@ -1,9 +1,10 @@
 {
-    "_class": ["GaussianProcess", "FitTrajs", "Opts"],
+    "_class": ["LocalPolynomial", "FitTrajs", "Opts"],
     "_description": "",
     "interSteps": 10,
     "bandwidth": 1,
-    "kernel": "Normal"
+    "kernel": "Normal",
+    "degree": 2
 }
     
     

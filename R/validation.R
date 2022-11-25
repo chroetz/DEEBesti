@@ -11,6 +11,13 @@ validate <- function(
     hyperParms,
     memoize = memoize)
 
+  if (
+    is.null(parms$trajs) ||
+    nrow(parms$trajs) == 0 ||
+    !all(is.finite(parms$trajs$state)) ||
+    !all(is.finite(parms$trajs$deriv))
+  ) return(Inf)
+
   esti <- solveOde(
     u0 = getInitialState(parms$trajs),
     fun = buildDerivFun(hyperParms$derivFun),
@@ -22,15 +29,22 @@ validate <- function(
 
   cleanUpParms(parms)
 
-  err <- l2err(esti, obsVali) # TODO: make error type an option
+  errVali <- lpErr(esti, obsVali, opts$errorPower)
+  errTrain <- lpErr(esti, obsTrain, opts$errorPower)
+  err <- (1-opts$trainErrorShare) * errVali + opts$trainErrorShare * errTrain
   return(err)
 }
 
 
-l2err <- function(trajs, obs) {
+lpErr <- function(trajs, obs, p) {
+  if (
+    is.null(trajs) ||
+    nrow(trajs) == 0 ||
+    !all(is.finite(trajs$state))
+  ) return(Inf)
   # TODO: apply per trajId
   trajsObs <- interpolateTrajs(trajs, obs$time)
-  mean((obs$state - trajsObs$state)^2)
+  mean(abs(obs$state - trajsObs$state)^p)
 }
 
 

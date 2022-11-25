@@ -19,6 +19,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     "AltOpt" = fitTrajsAltOpt(obs, hyperParms$fitTraj, memoize = memoize),
     stop("Unknown method ", method)
   )
+  if (is.null(trajs)) return(NULL)
   if (!hasDeriv(trajs)) {
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }

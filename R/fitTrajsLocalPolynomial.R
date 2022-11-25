@@ -6,28 +6,41 @@ fitTrajsLocalPolynomial <- function(obs, opts) {
     fitTrajLocalPolynomial,
     outTime = outTime,
     bandwidth = opts$bandwidth,
-    kernel = getKernel(opts$kernel))
+    kernel = getKernel(opts$kernel),
+    degree = opts$degree)
 }
 
 
-fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel) {
-  outState <- fitLocalPolynomial(
-    traj$time,
-    traj$state,
-    xout = outTime,
-    bandwidth = bandwidth,
-    kernel = kernel)
+fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree) {
+  m <- length(outTime)
+  X <- outer(traj$time, 0:degree, `^`)
+  Ws <- kernel(outer(traj$time, outTime, `-`) / bandwidth)
+  XTWs <- array(
+    rep(t(X), times = m) * rep(Ws, each = degree + 1),
+    dim = c(degree + 1, length(traj$time), m))
+  psiState <- outer(outTime, 0:degree, `^`)
+  psiDeriv <- cbind(0, outer(outTime, 0:(degree-1), \(u, s) u^s*(s+1)))
+  estiState <- matrix(nrow = m, ncol = ncol(traj$state))
+  estiDeriv <- matrix(nrow = m, ncol = ncol(traj$state))
+  regu <- .Machine$double.eps
+  for (j in 1:m) {
+    B <- XTWs[,,j] %*% X
+    a <- XTWs[,,j] %*% traj$state
+    while(TRUE) {
+      tryCatch(
+        {
+          Z <- solve.default(B + regu * diag(nrow(B)), a)
+          break
+        },
+        error = function(cond) regu <<- regu * 2
+      )
+      if (regu > sqrt(sqrt(.Machine$double.eps))) return(NULL)
+    }
+    estiState[j, ] <- psiState[j,] %*% Z
+    estiDeriv[j, ] <- psiDeriv[j,] %*% Z
+  }
   makeTrajs(
     time = outTime,
-    state = outState)
+    state = estiState,
+    deriv = estiDeriv)
 }
-
-
-fitLocalPolynomial <- function(x, y, xout, bandwidth, kernel) {
-  if (!is.matrix(y)) y <- matrix(y, ncol=1)
-  stopifnot(nrow(y) == length(x))
-
-  # TODO
-  stop("fitLocalPolynomial() is not implemented yet")
-}
-

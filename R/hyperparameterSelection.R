@@ -4,24 +4,27 @@ selectHyperparams <- function(obs, hyperParmsListOpts, opts) {
   switch(
     name,
     None = selectHyperparamsNone(hyperParmsListOpts),
-    CrossValidation = selectHyperparamsCV(obs, hyperParmsListOpts, opts))
+    CrossValidation = selectHyperparamsCrossValidation(obs, hyperParmsListOpts, opts),
+    EndValidation = selectHyperparamsEndValidation(obs, hyperParmsListOpts, opts))
 }
+
 
 selectHyperparamsNone <- function(hyperParmsListOpts) {
   if (
     !inheritsOptsClass(hyperParmsListOpts, "List") &&
     inheritsOptsClass(hyperParmsListOpts, "HyperParms")
   ) {
-    return(asOpts(hyperParmsListOpts, "HyperParms"))
+    return(list(hyperParmshyperParmsListOpts))
   } else {
     hyperParmsList <- hyperParmsListOpts$list
     len <- length(hyperParmsList)
-    if (len == 1) return(hyperParmsList[[1]])
+    if (len == 1) return(list(hyperParmshyperParmsList[[1]]))
     stop("There are ", len, " hyperparms to select from but selection method is `None`.")
   }
 }
 
-selectHyperparamsCV <- function(obs, hyperParmsListOpts, opts) {
+
+selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts) {
   hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
@@ -40,24 +43,17 @@ selectHyperparamsCV <- function(obs, hyperParmsListOpts, opts) {
     },
     FUN.VALUE = double(len))
   validationFoldErrors <- matrix(validationFoldErrors, nrow = len)
-  validationError <- rowMeans(validationFoldErrors)
+  validationErrors <- rowMeans(validationFoldErrors)
   message(
     as.vector((proc.time()-pt)["elapsed"]), "s. ",
-    "err:", min(validationError))
-  minRowIdx <- which.min(validationError)
-  return(hyperParmsList[[minRowIdx]])
+    "err:", min(validationErrors))
+  minRowIdx <- which.min(validationErrors)
+  return(list(
+    hyperParmshyperParmsList[[minRowIdx]],
+    validationErrors = validationErrors))
 }
 
-splitIntoTrainAndValidation <- function(trajs, ratio) {
-  n <- sum(getCount(trajs))
-  iVali <- floor(1:(n*ratio) / ratio)
-  iTrain <- setdiff(1:n, iVali)
-  vali <- trajs[iVali,]
-  train <- trajs[iTrain,]
-  return(list(train = train, vali = vali))
-}
-
-splitCrossValidation <- function(trajs, fold, maxFolds) {
+splitCrossValidation <- function(trajs, fold, maxFolds) { # TODO: options
   n <- sum(getCount(trajs))
   iVali <- 1:(n/maxFolds) * maxFolds - (maxFolds - fold)
   iTrain <- setdiff(1:n, iVali)
@@ -67,6 +63,36 @@ splitCrossValidation <- function(trajs, fold, maxFolds) {
 }
 
 
+selectHyperparamsEndValidation <- function(obs, hyperParmsListOpts, opts) {
+  hyperParmsListOpts <- asOpts(hyperParmsListOpts, c("HyperParms", "List"))
+  hyperParmsList <- hyperParmsListOpts$list
+  len <- length(hyperParmsList)
+  if (len == 0) return(NULL)
+  if (len == 1) return(hyperParmsList[[1]])
+  pt <- proc.time()
+  splitedObs <- splitEndValidation(obs, opts$ratio)
+  validationErrors <- validateHyperparams(
+    splitedObs$train,
+    splitedObs$vali,
+    hyperParmsList,
+    opts = opts)
+  message(
+    as.vector((proc.time()-pt)["elapsed"]), "s. ",
+    "err:", min(validationErrors))
+  minRowIdx <- which.min(validationErrors)
+  return(list(
+    hyperParmshyperParmsList[[minRowIdx]],
+    validationErrors = validationErrors))
+}
+
+splitEndValidation <- function(trajs, ratio) {
+  train <- mapTrajs2Trajs(trajs, \(traj) traj[1:floor(nrow(traj) * (1-ratio)), ])
+  vali <- mapTrajs2Trajs(trajs, \(traj) traj[(floor(nrow(traj) * (1-ratio)) + 1):nrow(traj), ])
+  return(list(train = train, vali = vali))
+}
+
+
+
 #' @export
 estimateWithHyperparameterSelection <- function(
     obs,
@@ -74,18 +100,16 @@ estimateWithHyperparameterSelection <- function(
     opts,
     verbose = FALSE
   ) {
-  optiHyperParms <- selectHyperparams(
+  selection <- selectHyperparams(
       obs,
       hyperParmsListOpts,
       opts$hyperParmsSelection)
-  if (verbose) printHyperParms(optiHyperParms)
-  parms <- getParms(obs, optiHyperParms)
-  return(list(
-    parms = parms,
-    hyperParms = optiHyperParms))
+  if (verbose) printHyperParms(selection)
+  parms <- getParms(obs, selection$hyperParms)
+  return(c(list(parms = parms), selection))
 }
 
-printHyperParms <- function(hyperParms) {
-  # TODO
-  cat(".")
+printHyperParms <- function(selection) {
+  if ("validationErrors" %in% selection)
+    cat(paste0(sprintf("%.1f", selection$validationErrors), collapse=", "), "\n")
 }
