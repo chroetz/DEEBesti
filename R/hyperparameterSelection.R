@@ -14,11 +14,11 @@ selectHyperparamsNone <- function(hyperParmsListOpts) {
     !inheritsOptsClass(hyperParmsListOpts, "List") &&
     inheritsOptsClass(hyperParmsListOpts, "HyperParms")
   ) {
-    return(list(hyperParmshyperParmsListOpts))
+    return(list(hyperParms = hyperParmsListOpts))
   } else {
     hyperParmsList <- hyperParmsListOpts$list
     len <- length(hyperParmsList)
-    if (len == 1) return(list(hyperParmshyperParmsList[[1]]))
+    if (len == 1) return(list(hyperParms = hyperParmsList[[1]]))
     stop("There are ", len, " hyperparms to select from but selection method is `None`.")
   }
 }
@@ -29,7 +29,7 @@ selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts) {
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
   if (len == 0) return(NULL)
-  if (len == 1) return(hyperParmsList[[1]])
+  if (len == 1) return(list(hyperParms = hyperParmsList[[1]]))
   pt <- proc.time()
   validationFoldErrors <- vapply(
     seq_len(opts$folds),
@@ -45,11 +45,13 @@ selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts) {
   validationFoldErrors <- matrix(validationFoldErrors, nrow = len)
   validationErrors <- rowMeans(validationFoldErrors)
   message(
-    as.vector((proc.time()-pt)["elapsed"]), "s. ",
-    "err:", min(validationErrors))
+    sprintf(
+      "%6.2fs, err:%6.2f",
+      as.vector((proc.time()-pt)["elapsed"]),
+    min(validationErrors)))
   minRowIdx <- which.min(validationErrors)
   return(list(
-    hyperParmshyperParmsList[[minRowIdx]],
+    hyperParms = hyperParmsList[[minRowIdx]],
     validationErrors = validationErrors))
 }
 
@@ -68,7 +70,7 @@ selectHyperparamsEndValidation <- function(obs, hyperParmsListOpts, opts) {
   hyperParmsList <- hyperParmsListOpts$list
   len <- length(hyperParmsList)
   if (len == 0) return(NULL)
-  if (len == 1) return(hyperParmsList[[1]])
+  if (len == 1) return(list(hyperParms = hyperParmsList[[1]]))
   pt <- proc.time()
   splitedObs <- splitEndValidation(obs, opts$ratio)
   validationErrors <- validateHyperparams(
@@ -77,11 +79,13 @@ selectHyperparamsEndValidation <- function(obs, hyperParmsListOpts, opts) {
     hyperParmsList,
     opts = opts)
   message(
-    as.vector((proc.time()-pt)["elapsed"]), "s. ",
-    "err:", min(validationErrors))
+    sprintf(
+      "%6.2fs, err:%6.2f",
+      as.vector((proc.time()-pt)["elapsed"]),
+    min(validationErrors)))
   minRowIdx <- which.min(validationErrors)
   return(list(
-    hyperParmshyperParmsList[[minRowIdx]],
+    hyperParms = hyperParmsList[[minRowIdx]],
     validationErrors = validationErrors))
 }
 
