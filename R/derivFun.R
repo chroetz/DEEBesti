@@ -105,9 +105,22 @@ derivFunLocalLinear <- function(u, parms, kernel, bw) {
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   w <- kernel(sqrt(knn$distSqr) / bw)
   X <- cbind(1, state)
-  Xw <- X * rep(w, each = nrow(X))
-  browser()
-  crossprod(c(1, u), solve.default(crossprod(Xw, X), crossprod(Xw, deriv)))
+  Xw <- X * w
+
+  regu <- .Machine$double.eps
+  while(TRUE) {
+    tryCatch(
+      {
+        beta <- solve.default(crossprod(Xw, X) + regu * diag(ncol(X)), crossprod(Xw, deriv))
+        break
+      },
+      error = function(cond) regu <<- regu * 10
+    )
+    cat("*")
+    if (regu > sqrt(sqrt(.Machine$double.eps))) return(rep(NA, length(u)))
+  }
+
+  crossprod(c(1, u), beta)
 }
 
 

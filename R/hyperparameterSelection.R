@@ -57,7 +57,7 @@ selectHyperparamsCrossValidation <- function(obs, hyperParmsListOpts, opts, verb
     validationErrors = validationErrors))
 }
 
-splitCrossValidation <- function(trajs, fold, maxFolds) { # TODO: options
+splitCrossValidation <- function(trajs, fold, maxFolds) {
   n <- sum(getCount(trajs))
   iVali <- 1:(n/maxFolds) * maxFolds - (maxFolds - fold)
   iTrain <- setdiff(1:n, iVali)

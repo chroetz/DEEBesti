@@ -32,8 +32,9 @@ fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree) {
           Z <- solve.default(B + regu * diag(nrow(B)), a)
           break
         },
-        error = function(cond) regu <<- regu * 2
+        error = function(cond) regu <<- regu * 10
       )
+      cat(".")
       if (regu > sqrt(sqrt(.Machine$double.eps))) return(NULL)
     }
     estiState[j, ] <- psiState[j,] %*% Z

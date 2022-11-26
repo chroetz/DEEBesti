@@ -3,5 +3,17 @@
   "odeSolver": {
     "_class": ["OdeSolver", "Opts"],
     "timeStep": 0.002
+  },
+  "hyperParmsSelection": {
+    "_class": ["EndValidation", "HyperParmsSelection", "Opts"],
+    "ratio": 0.2,
+    "errorPower": 1,
+    "trainErrorShare": 0.5,
+    "odeSolver": {
+      "_class": ["OdeSolver", "Opts"],
+      "timeStep": 0.01,
+      "method": "rk4",
+      "additionalArgs": []
+    }
   }
 }

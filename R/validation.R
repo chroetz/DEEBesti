@@ -42,9 +42,14 @@ lpErr <- function(trajs, obs, p) {
     nrow(trajs) == 0 ||
     !all(is.finite(trajs$state))
   ) return(Inf)
-  # TODO: apply per trajId
   trajsObs <- interpolateTrajs(trajs, obs$time)
-  mean(abs(obs$state - trajsObs$state)^p)
+  errs <- apply2TrajId(
+    trajsObs,
+    obs,
+    \(x, y, p) mean(abs(y$state - x$state)^p),
+    p = p,
+    simplify = TRUE)
+  return(mean(errs))
 }
 
 
