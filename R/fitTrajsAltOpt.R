@@ -23,7 +23,7 @@ oneAltOptStep <- function(
 
 
 fitTrajsAltOpt <- function(obs, hyperParms, memoize = FALSE) {
-  hyperParms <- asOpts(hyperParms, c("AltOpt", "HyperParms"))
+  hyperParms <- asOpts(hyperParms, c("AltOpt", "FitTrajs"))
   if (hyperParms$steps <= 0) return(initAltOpt(obs, hyperParms$interSteps))
   if (memoize) {
     traj <- getFromMemory(hyperParms)

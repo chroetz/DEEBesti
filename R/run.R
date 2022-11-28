@@ -17,7 +17,7 @@ applyMethodToModel <- function(
   writeOpts(hyperParmsList, dir = outDir)
   writeOpts(opts, dir = outDir)
 
-  hyperParmsList <- expandList(hyperParmsList)
+  hyperParmsList <- expandList(hyperParmsList) # TODO: write expanded and compact forms?
 
   taskMeta <- DEEBpath::getMetaGeneric(taskPath, tagsFilter = "task")
   meta <- DEEBpath::getMetaGeneric(
@@ -27,6 +27,7 @@ applyMethodToModel <- function(
 
   for (i in seq_len(nrow(meta))) {
     info <- meta[i,]
+    if (verbose) cat(paste0("truth: ", info$truthNr, ", obs: ", info$obsNr, ". "))
     obs <- readTrajs(info$obsPath)
     res <- estimateWithHyperparameterSelection(
       obs,

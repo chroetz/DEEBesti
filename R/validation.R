@@ -18,10 +18,12 @@ validate <- function(
     !all(is.finite(parms$trajs$deriv))
   ) return(Inf)
 
+  startTime <- opts$startTime * max(obsTrain$time)
+
   esti <- solveOde(
-    u0 = getInitialState(parms$trajs),
+    u0 = getInitialState(parms$trajs, startTime),
     fun = buildDerivFun(hyperParms$derivFun),
-    timeRange = c(0, max(obsVali$time)),
+    timeRange = c(startTime, max(obsVali$time)),
     opts = opts$odeSolver,
     parms = parms)
 
@@ -29,23 +31,27 @@ validate <- function(
 
   cleanUpParms(parms)
 
+  errTraj <- lpErr(parms$trajs, obsTrain, opts$errorPower)
   errVali <- lpErr(esti, obsVali, opts$errorPower)
-  errTrain <- lpErr(esti, obsTrain, opts$errorPower)
-  err <- (1-opts$trainErrorShare) * errVali + opts$trainErrorShare * errTrain
+  errTrain <- lpErr(esti, obsTrain[obsTrain$time>=startTime,], opts$errorPower)
+  err <-
+    opts$valiErrorWeight * errVali +
+    opts$trainErrorWeight * errTrain +
+    opts$trajsErrorWeight * errTraj
   return(err)
 }
 
 
-lpErr <- function(trajs, obs, p) {
+lpErr <- function(trajs, target, p) {
   if (
     is.null(trajs) ||
     nrow(trajs) == 0 ||
     !all(is.finite(trajs$state))
   ) return(Inf)
-  trajsObs <- interpolateTrajs(trajs, obs$time)
+  trajsObs <- interpolateTrajs(trajs, target$time)
   errs <- apply2TrajId(
     trajsObs,
-    obs,
+    target,
     \(x, y, p) mean(abs(y$state - x$state)^p),
     p = p,
     simplify = TRUE)

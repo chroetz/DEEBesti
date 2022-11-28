@@ -2,7 +2,6 @@
     "_class": ["CrossValidation", "HyperParmsSelection", "Opts"],
     "_description": "",
     "folds": 5,
-    "errorPower": 2,
     "odeSolver": {
         "_class": ["OdeSolver", "Opts"]
     } 

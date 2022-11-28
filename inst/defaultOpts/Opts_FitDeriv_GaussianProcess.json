@@ -1,0 +1,9 @@
+{
+    "_class": ["GaussianProcess", "FitDeriv", "Opts"],
+    "_description": "",
+    "kernel": "Normal",
+    "bandwidth": 1,
+    "regulation": 1e-2,
+    "neighbors": 50
+}
+  

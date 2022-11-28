@@ -14,7 +14,7 @@
 #' @return A numeric n by k matrix. The estimates of response variable at the
 #'   locations of the observed predictors.
 #' @export
-fitLocalLinear <- function(x, y, bw, kernel) {
+fitterLocalLinear <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
   stopifnot(NROW(x) == NROW(y))
@@ -36,7 +36,7 @@ fitLocalLinear <- function(x, y, bw, kernel) {
 }
 
 
-fitLocalConst <- function(x, y, bw, kernel) {
+fitterLocalConst <- function(x, y, bw, kernel) {
   stopifnot(is.numeric(x))
   stopifnot(is.numeric(y))
   stopifnot(NROW(x) == NROW(y))
@@ -46,10 +46,23 @@ fitLocalConst <- function(x, y, bw, kernel) {
   x <- as.matrix(x)
   y <- as.matrix(y)
   dst <- as.matrix(stats::dist(x))
-  weights <- kernel(dst/bw)
+  weights <- kernel(dst/bw) # TODO: This seems to be quite slow for exp-kernel.
   fit <- matrix(NA_real_, nrow = nrow(x), ncol = ncol(y))
   for (j in 1:nrow(x)) {
     fit[j, ] <- colSums(weights[,j] * y) / sum(weights[,j])
+  }
+  return(fit)
+}
+
+
+fitterGaussianProcess <- function(x, y, bandwidth, kernel, regulation, neighbors) {
+  knnFun <- FastKNN::buildKnnFunction(x, neighbors)
+  fit <- matrix(NA_real_, nrow = nrow(x), ncol = ncol(y))
+  for (i in seq_len(nrow(x))) {
+    knn <- knnFun(x[i,])
+    kernelMatrix <- expKernelMatrix(x[knn$idx, , drop=FALSE], bandwidth, regulation)
+    kernelVector <- expKernelVectorFromDistSqr(knn$distSqr, bandwidth)
+    fit[i, ] <- crossprod(kernelVector, solve.default(kernelMatrix, y[knn$idx, , drop=FALSE]))
   }
   return(fit)
 }
