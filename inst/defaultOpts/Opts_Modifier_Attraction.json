@@ -1,0 +1,7 @@
+{
+    "_class": ["Attraction", "Modifier", "Opts"],
+    "_description": "Direction of Velocity vector is changed to point closer to the smoothed trajctory.",
+    "attraction": 1,
+    "neighbors": 1
+}
+  

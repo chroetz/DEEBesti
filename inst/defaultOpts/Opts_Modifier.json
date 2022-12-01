@@ -1,0 +1,5 @@
+{
+    "_class": ["Modifier", "Opts"],
+    "_description": "Modify results of derivFun."
+}
+  

@@ -17,6 +17,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     "GaussianProcess" = fitTrajsGaussianProcess(obs, hyperParms$fitTraj),
     "LocalPolynomial" = fitTrajsLocalPolynomial(obs, hyperParms$fitTraj),
     "AltOpt" = fitTrajsAltOpt(obs, hyperParms$fitTraj, memoize = memoize),
+    "TrajOpt" = fitTrajsTrajOpt(obs, hyperParms$fitTraj, memoize = memoize),
     stop("Unknown method ", method)
   )
   if (is.null(trajs)) return(NULL)
@@ -42,6 +43,16 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     parms$coef <- coef
   }
 
+  # Pre-calculations for modifiers.
+  for (modifierOpts in hyperParms$derivFun$modifierList$list) {
+    name <- getClassAt(modifierOpts, 2)
+    if (name == "Attraction") {
+      parms$attactionKnnFun <- FastKNN::buildKnnFunction(
+        trajs$state,
+        modifierOpts$neighbors)
+    }
+  }
+
   return(parms)
 }
 
@@ -49,6 +60,9 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
 cleanUpParms <- function(parms) {
   if ("knnFun" %in% names(parms)) {
     FastKNN::deleteQueryFunction(parms$knnFun)
+  }
+  if ("attactionKnnFun" %in% names(parms)) {
+    FastKNN::deleteQueryFunction(parms$attactionKnnFun)
   }
 }
 

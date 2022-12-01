@@ -3,6 +3,9 @@
     "_description": "",
     "_defaultSubClass": "Null",
     "neighbors": 0,
-    "_neighbors_description": "number of nearest neighbors to be considered in the calculations. 0 for all"
+    "_neighbors_description": "number of nearest neighbors to be considered in the calculations. 0 for all",
+    "modifierList": {
+        "_class": ["Modifier", "List", "Opts"]
+    }
 }
   

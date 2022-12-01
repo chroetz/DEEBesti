@@ -1,7 +1,7 @@
 buildDerivFun <- function(opts) {
   opts <- asOpts(opts, "DerivFun")
   name <- getClassAt(opts, 2)
-  derivFunUnlisted <- switch(
+  derivFun <- switch(
     name,
     Null = \(t, u, parms) rep(0, length(u)),
     NearestLine = \(t, u, parms) derivFunNearestLine(
@@ -20,7 +20,15 @@ buildDerivFun <- function(opts) {
       u, parms, p = opts$p),
     stop("Unknown derivFun name: ", name)
   )
-  function(t, u, parms) list(derivFunUnlisted(t, u, parms))
+  for (modOpts in opts$modifierList$list) {
+    name <- getClassAt(modOpts, 2)
+    derivFun <- switch(
+      name,
+      Attraction = addAttraction(derivFun, modOpts$attraction),
+      stop("Unknown modifier name: ", name)
+    )
+  }
+  function(t, u, parms) list(derivFun(t, u, parms))
 }
 
 
@@ -60,6 +68,21 @@ derivFunKnn <- function(u, parms) {
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   du <- colMeans(deriv)
   return(du)
+}
+
+
+addAttraction <- function(derivFun, attraction) {
+  force(derivFun)
+  force(attraction)
+  function(t, u, parms) {
+    du <- derivFun(t, u, parms)
+    norm <- sqrt(sum(du^2))
+    knn <- parms$attactionKnnFun(u)
+    nearTrajsState <- colMeans(parms$trajs$state[knn$idx, , drop=FALSE])
+    du <- du + attraction * (nearTrajsState - u)
+    du <- du * norm / sqrt(sum(du^2))
+    return(du)
+  }
 }
 
 
