@@ -19,6 +19,7 @@ Imports:
     deSolve,
     FastKNN,
     Matrix,
+    RANN,
     Rcpp,
     rlang,
     stats,

@@ -6,9 +6,12 @@
   },
   "hyperParmsSelection": {
     "_class": ["EndValidation", "HyperParmsSelection", "Opts"],
-    "ratio": 0.2,
+    "ratio": 0.1,
     "errorPower": 1,
-    "trainErrorShare": 0.5,
+    "startTime": 0.9,
+    "trainErrorWeight": 0,
+    "valiErrorWeight": 2,
+    "trajsErrorWeight": 1,
     "odeSolver": {
       "_class": ["OdeSolver", "Opts"],
       "timeStep": 0.01,

@@ -49,35 +49,20 @@ updateTrajOptTraj <- function(trajs, obs, gamma, neighbors, derivWeights, alpha 
   # TODO:
   # * multiple trajs
   # * timeSteps <- diff(trajs$time)
+  # * remove derivWeights which are ignored right now
 
   m <- nrow(trajs)
   n <- nrow(obs)
   d <- getDim(trajs)
 
-  knnFun <- FastKNN::buildKnnFunction(trajs$state[-m,], neighbors)
-  idxs <- sapply(seq_len(m-1), \(i) {
-    knnFun(trajs$state[i,])$idx
-  })
-
-  matDeriv <- Matrix::sparseMatrix(
-    i = rep(1:((m-1)*neighbors), times=4),
-    j = c(
-      rep(1:(m-1), each = neighbors),
-      rep(2:m, each = neighbors),
-      idxs,
-      idxs+1),
-    x = c(
-      rep(-1, (m-1)*neighbors),
-      rep(1, (m-1)*neighbors),
-      rep(1, (m-1)*neighbors),
-      rep(-1, (m-1)*neighbors)),
-    dims = c((m-1)*neighbors, m))
-  matDerivSymm <- Matrix::crossprod(matDeriv)
-
-  knnFun <- FastKNN::buildKnnFunction(trajs$state[-c(1,m),], neighbors)
-  idxs <- sapply(2:(m-1), \(i) {
-    knnFun(trajs$state[i,])$idx + 1 # idx refers to trajs$state[-c(1,m),]
-  })
+  idxs <- t(RANN::nn2(
+    trajs$state[-c(1,m),],
+    trajs$state[-c(1,m),],
+    k = neighbors
+  )$nn.idx + 1)
+  # write Rcpp function to filter idexes such that a sequence of consecutive indices is reduced to one idx
+  # weight elements based on distance and based on uniformity of direction
+  # implement a version which does not always include the derivative along the trajectory as one of the two directions
 
   matDeriv2 <- Matrix::sparseMatrix(
     i = rep(1:((m-2)*neighbors), times=6),
@@ -98,19 +83,26 @@ updateTrajOptTraj <- function(trajs, obs, gamma, neighbors, derivWeights, alpha 
     dims = c((m-2)*neighbors, m))
   matDeriv2Symm <- Matrix::crossprod(matDeriv2)
 
-  hasObs <- apply(
-    outer(obs$time, trajs$time, \(a,b) abs(a-b)),
-    2,
-    \(z) any(z < sqrt(.Machine$double.eps)))
+  # TODO: make Rcpp implementation of this
+  tsDst <- outer(trajs$time, obs$time, \(a,b) abs(a-b))
+  iMin <- apply(tsDst, 2, which.min)
+  stopifnot(length(unique(iMin)) == length(iMin))
+  hasObs <- 1:m %in% iMin
+
   matObsSymm <- Matrix::bandSparse(
     m, m, 0,
     diagonals = list(as.numeric(hasObs)),
     symmetric = TRUE)
 
+  matOld <- Matrix::bandSparse(
+    m, m, 0,
+    diagonals = list(rep(alpha, m)),
+    symmetric = TRUE)
+
   mat <-
-    gamma/m * (derivWeights[1] * matDerivSymm + derivWeights[2] * matDeriv2Symm) +
+    gamma/m * matDeriv2Symm +
     (1-gamma)/n * matObsSymm +
-    alpha * Matrix::diag(1, nrow = m, ncol = m)
+    matOld
 
   tragetObs <- sapply(1:d, \(k) {
     y <- double(m)
@@ -120,7 +112,6 @@ updateTrajOptTraj <- function(trajs, obs, gamma, neighbors, derivWeights, alpha 
   traget <-
     (1-gamma)/n * tragetObs +
     alpha * trajs$state
-
 
   newState <- as.matrix(Matrix::solve(mat, traget))
   return(newState)
