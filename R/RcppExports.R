@@ -17,6 +17,18 @@ expKernelMatrix <- function(state, bandwidth, regulation) {
     .Call(`_DEEBesti_expKernelMatrix`, state, bandwidth, regulation)
 }
 
+expKernelVector <- function(xout, x, bandwidth) {
+    .Call(`_DEEBesti_expKernelVector`, xout, x, bandwidth)
+}
+
+expKernelVectors <- function(xout, x, bandwidth) {
+    .Call(`_DEEBesti_expKernelVectors`, xout, x, bandwidth)
+}
+
+expKernelDerivVector <- function(xout, x, bandwidth) {
+    .Call(`_DEEBesti_expKernelDerivVector`, xout, x, bandwidth)
+}
+
 expKernelVectorFromDistSqr <- function(distSqr, bandwidth) {
     .Call(`_DEEBesti_expKernelVectorFromDistSqr`, distSqr, bandwidth)
 }
