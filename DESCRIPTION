@@ -16,6 +16,7 @@ Imports:
     ConfigOpts,
     DEEBpath,
     DEEBtrajs,
+    DEEButil,
     deSolve,
     FastKNN,
     Matrix,

@@ -92,8 +92,8 @@ derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
   if (any(knn$idx == 0)) return(rep(NA, length(u)))
   state <- parms$trajs$state[knn$idx, , drop=FALSE]
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
-  kernelMatrix <- expKernelMatrix(state, bandwidth, regulation)
-  kernelVector <- expKernelVectorFromDistSqr(knn$distSqr, bandwidth)
+  kernelMatrix <- DEEButil::expKernelMatrix(state, bandwidth, regulation)
+  kernelVector <- DEEButil::expKernelVectorFromDistSqr(knn$distSqr, bandwidth)
   crossprod(kernelVector, solve.default(kernelMatrix, deriv))
 }
 
