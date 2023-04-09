@@ -1,0 +1,25 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "Spline-Poly2",
+  "list": [
+    {
+      "_class": ["HyperParms", "Opts"],
+      "normalize": "meanAndCov",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
+        "target": "point",
+        "interSteps": 10
+      },
+      "derivMethod": "none",
+      "derivFun": {
+        "_class": ["GlobalLm", "DerivFun", "Opts"],
+        "features": {
+          "z": ["1", "x", "x1*x2", "x1*x3", "x2*x3", "x^2"]
+        }
+      }
+    }
+  ]
+}

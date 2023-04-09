@@ -37,6 +37,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     z <- lmFuns$matrix$transform(trajs$state, trajs$deriv)
     coef <- lapply(seq_len(ncol(z)), \(j) {
       X <- lmFuns$matrix$features(trajs$state, j)
+      # TODO: Catch error: Lapack routine dgesv: system is exactly singular: U[2,2] = 0
       solve.default(crossprod(X), crossprod(X, z[,j]))
     })
     parms$lmFuns <- lmFuns
