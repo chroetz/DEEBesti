@@ -1,0 +1,9 @@
+{
+    "_class": ["Glmnet", "DerivFun", "Opts"],
+    "_description": "",
+    "features": {
+        "z1": ["1", "x"], 
+        "z2": ["1", "x"]
+    }
+}
+  

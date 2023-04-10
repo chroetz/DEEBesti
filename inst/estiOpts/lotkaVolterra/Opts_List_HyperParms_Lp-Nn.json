@@ -3,7 +3,7 @@
   "name": "Lp-Nn-5",
   "list": [
     {
-      "_class": ["HyperParms", "Opts"],
+      "_class": ["Trajs", "HyperParms", "Opts"],
       "initialState": {
         "_class": ["FromTrajs", "InitialState", "Opts"]
       },
@@ -22,7 +22,7 @@
       "derivMethod": "none"
     },
     {
-      "_class": ["HyperParms", "Opts"],
+      "_class": ["Trajs", "HyperParms", "Opts"],
       "initialState": {
         "_class": ["FromTrajs", "InitialState", "Opts"]
       },
@@ -41,7 +41,7 @@
       "derivMethod": "none"
     },
     {
-      "_class": ["HyperParms", "Opts"],
+      "_class": ["Trajs", "HyperParms", "Opts"],
       "initialState": {
         "_class": ["FromTrajs", "InitialState", "Opts"]
       },

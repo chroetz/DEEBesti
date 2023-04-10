@@ -2,6 +2,7 @@
 #' @import DEEBtrajs
 #' @import ConfigOpts
 #' @importFrom rlang .data
+#' @importFrom tibble lst
 "_PACKAGE"
 
 ## usethis namespace: start

@@ -20,12 +20,12 @@ validate <- function(
 
   startTime <- opts$startTime * max(obsTrain$time)
 
-  esti <- solveOde(
-    u0 = getInitialState(parms$trajs, startTime),
-    fun = buildDerivFun(hyperParms$derivFun),
-    timeRange = c(startTime, max(obsVali$time)),
-    opts = opts$odeSolver,
-    parms = parms)
+  esti <- estimateTrajs(
+    getInitialState(parms$trajs, startTime),
+    c(startTime, max(obsVali$time)),
+    parms,
+    hyperParms,
+    opts)
 
   obsVali <- parms$normalization$normalize(obsVali)
 

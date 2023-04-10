@@ -1,0 +1,13 @@
+{
+    "_class": ["Esn", "HyperParms", "Opts"],
+    "_description": "Echo State Network",
+    "size": 300,
+    "degree": 6,
+    "spectralRadius": 1.0,
+    "inWeightScale": 1.0,
+    "l2Penalty": 1e-7,
+    "warmUpLen": 1,
+    "bias": 1,
+    "initReservoirScale": 1
+}
+  

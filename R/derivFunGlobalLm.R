@@ -10,6 +10,7 @@ derivFunGlobalLm <- function(u, parms) {
 }
 
 
+# TODO: document
 buildLmFuns <- function(opts) {
 
   opts <- asOpts(opts, c("GlobalLm", "DerivFun"))

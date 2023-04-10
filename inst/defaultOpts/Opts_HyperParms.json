@@ -6,14 +6,6 @@
     "_normalize_description": "See DEEBtrajs::calculateNormalization().",
     "initialState": {
         "_class": ["InitialState", "Opts"]
-    },
-    "fitTrajs": {
-        "_class": ["FitTrajs", "Opts"]
-    },
-    "derivMethod": "none",
-    "_values_derivMethod": ["forward", "center", "backward", "none"],
-    "derivFun": {
-        "_class": ["DerivFun", "Opts"]
     }
 }
   

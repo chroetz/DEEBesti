@@ -1,0 +1,19 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "EsnNormed",
+  "list": [
+    {
+      "_class": ["Esn", "HyperParms", "Opts"],
+      "normalize": "meanAndCov",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "size": 300,
+      "degree": 6,
+      "spectralRadius": 0.07,
+      "inWeightScale": 0.45,
+      "l2Penalty": 1e-7,
+      "bias": 8
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+    "_class": ["Trajs", "HyperParms", "Opts"],
+    "_description": "Two-Step approach: 1. (fitTrajs) estimate the observed trajectory; 2. (derivFun) solve an ODE with derivFun as RHS-function, which is parameterized by the fitted trajectory.",
+    "fitTrajs": {
+        "_class": ["FitTrajs", "Opts"]
+    },
+    "derivMethod": "none",
+    "_values_derivMethod": ["forward", "center", "backward", "none"],
+    "derivFun": {
+        "_class": ["DerivFun", "Opts"]
+    }
+}
+  

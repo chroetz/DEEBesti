@@ -94,12 +94,12 @@ writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
     trajId = seq_len(nrow(info$task$initialState)),
     state = info$task$initialState)
   init <- parms$normalization$normalize(init)
-  result <- solveOde(
-    u0 = init,
-    fun = buildDerivFun(hyperParms$derivFun),
-    timeRange = info$task$predictionTime,
-    opts = opts$odeSolver,
-    parms = parms)
+  result <- estimateTrajs(
+    init,
+    info$task$predictionTime,
+    parms = parms,
+    hyperParms,
+    opts)
   if (is.null(result)) {
     writeTrajs(
       makeTrajs(
@@ -146,12 +146,12 @@ writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
     info$task$predictionTime[1],
     info$task$predictionTime[2],
     by = info$task$timeStep)
-  result <- solveOde(
-    u0 = init$initial,
-    fun = buildDerivFun(hyperParms$derivFun),
-    timeRange = c(init$time[1], info$task$predictionTime[2]),
-    opts = opts$odeSolver,
-    parms = parms)
+  result <- estimateTrajs(
+    init$initial,
+    c(init$time[1], info$task$predictionTime[2]),
+    parms,
+    hyperParms,
+    opts)
   if (is.null(result)) {
     writeTrajs(
       makeTrajs(

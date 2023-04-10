@@ -3,7 +3,7 @@
   "name": "Const",
   "list": [
     {
-      "_class": ["HyperParms", "Opts"],
+      "_class": ["Trajs", "HyperParms", "Opts"],
       "normalize": "none",
       "initialState": {
         "_class": ["FromTrajs", "InitialState", "Opts"]
