@@ -1,9 +1,19 @@
 {
     "_class": ["Glmnet", "DerivFun", "Opts"],
-    "_description": "",
-    "features": {
-        "z1": ["1", "x"], 
-        "z2": ["1", "x"]
-    }
+    "_description": "features for linear regression and arguments to the R-function glmnet::cv.glmnet()",
+    "features": "poly5",
+    "_features_description": "currently only 'poly<num>' for polynomial features of degree up to <num>",
+    "lambda": null,
+    "typeMeasure": "default",
+    "nFolds": 10,
+    "relax": true,
+    "gamma": [0, 0.25, 0.5, 0.75, 1],
+    "alpha": 1,
+    "standardize": true,
+    "intercept": false,
+    "thresh": 1e-14,
+    "maxit": 1e5,
+    "lambdaChoice": "lambda.min", 
+    "gammaChoice": "gamma.min"
 }
   

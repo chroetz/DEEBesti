@@ -12,6 +12,8 @@ buildDerivFun <- function(opts) {
       u, parms),
     Glmnet = \(t, u, parms) derivFunGlmnet(
       u, parms),
+    ThreshLm = \(t, u, parms) derivFunThreshLm(
+      u, parms),
     LocalConst = \(t, u, parms) derivFunLocalConst(
       u, parms, bw = opts$bandwidth, kernel = getKernel(opts$kernel)),
     LocalLinear = \(t, u, parms) derivFunLocalLinear(

@@ -76,8 +76,9 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
   derivFunName <- getClassAt(hyperParms$derivFun, 2)
   parms <- switch(
     derivFunName,
-    GlobalLm = prepareParmsGlobalLm(parms, hyperParms),
-    Glmnet = prepareParmsGlmnet(parms, hyperParms),
+    GlobalLm = prepareParmsGlobalLm(parms, hyperParms$derivFun),
+    Glmnet = prepareParmsGlmnet(parms, hyperParms$derivFun),
+    ThreshLm = prepareParmsThreshLm(parms, hyperParms$derivFun),
     parms
   )
 
