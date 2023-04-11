@@ -25,6 +25,7 @@ Imports:
     rlang,
     stats,
     tibble,
+    tvR,
     utils
 LinkingTo: 
     Rcpp

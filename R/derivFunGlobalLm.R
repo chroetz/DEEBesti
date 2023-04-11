@@ -96,3 +96,33 @@ buildLmFuns <- function(opts) {
 
   return(out)
 }
+
+
+saveSolve <- function(A, b) {
+  res <- tryCatch(
+    solve.default(A, b),
+    error = function(cond) cond)
+  if (!inherits(res, c("error", "condition"))) return(res)
+  if (
+    grepl(
+      "Lapack routine dgesv: system is exactly singular",
+      res$message,
+      fixed = TRUE)) {
+    # L2 Regularization (alternative would be MASS::ginv())
+    diag(A) <- diag(A) + max(abs(A))*sqrt(.Machine$double.eps)
+    return(solve.default(A, b))
+  }
+  signalCondition(res)
+}
+
+prepareParmsGlobalLm <- function(parms, hyperParms) {
+  lmFuns <- buildLmFuns(hyperParms$derivFun)
+  z <- lmFuns$matrix$transform(parms$trajs$state, parms$trajs$deriv)
+  coef <- lapply(seq_len(ncol(z)), \(j) {
+    X <- lmFuns$matrix$features(parms$trajs$state, j)
+    saveSolve(crossprod(X), crossprod(X, z[,j]))
+  })
+  parms$lmFuns <- lmFuns
+  parms$coef <- coef
+  return(parms)
+}

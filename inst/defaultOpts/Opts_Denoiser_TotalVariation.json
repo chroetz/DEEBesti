@@ -1,0 +1,8 @@
+{
+    "_class": ["TotalVariation", "Denoiser", "Opts"],
+    "_description": "Options for TV regularization of a signal. Arguments for tvR::denoise1().",
+    "lambda": 1, 
+    "niter": 100, 
+    "method": "TVL2.IC" 
+}
+  

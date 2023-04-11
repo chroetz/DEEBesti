@@ -8,6 +8,12 @@
     "_values_derivMethod": ["forward", "center", "backward", "none"],
     "derivFun": {
         "_class": ["DerivFun", "Opts"]
+    },
+    "denoiserState":  {
+        "_class": ["Denoiser", "Opts"]
+    },
+    "denoiserDeriv":  {
+        "_class": ["Denoiser", "Opts"]
     }
 }
   

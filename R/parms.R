@@ -61,10 +61,10 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
     stop("Unknown method ", method)
   )
   if (is.null(trajs)) return(NULL)
-  if (!hasDeriv(trajs)) {
+  if (!hasDeriv(trajs)) { # TODO: check meaningful setting of derivMethod...
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }
-  # TODO: insert denoiser for trajs and deriv here
+  trajs <- applyDenoisers(trajs, hyperParms$denoiserState, hyperParms$denoiserDeriv)
   parms$trajs <- trajs
 
   # Pre-calculations for derivFuns.
@@ -73,20 +73,13 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
       trajs$state,
       hyperParms$derivFun$neighbors)
   }
-
   derivFunName <- getClassAt(hyperParms$derivFun, 2)
-  # TODO: add glmnet
-  if (derivFunName == "GlobalLm") {
-    lmFuns <- buildLmFuns(hyperParms$derivFun)
-    z <- lmFuns$matrix$transform(trajs$state, trajs$deriv)
-    coef <- lapply(seq_len(ncol(z)), \(j) {
-      X <- lmFuns$matrix$features(trajs$state, j)
-      # TODO: Catch error: Lapack routine dgesv: system is exactly singular: U[2,2] = 0
-      solve.default(crossprod(X), crossprod(X, z[,j]))
-    })
-    parms$lmFuns <- lmFuns
-    parms$coef <- coef
-  }
+  parms <- switch(
+    derivFunName,
+    GlobalLm = prepareParmsGlobalLm(parms, hyperParms),
+    Glmnet = prepareParmsGlmnet(parms, hyperParms),
+    parms
+  )
 
   # Pre-calculations for modifiers.
   for (modifierOpts in hyperParms$derivFun$modifierList$list) {
