@@ -1,24 +1,24 @@
 {
   "_class": ["HyperParms", "List", "Opts"],
-  "name": "Spline-IpGp",
+  "name": "Spline-ThreshLm",
   "list": [
     {
       "_class": ["Trajs", "HyperParms", "Opts"],
-      "normalize": "meanAndCov",
+      "normalize": "scale",
       "initialState": {
         "_class": ["FromObs", "InitialState", "Opts"]
       },
       "fitTrajs": {
         "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
         "target": "point",
-        "interSteps": 5
+        "interSteps": 1
       },
       "derivMethod": "none",
       "derivFun": {
-        "_class": ["GaussianProcess", "DerivFun", "Opts"],
-        "neighbors": 50,
-        "bandwidth": 10,
-        "regulation": 1e-9
+        "_class": ["ThreshLm", "DerivFun", "Opts"],
+        "features": "poly5",
+        "threshold": 0.1,
+        "iterations": 10
       }
     }
   ]

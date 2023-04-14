@@ -21,21 +21,12 @@ estimateTrajsEsn <- function(initState, timeRange, parms, hyperParms, opts) {
 
   hyperParms <- asOpts(hyperParms, c("Esn", "HyperParms"))
 
-  startIdx <- DEEButil::whichMinDist(
-    target = parms$esn$obs$state,
-    query = initState$state)
-
-  timeStep <- getTimeStepTrajs(parms$esn$obs)
-  time <- seq(timeRange[1], timeRange[2], timeStep)
-
-  estiState <- predictEsn(
-    parms$esn,
-    parms$esn$reservoirSeries[startIdx, ],
-    length(time))
-
-  esti <- makeTrajs(
-    time = time,
-    state = estiState)
+  esti <- mapTrajs2Trajs(initState, \(startTraj) {
+    predictEsn(
+      parms$esn,
+      startTraj$state,
+      timeRange = timeRange)
+  })
 
   return(esti)
 }

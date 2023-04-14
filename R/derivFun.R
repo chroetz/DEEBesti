@@ -98,7 +98,7 @@ derivFunGaussianProcess <- function(u, parms, bandwidth, regulation) {
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   kernelMatrix <- DEEButil::expKernelMatrix(state, bandwidth, regulation)
   kernelVector <- DEEButil::expKernelVectorFromDistSqr(knn$distSqr, bandwidth)
-  crossprod(kernelVector, solve.default(kernelMatrix, deriv))
+  crossprod(kernelVector, DEEButil::saveSolve(kernelMatrix, deriv))
 }
 
 
@@ -134,18 +134,7 @@ derivFunLocalLinear <- function(u, parms, kernel, bw) {
   X <- cbind(1, state)
   Xw <- X * w
 
-  regu <- .Machine$double.eps
-  while(TRUE) {
-    tryCatch(
-      {
-        beta <- solve.default(crossprod(Xw, X) + regu * diag(ncol(X)), crossprod(Xw, deriv))
-        break
-      },
-      error = function(cond) regu <<- regu * 10
-    )
-    cat("*")
-    if (regu > sqrt(sqrt(.Machine$double.eps))) return(rep(NA, length(u)))
-  }
+  beta <- DEEButil::saveSolve(crossprod(Xw, X), crossprod(Xw, deriv))
 
   crossprod(c(1, u), beta)
 }

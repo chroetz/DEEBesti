@@ -21,9 +21,13 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias) 
   inWeightMatrix <- matrix(
       inWeightScale * stats::rnorm(size * (inDim + 1)),
       nrow = size, ncol = inDim + 1)
-  tmpWeightMatrix <- sampleWeightMatrix(size, deg = degree)
-  reservoirWeightMatrix <-
-    tmpWeightMatrix * spectralRadius / spectralRadius(tmpWeightMatrix)
+  if (degree == 0 || spectralRadius == 0) {
+    reservoirWeightMatrix <- matrix(0, size, size)
+  } else {
+    tmpWeightMatrix <- sampleWeightMatrix(size, deg = degree)
+    reservoirWeightMatrix <-
+      tmpWeightMatrix * spectralRadius / spectralRadius(tmpWeightMatrix)
+  }
 
   return(lst(
     inWeightMatrix,
@@ -35,46 +39,82 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias) 
 
 trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale) {
 
-  reservoir <- rnorm(esn$size, sd = initReservoirScale/esn$size)
-  reservoirSeries <- matrix(NA_real_, nrow = nrow(obs), ncol = esn$size)
-  reservoirSeries[1,] <- reservoir
+  reservoirSeries <- mapTrajs2Trajs(obs, \(traj) {
 
-  for (i in seq_len(nrow(obs)-1)) {
-    reservoir <- tanh(
-      esn$inWeightMatrix %*% c(esn$bias, obs$state[i, ]) +
-      esn$reservoirWeightMatrix %*% reservoir)
-    reservoirSeries[i+1,] <- reservoir
-  }
+    trajReservoirSeries <- matrix(NA_real_, nrow = nrow(traj), ncol = esn$size)
+    reservoir <- rnorm(esn$size, sd = initReservoirScale/esn$size)
 
-  X <- cbind(1, reservoirSeries[-seq_len(warmUpLen),])
+    for (i in seq_len(nrow(traj))) {
+      reservoir <- tanh(
+        esn$inWeightMatrix %*% c(esn$bias, traj$state[i, ]) +
+        esn$reservoirWeightMatrix %*% reservoir)
+      trajReservoirSeries[i,] <- reservoir
+    }
+
+    out <- makeTrajs(
+      time = traj$time,
+      state = trajReservoirSeries)
+
+    return(out)
+  })
+
+  regressionOut <- do.call(rbind, applyTrajId(obs, \(traj) traj$state[-1,, drop=FALSE]))
+  regressionIn <- do.call(rbind, applyTrajId(reservoirSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
+
+  X <- cbind(1, regressionIn)
   XTX <- crossprod(X)
   diag(XTX) <- diag(XTX) + c(0, rep(l2Penalty, esn$size))
 
-  outWeightMatrix <- solve.default(
+  outWeightMatrix <- DEEButil::saveSolve(
     XTX,
-    crossprod(X, obs$state[-seq_len(warmUpLen),, drop=FALSE]))
+    crossprod(X, regressionOut))
+
+  timeStep <- getTimeStepTrajs(obs)
 
   return(c(esn, lst(
     outWeightMatrix,
-    obs[-seq_len(warmUpLen),],
-    reservoirSeries[-seq_len(warmUpLen),])))
+    timeStep,
+    reservoir = reservoirSeries$state,
+    states = obs$state)))
 }
 
-predictEsn <- function(esn, initReservoir, len) {
+predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = NULL) {
 
-  allX <- matrix(NA_real_, nrow = len, ncol = ncol(esn$outWeightMatrix))
+  if (is.null(timeRange)) {
+    stopifnot(length(len) == 1, len >= 0)
+    time <- startTime + (0:len)*esn$timeStep
+  } else {
+    stopifnot(length(timeRange) == 2)
+    time <- seq(timeRange[1], timeRange[2], by = esn$timeStep)
+    if (time[length(time)] < timeRange[2]) {
+      time <- c(time, time[length(time)] + esn$timeStep)
+    }
+    len <- length(time) - 1
+  }
 
-  reservoir <- initReservoir
-  x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
-  allX[1,] <- x
+  outStates <- matrix(NA_real_, nrow = len+1, ncol = ncol(esn$outWeightMatrix))
+  outStates[1, ] <- startState
 
-  for (i in seq_len(len-1)) {
+  # Decide how to initialize the reservoir
+  iStart <- DEEButil::whichMinDist(esn$states, startState)
+  if (sum((esn$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
+    startReservoir <- esn$reservoir[iStart, ]
+    reservoir <- startReservoir
+  } else {
+    reservoir <- tanh(esn$inWeightMatrix %*% c(esn$bias, startState))
+  }
+
+  for (i in seq_len(len)) {
+    x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
+    outStates[i+1,] <- x
     reservoir <- tanh(
       esn$inWeightMatrix %*% c(esn$bias, x) +
       esn$reservoirWeightMatrix %*% reservoir)
-    x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
-    allX[i+1,] <- x
   }
 
-  return(allX)
+  outTrajs <- makeTrajs(
+    time = time,
+    state = outStates)
+
+  return(outTrajs)
 }

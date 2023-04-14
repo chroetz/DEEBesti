@@ -26,17 +26,7 @@ fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree) {
   for (j in 1:m) {
     B <- XTWs[,,j] %*% X
     a <- XTWs[,,j] %*% traj$state
-    while(TRUE) {
-      tryCatch(
-        {
-          Z <- solve.default(B + regu * diag(nrow(B)), a)
-          break
-        },
-        error = function(cond) regu <<- regu * 10
-      )
-      cat(".")
-      if (regu > sqrt(sqrt(.Machine$double.eps))) return(NULL)
-    }
+    Z <- DEEButil::saveSolve(B, a)
     estiState[j, ] <- psiState[j,] %*% Z
     estiDeriv[j, ] <- psiDeriv[j,] %*% Z
   }

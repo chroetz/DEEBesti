@@ -74,7 +74,7 @@ fitGaussianProcess <- function(x, y, xout, bandwidth, regulation, neighborsHalf,
 
 fitGaussianProcessAll <- function(x, y, xout, bandwidth, regulation, deriv) {
   kernelMatrix <- DEEButil::expKernelMatrix1D(x, bandwidth, regulation)
-  inv <- solve.default(kernelMatrix, y)
+  inv <- DEEButil::saveSolve(kernelMatrix, y)
   kernelVectors <- DEEButil::expKernelVectors1D(x, xout, bandwidth)
   yout <- crossprod(kernelVectors, inv)
   if (deriv) {

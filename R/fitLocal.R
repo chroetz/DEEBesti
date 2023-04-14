@@ -62,7 +62,7 @@ fitterGaussianProcess <- function(x, y, bandwidth, kernel, regulation, neighbors
     knn <- knnFun(x[i,])
     kernelMatrix <- DEEButil::expKernelMatrix(x[knn$idx, , drop=FALSE], bandwidth, regulation)
     kernelVector <- DEEButil::expKernelVectorFromDistSqr(knn$distSqr, bandwidth)
-    fit[i, ] <- crossprod(kernelVector, solve.default(kernelMatrix, y[knn$idx, , drop=FALSE]))
+    fit[i, ] <- crossprod(kernelVector, DEEButil::saveSolve(kernelMatrix, y[knn$idx, , drop=FALSE]))
   }
   return(fit)
 }

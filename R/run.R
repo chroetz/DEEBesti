@@ -123,8 +123,24 @@ writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
     ))
   grid <- makeDerivTrajs(state = as.matrix(expand.grid(gridSides)))
   gridNormed <- parms$normalization$normalize(grid)
-  derivFun <- buildDerivFun(hyperParms$derivFun)
-  derivs <- t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
+
+  # TODO: move to its own function
+  hyperParamsClass <- getClassAt(hyperParms, 2)
+  derivs <- switch(
+    hyperParamsClass,
+    Trajs = {
+      derivFun <- buildDerivFun(hyperParms$derivFun)
+      t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
+    },
+    Esn = {
+      t(apply(gridNormed$state, 1, \(s) {
+        x <- predictEsn(parms$esn, s, len = 1)$state[2,]
+        dx <- (x - s) / parms$esn$timeStep
+        dx
+      }))
+    }
+  )
+
   resultNormed <- makeDerivTrajs(state = gridNormed$state, deriv = derivs)
   result <- parms$normalization$denormalize(resultNormed)
   stopifnot(max(abs(result$state - grid$state)) < sqrt(.Machine$double.eps))
