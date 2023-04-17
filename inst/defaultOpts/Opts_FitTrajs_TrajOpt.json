@@ -1,9 +1,9 @@
 {
     "_class": ["TrajOpt", "FitTrajs", "Opts"],
     "_description": "",
-    "steps": 1,
-    "gamma": 0.5,
-    "neighbors": 50,
+    "steps": 3,
+    "gamma": 1,
+    "neighbors": 10,
     "interSteps": 3,
-    "derivWeights": [0.2, 0.8]
+    "alpha": 1e-10
 }

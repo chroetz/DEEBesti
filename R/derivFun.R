@@ -1,6 +1,7 @@
 buildDerivFun <- function(opts) {
   opts <- asOpts(opts, "DerivFun")
   name <- getClassAt(opts, 2)
+
   derivFun <- switch(
     name,
     Null = \(t, u, parms) rep(0, length(u)),
@@ -8,6 +9,8 @@ buildDerivFun <- function(opts) {
       u, parms, opts$target),
     Knn = \(t, u, parms) derivFunKnn(
       u, parms),
+    Polynomial = \(t, u, parms) derivFunPolynomial(
+      u, parms, opts$degree),
     GlobalLm = \(t, u, parms) derivFunGlobalLm(
       u, parms),
     Glmnet = \(t, u, parms) derivFunGlmnet(
@@ -71,6 +74,22 @@ derivFunKnn <- function(u, parms) {
   if (any(knn$idx == 0)) return(rep(NA, length(u)))
   deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
   du <- colMeans(deriv)
+  return(du)
+}
+
+
+derivFunPolynomial <- function(u, parms, degree) {
+  if (any(is.na(u))) return(rep(NA, length(u)))
+  knn <- parms$knnFun(u)
+  if (any(knn$idx == 0)) return(rep(NA, length(u)))
+  deriv <- parms$trajs$deriv[knn$idx, , drop=FALSE]
+  state <- parms$trajs$state[knn$idx, , drop=FALSE]
+
+  degVecs <- DEEButil::getMonomialExponents(getDim(parms$trajs), degree)
+  x <- DEEButil::evaluateMonomials(state, degVecs)
+  beta <- DEEButil::saveSolve(crossprod(x), crossprod(x, deriv))
+  du <- as.vector(DEEButil::evaluateMonomials(matrix(u, nrow=1), degVecs) %*% beta)
+
   return(du)
 }
 

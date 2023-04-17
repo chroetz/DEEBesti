@@ -1,0 +1,6 @@
+{
+    "_class": ["Polynomial", "DerivFun", "Opts"],
+    "_description": "",
+    "degree": 2
+}
+  

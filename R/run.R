@@ -6,7 +6,8 @@ applyMethodToModel <- function(
     submissionPath = observationPath,
     obsNrFilter = NULL,
     truthNrFilter = NULL,
-    verbose = TRUE
+    verbose = TRUE,
+    saveParms = FALSE
 ) {
 
   opts <- asOpts(opts, "Estimation")
@@ -36,7 +37,7 @@ applyMethodToModel <- function(
       verbose = verbose)
     writeOpts(res$hyperParms, file.path(outDir, DEEBpath::hyperParmsFile(info)))
     writeValidationErrorFile(res$validationErrors, info, outDir)
-    writeParms(res$parms, obs, info, outDir)
+    if (saveParms) writeParms(res$parms, obs, info, outDir)
 
     for (j in seq_len(nrow(taskMeta))) {
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
