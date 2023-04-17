@@ -1,0 +1,21 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "PwLin-Nn",
+  "list": [
+    {
+      "_class": ["Trajs", "HyperParms", "Opts"],
+      "normalize": "meanAndCov",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["Identity", "FitTrajs", "Opts"]
+      },
+      "derivMethod": "forward",
+      "derivFun": {
+        "_class": ["NearestLine", "DerivFun", "Opts"],
+        "target": "line"
+      }
+    }
+  ]
+}

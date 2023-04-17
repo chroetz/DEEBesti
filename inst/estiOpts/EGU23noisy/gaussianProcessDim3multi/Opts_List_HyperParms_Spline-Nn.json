@@ -1,24 +1,22 @@
 {
   "_class": ["HyperParms", "List", "Opts"],
-  "name": "Spline-ThreshLm",
+  "name": "Spline-Nn",
   "list": [
     {
       "_class": ["Trajs", "HyperParms", "Opts"],
-      "normalize": "scale",
+      "normalize": "meanAndCov",
       "initialState": {
         "_class": ["FromObs", "InitialState", "Opts"]
       },
       "fitTrajs": {
         "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
         "target": "point",
-        "interSteps": 1
+        "interSteps": 50
       },
       "derivMethod": "none",
       "derivFun": {
-        "_class": ["ThreshLm", "DerivFun", "Opts"],
-        "features": "poly5",
-        "threshold": 0.1,
-        "iterations": 10
+        "_class": ["Knn", "DerivFun", "Opts"],
+        "neighbors": 1
       }
     }
   ]

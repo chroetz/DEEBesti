@@ -42,7 +42,7 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale) {
   reservoirSeries <- mapTrajs2Trajs(obs, \(traj) {
 
     trajReservoirSeries <- matrix(NA_real_, nrow = nrow(traj), ncol = esn$size)
-    reservoir <- rnorm(esn$size, sd = initReservoirScale/esn$size)
+    reservoir <- stats::rnorm(esn$size, sd = initReservoirScale/esn$size)
 
     for (i in seq_len(nrow(traj))) {
       reservoir <- tanh(

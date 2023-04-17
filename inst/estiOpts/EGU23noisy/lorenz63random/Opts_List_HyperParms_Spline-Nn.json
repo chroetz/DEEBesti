@@ -1,6 +1,6 @@
 {
   "_class": ["HyperParms", "List", "Opts"],
-  "name": "Spline-IpGp",
+  "name": "Spline-Nn",
   "list": [
     {
       "_class": ["Trajs", "HyperParms", "Opts"],
@@ -11,14 +11,12 @@
       "fitTrajs": {
         "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
         "target": "point",
-        "interSteps": 5
+        "interSteps": 50
       },
       "derivMethod": "none",
       "derivFun": {
-        "_class": ["GaussianProcess", "DerivFun", "Opts"],
-        "neighbors": 50,
-        "bandwidth": 10,
-        "regulation": 1e-8
+        "_class": ["Knn", "DerivFun", "Opts"],
+        "neighbors": 1
       }
     }
   ]

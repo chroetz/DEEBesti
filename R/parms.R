@@ -2,8 +2,6 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
 
   hyperParms <- asOpts(hyperParms, "HyperParms")
 
-  parms <- list()
-
   normalization <- calculateNormalization(obs, hyperParms$normalize)
   obs <- normalization$normalize(obs)
 

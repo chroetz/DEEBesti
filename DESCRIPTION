@@ -19,6 +19,7 @@ Imports:
     DEEButil,
     deSolve,
     FastKNN,
+    glmnet,
     Matrix,
     RANN,
     Rcpp,

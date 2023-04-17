@@ -1,6 +1,6 @@
 fitTrajsInterpolationSpline <- function(obs, opts) {
   opts <- asOpts(opts, c("InterpolationSpline", "FitTrajs"))
-  outTime <- interpolateTime(obs$time, opts$interSteps)
+  outTime <- interpolateTime(getTrajWithId(obs, getTrajIds(obs)[1])$time, opts$interSteps) # assumes that all traj have the same time
   applyToEachDimAndId(obs, fitTrajInterpolationSpline1D, outTime, target=opts$target)
 }
 

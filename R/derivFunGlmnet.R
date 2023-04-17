@@ -43,7 +43,12 @@ prepareParmsGlmnet <- function(parms, opts) {
         maxit = opts$maxit,
         standardize = opts$standardize,
         intercept = opts$intercept)
-      coefs <- coef(fit, s = opts$lambdaChoice, gamma = opts$gammaChoice)
+      coefs <-
+        if (opts$relax) {
+          glmnet::coef.relaxed(fit, s = opts$lambdaChoice, gamma = opts$gammaChoice)
+        } else {
+          glmnet::coef.glmnet(fit, s = opts$lambdaChoice, gamma = opts$gammaChoice)
+        }
       list(degVec = degVecs[coefs@i, ], coef = coefs@x)
     }
   )

@@ -29,6 +29,7 @@ applyDenoisersOne <- function(traj, optsState, optsDeriv) {
 
 denoiseTotalVariation <- function(mat, opts) {
   opts <- asOpts(opts, c("TotalVariation", "Denoiser"))
+  if (opts$lambda <= 0) return(mat)
   apply(
     mat,
     2,

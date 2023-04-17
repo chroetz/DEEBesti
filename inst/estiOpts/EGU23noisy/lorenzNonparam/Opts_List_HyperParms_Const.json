@@ -1,0 +1,20 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "Const",
+  "list": [
+    {
+      "_class": ["Trajs", "HyperParms", "Opts"],
+      "normalize": "none",
+      "initialState": {
+        "_class": ["FromTrajs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["Const", "FitTrajs", "Opts"]
+      },
+      "derivMethod": "none",
+      "derivFun": {
+          "_class": ["Null", "DerivFun", "Opts"]
+      }
+    }
+  ]
+}

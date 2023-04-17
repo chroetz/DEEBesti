@@ -3,6 +3,7 @@ derivFunThreshLm <- function(u, parms) {
   du <- vapply(
     seq_len(d),
     \(j) {
+      if (length(parms$fits[[j]]$coef) == 0) return(0)
       degVecs <- parms$fits[[j]]$degVec
       coefs <- parms$fits[[j]]$coef
       features <- DEEButil::evaluateMonomials(matrix(u, nrow=1), degVecs)
@@ -32,7 +33,9 @@ prepareParmsThreshLm <- function(parms, opts) {
     beta[smallInds] <- 0
     for (j in 1:d) {
       bigInds <- !smallInds[,j]
-      beta[bigInds, j] <- linSolve(x[,bigInds], y[,j])
+      if (any(bigInds)) {
+        beta[bigInds, j] <- linSolve(x[, bigInds, drop=FALSE], y[,j])
+      }
     }
     smallIndsPrev <- smallInds
   }
@@ -42,7 +45,7 @@ prepareParmsThreshLm <- function(parms, opts) {
     2,
     \(b) {
       sel <- abs(b) >= opts$threshold
-      list(degVec = degVecs[sel, ], coef = b[sel])
+      list(degVec = degVecs[sel, , drop=FALSE], coef = b[sel])
     },
     simplify=FALSE)
 

@@ -31,6 +31,8 @@ validate <- function(
 
   cleanUpParms(parms)
 
+  # TODO: use other error measures such as followTime, validTime
+  # TODO: re-organize EstiOpts
   errTraj <- lpErr(parms$trajs, obsTrain, opts$errorPower)
   errVali <- lpErr(esti, obsVali, opts$errorPower)
   errTrain <- lpErr(esti, obsTrain[obsTrain$time>=startTime,], opts$errorPower)
@@ -42,17 +44,19 @@ validate <- function(
 }
 
 
-lpErr <- function(trajs, target, p) {
+lpErr <- function(trajs, targets, p) {
   if (
     is.null(trajs) ||
     nrow(trajs) == 0 ||
     !all(is.finite(trajs$state))
   ) return(Inf)
-  trajsObs <- interpolateTrajs(trajs, target$time)
   errs <- apply2TrajId(
-    trajsObs,
-    target,
-    \(x, y, p) mean(abs(y$state - x$state)^p),
+    trajs,
+    targets,
+    \(traj, target, p) {
+      trajInterp <- interpolateTrajs(traj, target$time)
+      mean(abs(target$state - trajInterp$state)^p)
+    },
     p = p,
     simplify = TRUE)
   return(mean(errs))
