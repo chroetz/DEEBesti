@@ -138,6 +138,7 @@ writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
         x <- predictEsn(parms$esn, s, len = 1)$state[2,]
         dx <- (x - s) / parms$esn$timeStep
         dx
+        # TODO higher order
       }))
     }
   )

@@ -1,0 +1,45 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "Spline-ThreshLm",
+  "list": [
+    {
+      "_class": ["Trajs", "HyperParms", "Opts"],
+      "normalize": "scale",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
+        "target": "point",
+        "interSteps": 5
+      },
+      "derivFun": {
+        "_class": ["ThreshLm", "DerivFun", "Opts"],
+        "features": "poly5",
+        "threshold": 0.2,
+        "iterations": 100,
+        "neighbors": 0,
+        "modifierList": {
+          "_class": ["Modifier", "List", "Opts"],
+          "list": []
+        }
+      },
+      "denoiserState": {
+        "_class": ["TotalVariation", "Denoiser", "Opts"],
+        "lambda": 0.1,
+        "niter": 100,
+        "method": "TVL2.IC"
+      },
+      "denoiserDeriv": {
+        "_class": ["TotalVariation", "Denoiser", "Opts"],
+        "lambda": 0.1,
+        "niter": 100,
+        "method": "TVL2.IC"
+      },
+      "derivMethod": "none"
+    }
+  ],
+  "_timeStamp": "Fri Apr 21 11:49:08 2023",
+  "_packageNames": ["base", ".GlobalEnv", "ConfigOpts"],
+  "_packageVersions": ["4.2.3", "", "0.0.0.9011"]
+}

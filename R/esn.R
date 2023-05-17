@@ -37,7 +37,17 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias) 
     bias))
 }
 
-trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale) {
+trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale,
+                     #skip
+                     ) {
+
+  # if (skip > 0) {
+  #   # TODO subsample obs
+  #   m <- length(getTrajIds(obs))
+  #   stopifnot(1:m == getTrajIds(obs))
+  #   obs$trajId <- obs$trajId + (0:skip)*m
+  #   obs <- obs[order(obs$trajId),]
+  # }
 
   reservoirSeries <- mapTrajs2Trajs(obs, \(traj) {
 

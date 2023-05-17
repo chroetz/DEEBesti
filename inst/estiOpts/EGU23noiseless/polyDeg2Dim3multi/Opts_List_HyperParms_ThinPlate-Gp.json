@@ -1,0 +1,41 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "ThinPlate-Gp",
+  "list": [
+    {
+      "_class": ["Trajs", "HyperParms", "Opts"],
+      "normalize": "meanAndCov",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["TrajOpt", "FitTrajs", "Opts"],
+        "steps": 2,
+        "gamma": 0.0004,
+        "neighbors": 50,
+        "interSteps": 50,
+        "alpha": 1e-10
+      },
+      "derivMethod": "center",
+      "derivFun": {
+        "_class": ["GaussianProcess", "DerivFun", "Opts"],
+        "neighbors": 50,
+        "bandwidth": 4,
+        "regulation": 1e-07,
+        "modifierList": {
+          "_class": ["Modifier", "List", "Opts"],
+          "list": []
+        }
+      },
+      "denoiserState": {
+        "_class": ["None", "Denoiser", "Opts"]
+      },
+      "denoiserDeriv": {
+        "_class": ["None", "Denoiser", "Opts"]
+      }
+    }
+  ],
+  "_timeStamp": "Fri Apr 21 11:51:53 2023",
+  "_packageNames": ["base", ".GlobalEnv", "ConfigOpts"],
+  "_packageVersions": ["4.2.3", "", "0.0.0.9011"]
+}

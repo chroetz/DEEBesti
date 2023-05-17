@@ -1,0 +1,38 @@
+{
+  "_class": ["HyperParms", "List", "Opts"],
+  "name": "Spline-Gp",
+  "list": [
+    {
+      "_class": ["Trajs", "HyperParms", "Opts"],
+      "normalize": "meanAndCov",
+      "initialState": {
+        "_class": ["FromObs", "InitialState", "Opts"]
+      },
+      "fitTrajs": {
+        "_class": ["InterpolationSpline", "FitTrajs", "Opts"],
+        "target": "point",
+        "interSteps": 10
+      },
+      "derivMethod": "none",
+      "derivFun": {
+        "_class": ["GaussianProcess", "DerivFun", "Opts"],
+        "neighbors": 50,
+        "bandwidth": 2,
+        "regulation": 0.01,
+        "modifierList": {
+          "_class": ["Modifier", "List", "Opts"],
+          "list": []
+        }
+      },
+      "denoiserState": {
+        "_class": ["None", "Denoiser", "Opts"]
+      },
+      "denoiserDeriv": {
+        "_class": ["None", "Denoiser", "Opts"]
+      }
+    }
+  ],
+  "_timeStamp": "Fri Apr 21 11:49:08 2023",
+  "_packageNames": ["base", ".GlobalEnv", "ConfigOpts"],
+  "_packageVersions": ["4.2.3", "", "0.0.0.9011"]
+}
