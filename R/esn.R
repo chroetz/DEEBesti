@@ -37,7 +37,7 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias) 
     bias))
 }
 
-trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale,
+trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale#,
                      #skip
                      ) {
 
