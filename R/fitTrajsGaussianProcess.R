@@ -1,6 +1,6 @@
 fitTrajsGaussianProcess <- function(obs, opts) {
   opts <- asOpts(opts, c("GaussianProcess", "FitTrajs"))
-  outTime <- interpolateTime(obs$time, opts$interSteps)
+  outTime <- interpolateTimeAdaptive(obs, opts$interSteps)
   mapTrajs2Trajs(
     obs,
     fitTrajGaussianProcess,

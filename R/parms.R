@@ -59,6 +59,7 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
     stop("Unknown method ", method)
   )
   if (is.null(trajs)) return(NULL)
+  if (nrow(trajs) <= 1) stop("Something is wrong: Fitted Trajs has 0 or 1 rows.")
   if (!hasDeriv(trajs)) { # TODO: check meaningful setting of derivMethod...
     trajs <- setDeriv(trajs, hyperParms$derivMethod)
   }

@@ -79,7 +79,7 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale#,
     XTX,
     crossprod(X, regressionOut))
 
-  timeStep <- getTimeStepTrajs(obs)
+  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
 
   return(c(esn, lst(
     outWeightMatrix,

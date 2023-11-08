@@ -1,6 +1,6 @@
 fitTrajsLocalPolynomial <- function(obs, opts) {
   opts <- asOpts(opts, c("LocalPolynomial", "FitTrajs"))
-  outTime <- interpolateTime(obs$time, opts$interSteps)
+  outTime <- interpolateTimeAdaptive(obs, opts$interSteps)
   mapTrajs2Trajs(
     obs,
     fitTrajLocalPolynomial,
