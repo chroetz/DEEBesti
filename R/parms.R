@@ -50,7 +50,8 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
   trajs <- switch(
     method,
     "Identity" = obs,
-    "Const" = makeTrajsStateConst(obs, mean),
+    "ConstMean" = makeTrajsStateConst(obs, mean),
+    "ConstLast" = makeTrajsStateConst(obs, dplyr::last),
     "InterpolationSpline" = fitTrajsInterpolationSpline(obs, hyperParms$fitTraj),
     "GaussianProcess" = fitTrajsGaussianProcess(obs, hyperParms$fitTraj),
     "LocalPolynomial" = fitTrajsLocalPolynomial(obs, hyperParms$fitTraj),

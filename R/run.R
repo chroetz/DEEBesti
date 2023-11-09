@@ -1,3 +1,124 @@
+#' @export
+run <- function(
+    dbPath,
+    methodOptsDir,
+    truthNrFilter = NULL,
+    obsNrFilter = NULL,
+    modelPattern = NULL,
+    methodPattern = NULL,
+    example = FALSE,
+    copyTruth = FALSE
+) {
+
+  if (copyTruth) {
+    message("Copying Truth...")
+    copyTruth(
+      dbPath,
+      modelPattern = modelPattern,
+      obsNrFilter = obsNrFilter,
+      truthNrFilter = truthNrFilter,
+      example = example)
+  }
+
+  models <- DEEBpath::getModels(dbPath, modelPattern)
+
+  for (model in models) {
+
+    message("MODEL: ", model)
+    obsNrs <- DEEBpath::getObservationNrs(dbPath, model, obsNrFilter)
+
+    for (obsNr in obsNrs) {
+
+      message("obsNr: ", obsNr)
+
+      methodOptsDirSpecific <- DEEBpath::getMethodOptsDirSpecific(
+        methodOptsDir, model, obsNr)
+      paths <- DEEBpath::getPaths(dbPath, model, example = example)
+      estiOpts <- ConfigOpts::readOpts(
+        DEEBpath::getEstiOptsPath(methodOptsDirSpecific))
+      hyperParmsFiles <-
+        DEEBpath::getHyperParmsFiles(methodOptsDirSpecific, methodPattern)
+      for (hyperParmsFile in hyperParmsFiles) {
+        cat(hyperParmsFile)
+        hyperParmsList <- ConfigOpts::readOpts(
+          file.path(methodOptsDirSpecific, hyperParmsFile))
+        pt <- proc.time()
+        applyMethodToModel(
+          estiOpts,
+          hyperParmsList,
+          obsNrFilter = obsNr,
+          truthNrFilter = truthNrFilter,
+          observationPath = paths$obs,
+          submissionPath = paths$esti,
+          taskPath = paths$task,
+          verbose = FALSE)
+        cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
+      }
+
+    }
+  }
+}
+
+#' @export
+runOne <- function(
+    dbPath,
+    methodOptsDir,
+    truthNrFilter = NULL,
+    obsNr,
+    model,
+    method,
+    example = FALSE,
+    expansionNr = NULL
+) {
+  methodOptsDirSpecific <- DEEBpath::getMethodOptsDirSpecific(
+    methodOptsDir, model, obsNr)
+  paths <- DEEBpath::getPaths(dbPath, model, example = example)
+  estiOpts <- ConfigOpts::readOpts(
+    DEEBpath::getEstiOptsPath(methodOptsDirSpecific))
+  hyperParmsPath <- file.path(methodOptsDirSpecific, paste0(method, ".json"))
+  cat(hyperParmsPath)
+  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+  if (!is.null(expansionNr)) {
+    hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
+    cat(",", expansionNr)
+    hyperParms <- ConfigOpts::makeOpts(
+      c("HyperParms", "List"),
+      name = paste0(hyperParmsList$name, "_", sprintf("%04d", expansionNr)),
+      list = hyperParmsList$list[expansionNr])
+  } else {
+    hyperParms <- hyperParmsList
+  }
+  pt <- proc.time()
+  applyMethodToModel(
+    estiOpts,
+    hyperParms,
+    obsNrFilter = obsNr,
+    truthNrFilter = truthNrFilter,
+    observationPath = paths$obs,
+    submissionPath = paths$esti,
+    taskPath = paths$task,
+    verbose = FALSE)
+  cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
+}
+
+
+#' @export
+getExpansionLength <- function(
+    methodOptsDir,
+    obsNr,
+    model,
+    method
+) {
+  methodOptsDirSpecific <- DEEBpath::getMethodOptsDirSpecific(
+    methodOptsDir, model, obsNr)
+  hyperParmsPath <- file.path(methodOptsDirSpecific, paste0(method, ".json"))
+  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+  hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
+  len <- hyperParmsList$list |> length()
+  return(len)
+}
+
+
 applyMethodToModel <- function(
     opts,
     hyperParmsList = NULL,
