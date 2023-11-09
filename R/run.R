@@ -31,17 +31,14 @@ run <- function(
 
       message("obsNr: ", obsNr)
 
-      methodOptsDirSpecific <- DEEBpath::getMethodOptsDirSpecific(
-        methodOptsDir, model, obsNr)
+      hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
       paths <- DEEBpath::getPaths(dbPath, model, example = example)
       estiOpts <- ConfigOpts::readOpts(
-        DEEBpath::getEstiOptsPath(methodOptsDirSpecific))
-      hyperParmsFiles <-
-        DEEBpath::getHyperParmsFiles(methodOptsDirSpecific, methodPattern)
+        DEEBpath::getEstiOptsPath(dbPath, model))
+
       for (hyperParmsFile in hyperParmsFiles) {
-        cat(hyperParmsFile)
-        hyperParmsList <- ConfigOpts::readOpts(
-          file.path(methodOptsDirSpecific, hyperParmsFile))
+        cat(hyperParmsPath)
+        hyperParmsList <- ConfigOpts::readOpts(hyperParmsPath)
         pt <- proc.time()
         applyMethodToModel(
           estiOpts,
@@ -70,12 +67,12 @@ runOne <- function(
     example = FALSE,
     expansionNr = NULL
 ) {
-  methodOptsDirSpecific <- DEEBpath::getMethodOptsDirSpecific(
-    methodOptsDir, model, obsNr)
+
+  hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
   paths <- DEEBpath::getPaths(dbPath, model, example = example)
   estiOpts <- ConfigOpts::readOpts(
-    DEEBpath::getEstiOptsPath(methodOptsDirSpecific))
-  hyperParmsPath <- file.path(methodOptsDirSpecific, paste0(method, ".json"))
+    DEEBpath::getEstiOptsPath(dbPath, model))
+
   cat(hyperParmsPath)
   hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
   if (!is.null(expansionNr)) {
@@ -99,23 +96,6 @@ runOne <- function(
     taskPath = paths$task,
     verbose = FALSE)
   cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
-}
-
-
-#' @export
-getExpansionLength <- function(
-    methodOptsDir,
-    obsNr,
-    model,
-    method
-) {
-  methodOptsDirSpecific <- DEEBpath::getMethodOptsDirSpecific(
-    methodOptsDir, model, obsNr)
-  hyperParmsPath <- file.path(methodOptsDirSpecific, paste0(method, ".json"))
-  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
-  hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
-  len <- hyperParmsList$list |> length()
-  return(len)
 }
 
 

@@ -3,7 +3,6 @@
 export(copyTruth)
 export(estimateWithHyperparameterSelection)
 export(fitterLocalLinear)
-export(getExpansionLength)
 export(run)
 export(runOne)
 import(ConfigOpts)
