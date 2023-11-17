@@ -3,12 +3,11 @@ copyTruth <- function(
     dbPath,
     modelPattern = NULL,
     obsNrFilter = NULL,
-    truthNrFilter = NULL,
-    example = FALSE
+    truthNrFilter = NULL
 ) {
   models <- DEEBpath::getModels(dbPath, modelPattern)
   for (model in models) {
-    paths <- DEEBpath::getPaths(dbPath, model, example=example)
+    paths <- DEEBpath::getPaths(dbPath, model)
     cat(model, "\n")
     meta <- DEEBpath::getMetaGeneric(
       c(paths$obs, paths$truth),

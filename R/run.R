@@ -6,7 +6,6 @@ run <- function(
     obsNrFilter = NULL,
     modelPattern = NULL,
     methodPattern = NULL,
-    example = FALSE,
     copyTruth = FALSE
 ) {
 
@@ -16,8 +15,7 @@ run <- function(
       dbPath,
       modelPattern = modelPattern,
       obsNrFilter = obsNrFilter,
-      truthNrFilter = truthNrFilter,
-      example = example)
+      truthNrFilter = truthNrFilter)
   }
 
   models <- DEEBpath::getModels(dbPath, modelPattern)
@@ -32,7 +30,7 @@ run <- function(
       message("obsNr: ", obsNr)
 
       hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
-      paths <- DEEBpath::getPaths(dbPath, model, example = example)
+      paths <- DEEBpath::getPaths(dbPath, model)
       estiOpts <- ConfigOpts::readOpts(
         DEEBpath::getEstiOptsPath(dbPath, model))
 
@@ -64,12 +62,11 @@ runOne <- function(
     obsNr,
     model,
     method,
-    example = FALSE,
     expansionNr = NULL
 ) {
 
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
-  paths <- DEEBpath::getPaths(dbPath, model, example = example)
+  paths <- DEEBpath::getPaths(dbPath, model)
   estiOpts <- ConfigOpts::readOpts(
     DEEBpath::getEstiOptsPath(dbPath, model))
 
