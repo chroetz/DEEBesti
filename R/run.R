@@ -62,13 +62,14 @@ runOne <- function(
     obsNr,
     model,
     method,
-    expansionNr = NULL
+    expansionNr = NULL,
+    estiOptsFileName = NULL
 ) {
 
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
   paths <- DEEBpath::getPaths(dbPath, model)
   estiOpts <- ConfigOpts::readOpts(
-    DEEBpath::getEstiOptsPath(dbPath, model))
+    DEEBpath::getEstiOptsPath(dbPath, model, estiOptsFileName))
 
   cat(hyperParmsPath)
   hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
