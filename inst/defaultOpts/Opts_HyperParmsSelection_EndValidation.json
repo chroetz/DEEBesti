@@ -1,9 +1,0 @@
-{
-    "_class": ["EndValidation", "HyperParmsSelection", "Opts"],
-    "_description": "",
-    "ratio": 0.1,
-    "odeSolver": {
-        "_class": ["OdeSolver", "Opts"]
-    } 
-}
- 

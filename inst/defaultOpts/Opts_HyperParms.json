@@ -1,6 +1,7 @@
 {
     "_class": ["HyperParms", "Opts"],
     "_description": "",
+    "name": "",
     "normalize": "meanAndCov",
     "_values_normalize": ["meanAndCov", "none"],
     "_normalize_description": "See DEEBtrajs::calculateNormalization().",

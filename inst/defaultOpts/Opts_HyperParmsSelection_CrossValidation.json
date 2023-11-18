@@ -1,9 +1,0 @@
-{
-    "_class": ["CrossValidation", "HyperParmsSelection", "Opts"],
-    "_description": "",
-    "folds": 5,
-    "odeSolver": {
-        "_class": ["OdeSolver", "Opts"]
-    } 
-}
- 

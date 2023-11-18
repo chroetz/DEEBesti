@@ -29,17 +29,14 @@ run <- function(
 
       message("obsNr: ", obsNr)
 
-      hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
+      hyperParmsPaths <- DEEBpath::getMethodPaths(methodOptsDir)
       paths <- DEEBpath::getPaths(dbPath, model)
-      estiOpts <- ConfigOpts::readOpts(
-        DEEBpath::getEstiOptsPath(dbPath, model))
 
-      for (hyperParmsFile in hyperParmsFiles) {
+      for (hyperParmsPath in hyperParmsPaths) {
         cat(hyperParmsPath)
         hyperParmsList <- ConfigOpts::readOpts(hyperParmsPath)
         pt <- proc.time()
         applyMethodToModel(
-          estiOpts,
           hyperParmsList,
           obsNrFilter = obsNr,
           truthNrFilter = truthNrFilter,
@@ -57,35 +54,32 @@ run <- function(
 #' @export
 runOne <- function(
     dbPath,
-    methodOptsDir,
     truthNrFilter = NULL,
     obsNr,
     model,
     method,
-    expansionNr = NULL,
-    estiOptsFileName = NULL
+    expansionNr = NULL
 ) {
 
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
   paths <- DEEBpath::getPaths(dbPath, model)
-  estiOpts <- ConfigOpts::readOpts(
-    DEEBpath::getEstiOptsPath(dbPath, model, estiOptsFileName))
-
   cat(hyperParmsPath)
   hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
   if (!is.null(expansionNr)) {
     hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
     cat(",", expansionNr)
-    hyperParms <- ConfigOpts::makeOpts(
-      c("HyperParms", "List"),
-      name = paste0(hyperParmsList$name, "_", sprintf("%04d", expansionNr)),
-      list = hyperParmsList$list[expansionNr])
+    hyperParms <- hyperParmsList$list[[expansionNr]]
+    hyperParms$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParms)
   } else {
-    hyperParms <- hyperParmsList
+    if (ConfigOpts::getClassAt(hyperParmsList, 1) == "List") {
+      stopifnot(length(hyperParmsList$list) == 1)
+      hyperParms <- hyperParmsList$list[[1]]
+    } else {
+      hyperParms <- hyperParmsList
+    }
   }
   pt <- proc.time()
   applyMethodToModel(
-    estiOpts,
     hyperParms,
     obsNrFilter = obsNr,
     truthNrFilter = truthNrFilter,
@@ -98,8 +92,7 @@ runOne <- function(
 
 
 applyMethodToModel <- function(
-    opts,
-    hyperParmsList = NULL,
+    hyperParms = NULL,
     observationPath,
     taskPath = observationPath,
     submissionPath = observationPath,
@@ -109,15 +102,11 @@ applyMethodToModel <- function(
     saveParms = FALSE
 ) {
 
-  opts <- asOpts(opts, "Estimation")
+  outDir <- file.path(submissionPath, hyperParms$name)
+  if (verbose) cat("outDir:", outDir, "\n")
+  if (!dir.exists(outDir)) dir.create(outDir, recursive=TRUE)
 
-  outDir <- file.path(submissionPath, hyperParmsList$name)
-  if (!file.exists(outDir)) dir.create(outDir, recursive=TRUE)
-
-  writeOpts(hyperParmsList, dir = outDir)
-  writeOpts(opts, dir = outDir)
-
-  hyperParmsList <- expandList(hyperParmsList) # TODO: write expanded and compact forms?
+  writeOpts(hyperParms, dir = outDir)
 
   taskMeta <- DEEBpath::getMetaGeneric(taskPath, tagsFilter = "task")
   meta <- DEEBpath::getMetaGeneric(
@@ -129,21 +118,13 @@ applyMethodToModel <- function(
     info <- meta[i,]
     if (verbose) cat(paste0("truth: ", info$truthNr, ", obs: ", info$obsNr, ". "))
     obs <- readTrajs(info$obsPath)
-    res <- estimateWithHyperparameterSelection(
-      obs,
-      hyperParmsList,
-      opts,
-      verbose = verbose)
-    writeOpts(res$hyperParms, file.path(outDir, DEEBpath::hyperParmsFile(info)))
-    writeValidationErrorFile(res$validationErrors, info, outDir)
-    if (saveParms) writeParms(res$parms, obs, info, outDir)
-
+    parms <- getParms(obs, hyperParms)
+    if (saveParms) writeParms(parms, obs, info, outDir)
     for (j in seq_len(nrow(taskMeta))) {
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
-      writeTaskResult(res$parms, res$hyperParms, obs, opts, allInfo)
+      writeTaskResult(parms, hyperParms, obs, allInfo)
     }
-
-    cleanUpParms(res$parms)
+    cleanUpParms(parms)
   }
 }
 
@@ -156,35 +137,20 @@ writeParms <- function(parms, obs, info, outDir) {
 }
 
 
-writeValidationErrorFile <- function(validationErrors, info, outDir) {
-  if (!is.null(validationErrors)) {
-    path <- file.path(outDir, DEEBpath::validationErrorFile(info))
-    data <- data.frame(
-      idx = seq_along(validationErrors),
-      validationError = validationErrors)
-    utils::write.csv(
-      data,
-      file = path,
-      quote = FALSE,
-      row.names = FALSE)
-  }
-}
-
-
-writeTaskResult <- function(parms, hyperParms, obs, opts, info) {
+writeTaskResult <- function(parms, hyperParms, obs, info) {
   info$task <- ConfigOpts::readOptsBare(info$taskPath)
   taskClass <- getClassAt(info$task, 2)
   switch(
     taskClass,
-    estiObsTrajs = writeTaskResultEstiObsTrajs(parms, hyperParms, obs, opts, info),
-    newTrajs = writeTaskResultNewTrajs(parms, hyperParms, opts, info),
-    velocity = writeTaskResultVelocity(parms, hyperParms, opts, info),
+    estiObsTrajs = writeTaskResultEstiObsTrajs(parms, hyperParms, obs, info),
+    newTrajs = writeTaskResultNewTrajs(parms, hyperParms, info),
+    velocity = writeTaskResultVelocity(parms, hyperParms, info),
     stop("Unknown task class ", taskClass)
   )
 }
 
 
-writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
+writeTaskResultNewTrajs <- function(parms, hyperParms, info) {
   targetTimes <- seq(
     info$task$predictionTime[1],
     info$task$predictionTime[2],
@@ -198,8 +164,7 @@ writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
     init,
     info$task$predictionTime,
     parms = parms,
-    hyperParms,
-    opts)
+    hyperParms)
   if (is.null(result)) {
     writeTrajs(
       makeTrajs(
@@ -215,7 +180,7 @@ writeTaskResultNewTrajs <- function(parms, hyperParms, opts, info) {
 }
 
 
-writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
+writeTaskResultVelocity <- function(parms, hyperParms, info) {
   gridSides <- lapply(seq_along(info$task$gridSteps), \(i) seq(
     info$task$gridRanges[i,1],
     info$task$gridRanges[i,2],
@@ -252,7 +217,7 @@ writeTaskResultVelocity <- function(parms, hyperParms, opts, info) {
 }
 
 
-writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
+writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, info) {
   init <- estimateInitialStateAndTime(
     parms,
     hyperParms,
@@ -267,8 +232,7 @@ writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, opts, info) {
     init$initial,
     c(init$time[1], info$task$predictionTime[2]),
     parms,
-    hyperParms,
-    opts)
+    hyperParms)
   if (is.null(result)) {
     writeTrajs(
       makeTrajs(
