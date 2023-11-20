@@ -1,0 +1,7 @@
+{
+    "_class": ["Direct", "HyperParms", "Opts"],
+    "_description": "Based on storing all observations.",
+    "requiredFutures": 1,
+    "derivOrder": 1
+}
+  

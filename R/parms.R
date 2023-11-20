@@ -11,7 +11,11 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     switch(
       name,
       Trajs = getParmsTrajs(obs, hyperParms, memoize),
-      Esn = getParmsEsn(obs, hyperParms, memoize)))
+      Esn = getParmsEsn(obs, hyperParms, memoize),
+      Direct = getParmsDirect(obs, hyperParms, memoize),
+      stop("Unknown HyperParms subclass")
+    )
+  )
 
   return(parms)
 }
@@ -34,9 +38,33 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
     esn, obs,
     l2Penalty = hyperParms$l2Penalty,
     warmUpLen = hyperParms$warmUpLen,
-    initReservoirScale = hyperParms$initReservoirScale)
+    initReservoirScale = hyperParms$initReservoirScale,
+    skip = hyperParms$skip)
 
   return(list(esn = esn))
+}
+
+
+getParmsDirect <- function(obs, hyperParms, memoize) {
+
+  hyperParms <- asOpts(hyperParms, c("Direct", "HyperParms"))
+
+  obs <-
+    obs |>
+    dplyr::arrange(trajId, time)
+  store <-
+    obs |>
+    dplyr::group_by(trajId) |>
+    tibble::rowid_to_column(obsIdx) |>
+    dplyr::filter(order(time, decreasing=TRUE) > hyperParms$requiredFutures)
+
+  parms <- list()
+
+  parms$knnIdxToStoreIdx <- store$obsIdx
+  parms$stored <- obs
+  parms$knnFun <- FastKNN::buildKnnFunction(store$state, 1)
+
+  return(parms)
 }
 
 

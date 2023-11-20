@@ -40,17 +40,17 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias, 
     bias))
 }
 
-trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale#,
-                     #skip
-                     ) {
+trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, skip = 0) {
 
-  # if (skip > 0) {
-  #   # TODO subsample obs
-  #   m <- length(getTrajIds(obs))
-  #   stopifnot(1:m == getTrajIds(obs))
-  #   obs$trajId <- obs$trajId + (0:skip)*m
-  #   obs <- obs[order(obs$trajId),]
-  # }
+  if (skip > 0) {
+    m <- length(getTrajIds(obs))
+    stopifnot(1:m == getTrajIds(obs))
+    obs <-
+      obs |>
+      dplyr::arrange(trajId, time) |>
+      dplyr::mutate(trajId = trajId + (0:skip)*m) |>
+      dplyr::arrange(trajId, time)
+  }
 
   reservoirSeries <- mapTrajs2Trajs(obs, \(traj) {
 
@@ -82,7 +82,7 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale#,
     XTX,
     crossprod(X, regressionOut))
 
-  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
+  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
 
   return(c(esn, lst(
     outWeightMatrix,
@@ -130,4 +130,21 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
     state = outStates)
 
   return(outTrajs)
+}
+
+
+predictEsnDeriv <- function(esn, states, derivOrder) {
+  t(apply(states, 1, \(s) {
+    predictedStates <- predictEsn(esn, s, len = derivOrder)$state
+    polyInterpCoeffs <- polynomialInterpolation(esn$timeStep * 0:derivOrder, predictedStates)
+    polyInterpCoeffs[2,] # derivative at 0 of polynomial is linear coefficient (second coeff)
+  }))
+}
+
+polynomialInterpolation <- function(x, y) {
+  stopifnot(length(x) == nrow(y))
+  p <- length(x) - 1
+  X <- outer(x, (0:p), `^`)
+  coeff <- solve(crossprod(X), crossprod(X, y))
+  return(coeff)
 }

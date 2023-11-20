@@ -197,14 +197,9 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
       derivFun <- buildDerivFun(hyperParms$derivFun)
       t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
     },
-    Esn = {
-      t(apply(gridNormed$state, 1, \(s) {
-        x <- predictEsn(parms$esn, s, len = 1)$state[2,]
-        dx <- (x - s) / parms$esn$timeStep
-        dx
-        # TODO higher order
-      }))
-    }
+    Esn = predictEsnDeriv(parms$esn, gridNormed$state, hyperParms$derivOrder),
+    Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
+    stop("Unknown HyperParms subclass")
   )
 
   resultNormed <- makeDerivTrajs(state = gridNormed$state, deriv = derivs)
