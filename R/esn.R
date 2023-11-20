@@ -17,7 +17,10 @@ spectralRadius <- function(mat) {
   max(abs(eigen(mat, symmetric=FALSE, only.values=TRUE)$values))
 }
 
-createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias) {
+createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias, seed) {
+
+  set.seed(seed)
+
   inWeightMatrix <- matrix(
       inWeightScale * stats::rnorm(size * (inDim + 1)),
       nrow = size, ncol = inDim + 1)

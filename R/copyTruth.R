@@ -5,10 +5,11 @@ copyTruth <- function(
     obsNrFilter = NULL,
     truthNrFilter = NULL
 ) {
+  cat("Start Copy Truth.\n")
   models <- DEEBpath::getModels(dbPath, modelPattern)
   for (model in models) {
     paths <- DEEBpath::getPaths(dbPath, model)
-    cat(model, "\n")
+    cat("Model:", model, "\n")
     meta <- DEEBpath::getMetaGeneric(
       c(paths$obs, paths$truth),
       tagFileFilter = list(c("truth", "obs"), c("task", "truth")),
@@ -21,5 +22,6 @@ copyTruth <- function(
       file.copy(info$truthPath, file.path(outPath, DEEBpath::estiFile(info)))
     }
   }
+  cat("End Copy Truth.\n")
 }
 

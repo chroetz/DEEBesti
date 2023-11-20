@@ -27,7 +27,8 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
     degree = hyperParms$degree,
     spectralRadius = hyperParms$spectralRadius,
     inWeightScale = hyperParms$inWeightScale,
-    bias = hyperParms$bias)
+    bias = hyperParms$bias,
+    seed = hyerParms$seed)
 
   esn <- trainEsn(
     esn, obs,

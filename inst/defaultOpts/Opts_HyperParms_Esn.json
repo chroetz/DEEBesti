@@ -8,6 +8,7 @@
     "l2Penalty": 1e-7,
     "warmUpLen": 1,
     "bias": 1,
-    "initReservoirScale": 1
+    "initReservoirScale": 1,
+    "seed": 1
 }
   
