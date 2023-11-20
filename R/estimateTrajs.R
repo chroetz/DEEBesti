@@ -41,6 +41,6 @@ estimateTrajsDirect  <- function(initState, timeRange, parms, hyperParms) {
   extendAnalogue(
     makeTrajs(0, matrix(initState, nrow=1)),
     parms,
-    reuireTime = max(timeRange))
+    requireTime = max(timeRange))
 }
 

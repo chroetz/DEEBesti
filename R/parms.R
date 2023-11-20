@@ -55,7 +55,7 @@ getParmsDirect <- function(obs, hyperParms, memoize) {
   store <-
     obs |>
     dplyr::group_by(trajId) |>
-    tibble::rowid_to_column(obsIdx) |>
+    tibble::rowid_to_column("obsIdx") |>
     dplyr::filter(order(time, decreasing=TRUE) > hyperParms$requiredFutures)
 
   parms <- list()
