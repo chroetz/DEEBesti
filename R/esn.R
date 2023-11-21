@@ -145,6 +145,6 @@ polynomialInterpolation <- function(x, y) {
   stopifnot(length(x) == nrow(y))
   p <- length(x) - 1
   X <- outer(x, (0:p), `^`)
-  coeff <- solve(crossprod(X), crossprod(X, y))
+  coeff <- DEEButil::saveSolve(crossprod(X), crossprod(X, y))
   return(coeff)
 }

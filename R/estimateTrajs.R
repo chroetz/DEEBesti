@@ -38,9 +38,13 @@ estimateTrajsDirect  <- function(initState, timeRange, parms, hyperParms) {
 
   hyperParms <- asOpts(hyperParms, c("Direct", "HyperParms"))
 
-  extendAnalogue(
-    makeTrajs(0, matrix(initState, nrow=1)),
-    parms,
-    requireTime = max(timeRange))
+  esti <- mapTrajs2Trajs(initState, \(startTraj) {
+    extendAnalogue(
+      makeTrajs(startTraj$time, matrix(startTraj$state, nrow=1)),
+      parms,
+      requireTime = max(timeRange))
+  })
+
+  return(esti)
 }
 

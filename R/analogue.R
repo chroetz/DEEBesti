@@ -5,6 +5,7 @@ predictDirectDeriv <- function(states, parms, hyperParms) {
         makeTrajs(0, matrix(state, nrow=1)),
         parms,
         requireSteps = hyperParms$derivOrder)
+    analogue <- analogue[seq_len(hyperParms$derivOrder+1), ]
     polyInterpCoeffs <- polynomialInterpolation(analogue$time, analogue$state)
     polyInterpCoeffs[2,] # derivative at 0 of polynomial is linear coefficient (second coeff)
   }))
@@ -18,11 +19,12 @@ extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = N
 
   knn <- parms$knnFun(lastState)
   storeIdx <- parms$knnIdxToStoreIdx[knn$idx]
+
   storeValid <-
     parms$store |>
     dplyr::filter(
       trajId == trajId[storeIdx],
-      seq_len(nrow(.data)) >= storeIdx) |>
+      seq_len(dplyr::n()) >= storeIdx) |>
     dplyr::mutate(time = time - time[1] + lastTime)
 
   analogue <-
