@@ -11,6 +11,6 @@
     "initReservoirScale": 1,
     "seed": 1,
     "skip": 0,
-    "derivOrder": 1
+    "derivOrder": 1,
+    "timeStepAsInput": false
 }
-  

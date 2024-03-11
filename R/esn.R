@@ -40,7 +40,7 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias, 
     bias))
 }
 
-trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, skip = 0) {
+trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeStepAsInput, skip = 0) {
 
   if (skip > 0) {
     m <- length(getTrajIds(obs))
@@ -54,12 +54,22 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, skip = 
 
   reservoirSeries <- mapTrajs2Trajs(obs, \(traj) {
 
+    if (timeStepAsInput) {
+      timeSteps <- diff(traj)
+      timeSteps <- c(timeSteps, mean(timeSteps))
+    }
+
     trajReservoirSeries <- matrix(NA_real_, nrow = nrow(traj), ncol = esn$size)
     reservoir <- stats::rnorm(esn$size, sd = initReservoirScale/esn$size)
 
     for (i in seq_len(nrow(traj))) {
+      if (timeStepAsInput) {
+        v <- c(esn$bias, traj$state[i, ], timeSteps[i])
+      } else {
+        v <- c(esn$bias, traj$state[i, ])
+      }
       reservoir <- tanh(
-        esn$inWeightMatrix %*% c(esn$bias, traj$state[i, ]) +
+        esn$inWeightMatrix %*% v +
         esn$reservoirWeightMatrix %*% reservoir)
       trajReservoirSeries[i,] <- reservoir
     }
@@ -87,6 +97,7 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, skip = 
   return(c(esn, lst(
     outWeightMatrix,
     timeStep,
+    timeStepAsInput,
     reservoir = reservoirSeries$state,
     states = obs$state)))
 }
@@ -120,8 +131,13 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
   for (i in seq_len(len)) {
     x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
     outStates[i+1,] <- x
+    if (esn$timeStepAsInput) {
+      v <- c(esn$bias, x, esn$timeStep)
+    } else {
+      v <- c(esn$bias, x)
+    }
     reservoir <- tanh(
-      esn$inWeightMatrix %*% c(esn$bias, x) +
+      esn$inWeightMatrix %*% v +
       esn$reservoirWeightMatrix %*% reservoir)
   }
 

@@ -25,9 +25,14 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
 
   hyperParms <- asOpts(hyperParms, c("Esn", "HyperParms"))
 
+  inDim <- getDim(obs)
+  if (hyperParms$timeStepAsInput) {
+    inDim <- inDim + 1
+  }
+
   esn <- createEsn(
     size = hyperParms$size,
-    inDim = getDim(obs),
+    inDim = inDim,
     degree = hyperParms$degree,
     spectralRadius = hyperParms$spectralRadius,
     inWeightScale = hyperParms$inWeightScale,
@@ -39,6 +44,7 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
     l2Penalty = hyperParms$l2Penalty,
     warmUpLen = hyperParms$warmUpLen,
     initReservoirScale = hyperParms$initReservoirScale,
+    timeStepAsInput = hyperParms$timeStepAsInput,
     skip = hyperParms$skip)
 
   return(list(esn = esn))
