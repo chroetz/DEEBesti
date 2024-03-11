@@ -55,7 +55,7 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeSte
   reservoirSeries <- mapTrajs2Trajs(obs, \(traj) {
 
     if (timeStepAsInput) {
-      timeSteps <- diff(traj)
+      timeSteps <- diff(traj$time)
       timeSteps <- c(timeSteps, mean(timeSteps))
     }
 
