@@ -106,7 +106,7 @@ applyMethodToModel <- function(
   if (verbose) cat("outDir:", outDir, "\n")
   if (!dir.exists(outDir)) dir.create(outDir, recursive=TRUE)
 
-  writeOpts(hyperParms, dir = outDir)
+  writeOpts(hyperParms, dir = outDir, warn = FALSE)
 
   taskMeta <- DEEBpath::getMetaGeneric(taskPath, tagsFilter = "task")
   meta <- DEEBpath::getMetaGeneric(
