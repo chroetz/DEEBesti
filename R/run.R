@@ -35,6 +35,10 @@ run <- function(
       for (hyperParmsPath in hyperParmsPaths) {
         cat(hyperParmsPath)
         hyperParmsList <- ConfigOpts::readOpts(hyperParmsPath)
+        if (nchar(hyperParmsList$name) == 0) {
+          x <- basename(hyperParmsPath)
+          hyperParmsList$name <- substring(x, 1, x-5)
+        }
         pt <- proc.time()
         applyMethodToModel(
           hyperParmsList,
@@ -65,6 +69,7 @@ runOne <- function(
   paths <- DEEBpath::getPaths(dbPath, model)
   cat(hyperParmsPath)
   hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+  if (nchar(hyperParmsList$name) == 0) hyperParmsList$name <- method
   if (!is.null(expansionNr)) {
     hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
     cat(",", expansionNr)
