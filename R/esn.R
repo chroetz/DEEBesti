@@ -126,16 +126,12 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
     startReservoir <- esn$reservoir[iStart, ]
     reservoir <- startReservoir
   } else {
-    reservoir <-
-      tryCatch(
-        tanh(esn$inWeightMatrix %*% c(esn$bias, startState)),
-        error = \(cond) {
-          str(esn$inWeightMatrix)
-          str(c(esn$bias, startState))
-          str(esn)
-          stop("matrix")
-        }
-      )
+    if (esn$timeStepAsInput) {
+      v <- c(esn$bias, startState, esn$timeStep)
+    } else {
+      v <- c(esn$bias, startState)
+    }
+    reservoir <- tanh(esn$inWeightMatrix %*% v)
   }
 
   for (i in seq_len(len)) {
