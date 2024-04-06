@@ -69,7 +69,7 @@ runOne <- function(
   paths <- DEEBpath::getPaths(dbPath, model)
   cat(hyperParmsPath)
   hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
-  if (nchar(hyperParmsList$name) == 0) hyperParmsList$name <- method
+  if (nchar(hyperParmsList$name) == 0) hyperParmsList$name <- basename(method)
   if (!is.null(expansionNr)) {
     hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
     cat(",", expansionNr)
