@@ -44,11 +44,12 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeSte
 
   if (skip > 0) {
     m <- length(getTrajIds(obs))
+    n <- nrow(obs)
     stopifnot(1:m == getTrajIds(obs))
     obs <-
       obs |>
       dplyr::arrange(trajId, time) |>
-      dplyr::mutate(trajId = trajId + (0:skip)*m) |>
+      dplyr::mutate(trajId = trajId + rep_len((0:skip)*m, n)) |>
       dplyr::arrange(trajId, time)
   }
 
