@@ -83,6 +83,7 @@ runOne <- function(
       hyperParms <- hyperParmsList
     }
   }
+  cat(",", hyperParms$name)
   pt <- proc.time()
   applyMethodToModel(
     hyperParms,
