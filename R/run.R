@@ -62,8 +62,11 @@ runOne <- function(
     obsNr,
     model,
     method,
-    expansionNr = NULL
+    expansionNr = NULL,
+    warningAsError = FALSE
 ) {
+
+  if (warningAsError) options(warn=2)
 
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
   paths <- DEEBpath::getPaths(dbPath, model)
@@ -92,7 +95,7 @@ runOne <- function(
     observationPath = paths$obs,
     submissionPath = paths$esti,
     taskPath = paths$task,
-    verbose = FALSE)
+    verbose = TRUE)
   cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
 }
 
@@ -110,7 +113,7 @@ applyMethodToModel <- function(
 
   outDir <- file.path(submissionPath, hyperParms$name)
   if (verbose) cat("outDir:", outDir, "\n")
-  if (!dir.exists(outDir)) dir.create(outDir, recursive=TRUE)
+  dir.create(outDir, showWarnings=FALSE, recursive=TRUE)
 
   writeOpts(hyperParms, dir = outDir, warn = FALSE)
 
@@ -122,7 +125,7 @@ applyMethodToModel <- function(
 
   for (i in seq_len(nrow(meta))) {
     info <- meta[i,]
-    if (verbose) cat(paste0("truth: ", info$truthNr, ", obs: ", info$obsNr, ". "))
+    if (verbose) cat(paste0("truth: ", info$truthNr, ", obs: ", info$obsNr, ".\n"))
     obs <- readTrajs(info$obsPath)
     parms <- getParms(obs, hyperParms)
     if (saveParms) writeParms(parms, obs, info, outDir)

@@ -8,11 +8,11 @@ fitTrajsInterpolationSpline <- function(obs, opts) {
 fitTrajInterpolationSpline1D <- function(time, state, outTime, target) {
   outDeriv = NULL
   if (target == "point") {
-    sf <- stats::splinefun(time, state)
+    sf <- stats::splinefun(time, state, ties = mean)
     outState <- sf(outTime, 0)
     outDeriv <- sf(outTime, 1)
   } else if (target == "line") {
-    outState <- stats::spline(time, state, xout = outTime)$y
+    outState <- stats::spline(time, state, xout = outTime, ties = mean)$y
   } else {
     stop("Unknown target ", target)
   }
