@@ -64,11 +64,9 @@ getParmsTransformer <- function(obs, hyperParms, memoize) {
     inDim <- inDim + 1
   }
 
-  transformer <- createTransformer(hyperParms$architecture)
+  transformer <- createTransformer(hyperParms, stateDim = inDim)
 
-  transformer <- trainTransformer(
-    transformer, obs,
-    hyperParms$train)
+  transformer <- trainTransformer(transformer, obs, hyperParms)
 
   return(list(transformer = transformer))
 }

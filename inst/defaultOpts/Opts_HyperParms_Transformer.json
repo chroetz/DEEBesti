@@ -3,9 +3,16 @@
     "_description": "Transformer Network",
     "timeStepAsInput": false,
     "architecture": {
-
+        "contextLen": 32,
+        "headSize": 16,
+        "nHeads": 4,
+        "nBlocks": 2,
+        "mlpUnits": 16,
+        "mlpDropout": 0.1,
+        "dropout": 0.1,
+        "learningRate": 1e-4
     },
     "train": {
-        
+
     }
 }
