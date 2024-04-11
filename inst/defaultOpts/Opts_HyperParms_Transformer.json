@@ -1,0 +1,11 @@
+{
+    "_class": ["Transformer", "HyperParms", "Opts"],
+    "_description": "Transformer Network",
+    "timeStepAsInput": false,
+    "architecture": {
+
+    },
+    "train": {
+        
+    }
+}

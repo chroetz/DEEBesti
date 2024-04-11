@@ -12,6 +12,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
       name,
       Trajs = getParmsTrajs(obs, hyperParms, memoize),
       Esn = getParmsEsn(obs, hyperParms, memoize),
+      Transformer = getParmsTransformer(obs, hyperParms, memoize),
       Direct = getParmsDirect(obs, hyperParms, memoize),
       stop("Unknown HyperParms subclass")
     )
@@ -21,6 +22,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
 }
 
 
+# Propagator map Estimation: Echo State Network and Random Features
 getParmsEsn <- function(obs, hyperParms, memoize) {
 
   hyperParms <- asOpts(hyperParms, c("Esn", "HyperParms"))
@@ -51,6 +53,28 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
 }
 
 
+
+# Propagator map Estimation: Transformer
+getParmsTransformer <- function(obs, hyperParms, memoize) {
+
+  hyperParms <- asOpts(hyperParms, c("Transformer", "HyperParms"))
+
+  inDim <- getDim(obs)
+  if (hyperParms$timeStepAsInput) {
+    inDim <- inDim + 1
+  }
+
+  transformer <- createTransformer(hyperParms$architecture)
+
+  transformer <- trainTransformer(
+    transformer, obs,
+    hyperParms$train)
+
+  return(list(transformer = transformer))
+}
+
+
+# No training required
 getParmsDirect <- function(obs, hyperParms, memoize) {
 
   hyperParms <- asOpts(hyperParms, c("Direct", "HyperParms"))
@@ -75,6 +99,9 @@ getParmsDirect <- function(obs, hyperParms, memoize) {
 }
 
 
+# Two-Step Procedure:
+# 1. estimate observed trajectory
+# 2. estimate model function
 getParmsTrajs <- function(obs, hyperParms, memoize) {
 
   hyperParms <- asOpts(hyperParms, c("Trajs", "HyperParms"))

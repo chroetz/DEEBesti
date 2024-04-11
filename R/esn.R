@@ -82,8 +82,19 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeSte
     return(out)
   })
 
-  regressionOut <- do.call(rbind, applyTrajId(obs, \(traj) traj$state[-1,, drop=FALSE]))
-  regressionIn <- do.call(rbind, applyTrajId(reservoirSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
+  regressionOut <- do.call(
+    rbind,
+    applyTrajId(
+      obs,
+      \(traj) {
+        (traj$state[-1,, drop=FALSE] - traj$state[-nrow(traj$state),, drop=FALSE]) / diff(traj$time)
+      }
+    )
+  )
+  # regressionOut <- do.call(rbind, applyTrajId(obs, \(traj) traj$state[-1,, drop=FALSE]))
+  regressionIn <- do.call(
+    rbind,
+    applyTrajId(reservoirSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
 
   X <- cbind(1, regressionIn)
   XTX <- crossprod(X)
@@ -134,18 +145,32 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
     reservoir <- tanh(esn$inWeightMatrix %*% v)
   }
 
+  prevState <- startState
   for (i in seq_len(len)) {
     x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
-    outStates[i+1,] <- x
+    newState <- prevState + esn$timeStep * prevState
+    outStates[i+1,] <- newState
     if (esn$timeStepAsInput) {
-      v <- c(esn$bias, x, esn$timeStep)
+      v <- c(esn$bias, newState, esn$timeStep)
     } else {
-      v <- c(esn$bias, x)
+      v <- c(esn$bias, newState)
     }
     reservoir <- tanh(
       esn$inWeightMatrix %*% v +
       esn$reservoirWeightMatrix %*% reservoir)
   }
+  # for (i in seq_len(len)) {
+  #   x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
+  #   outStates[i+1,] <- x
+  #   if (esn$timeStepAsInput) {
+  #     v <- c(esn$bias, x, esn$timeStep)
+  #   } else {
+  #     v <- c(esn$bias, x)
+  #   }
+  #   reservoir <- tanh(
+  #     esn$inWeightMatrix %*% v +
+  #     esn$reservoirWeightMatrix %*% reservoir)
+  # }
 
   outTrajs <- makeTrajs(
     time = time,
