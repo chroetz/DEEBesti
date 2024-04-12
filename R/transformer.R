@@ -58,6 +58,7 @@ trainTransformer <- function(transformer, obs, opts) {
 
   history <- transformer$model %>%
     keras::fit(
+      verbose = 2,
       xTrain,
       yTrain,
       steps_per_epoch = opts$stepsPerEpoch,
