@@ -68,26 +68,12 @@ runOne <- function(
 
   if (warningAsError) options(warn=2)
 
-  hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
-  paths <- DEEBpath::getPaths(dbPath, model)
-  cat(hyperParmsPath)
-  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
-  if (nchar(hyperParmsList$name) == 0) hyperParmsList$name <- basename(method)
-  if (!is.null(expansionNr)) {
-    hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
-    cat(",", expansionNr)
-    hyperParms <- hyperParmsList$list[[expansionNr]]
-    hyperParms$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParms)
-  } else {
-    if (ConfigOpts::getClassAt(hyperParmsList, 1) == "List") {
-      stopifnot(length(hyperParmsList$list) == 1)
-      hyperParms <- hyperParmsList$list[[1]]
-    } else {
-      hyperParms <- hyperParmsList
-    }
-    if (length(hyperParms$name) == 0 || nchar(hyperParms$name) == 0) hyperParms$name <- hyperParmsList$name
-  }
-  cat(",", hyperParms$name)
+  hyperParms <- loadHyperParms(
+    dbPath,
+    model,
+    method,
+    expansionNr)
+
   pt <- proc.time()
   applyMethodToModel(
     hyperParms,
@@ -98,6 +84,34 @@ runOne <- function(
     taskPath = paths$task,
     verbose = TRUE)
   cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
+}
+
+
+loadHyperParms <- function(
+    dbPath,
+    model,
+    method,
+    expansionNr
+) {
+  hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
+  paths <- DEEBpath::getPaths(dbPath, model)
+  cat(hyperParmsPath)
+  hyperParmsObject <- ConfigOpts::readOptsBare(hyperParmsPath)
+  if (nchar(hyperParmsObject$name) == 0) hyperParmsObject$name <- basename(method)
+  if (ConfigOpts::getClassAt(hyperParmsObject, 1) == "List") {
+    if (is.null(expansionNr)) {
+      stopifnot(length(hyperParmsObject$list) == 1)
+      expansionNr <- 1
+    }
+    hyperParmsList <- ConfigOpts::expandList(hyperParmsObject)
+    cat(",", expansionNr)
+    hyperParms <- hyperParmsList$list[[expansionNr]]
+    hyperParms$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParms)
+  } else {
+    hyperParms <- hyperParmsObject
+  }
+  cat(",", hyperParms$name)
+  return(hyperParms)
 }
 
 
