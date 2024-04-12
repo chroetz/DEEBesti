@@ -174,7 +174,7 @@ transformerEncoder <- function(
     nHeads,
     dropout = 0
 ) {
-  # Attention and Normalization
+
   attentionLayer <- keras::layer_multi_head_attention(
     key_dim = headSize,
     num_heads = nHeads,
@@ -189,12 +189,10 @@ transformerEncoder <- function(
 
   res <- x + inputs
 
-  # Feed Forward Part
   x <- res %>%
     keras::layer_dense(nFeatures, activation = "relu") |>
     keras::layer_layer_normalization(epsilon = 1e-6)
 
-  # return output + residual
   return(x + res)
 }
 

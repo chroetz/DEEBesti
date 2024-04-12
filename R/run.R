@@ -75,6 +75,7 @@ runOne <- function(
     expansionNr)
 
   pt <- proc.time()
+  paths <- DEEBpath::getPaths(dbPath, model)
   applyMethodToModel(
     hyperParms,
     obsNrFilter = obsNr,
