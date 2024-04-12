@@ -3,6 +3,7 @@
 #' @import ConfigOpts
 #' @importFrom rlang .data
 #' @importFrom tibble lst
+#' @importFrom keras %>%
 "_PACKAGE"
 
 ## usethis namespace: start

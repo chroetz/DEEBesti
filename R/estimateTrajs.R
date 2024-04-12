@@ -12,6 +12,7 @@ estimateTrajs <- function(initState, timeRange, parms, hyperParms) {
       opts = hyperParms$odeSolver,
       parms = parms),
     Esn = estimateTrajsEsn(initState, timeRange, parms, hyperParms),
+    Transformer = estimateTrajsTransformer(initState, timeRange, parms, hyperParms),
     Direct = estimateTrajsDirect(initState, timeRange, parms, hyperParms),
     stop("Unknown HyperParms subclass"))
 
@@ -26,6 +27,22 @@ estimateTrajsEsn <- function(initState, timeRange, parms, hyperParms) {
   esti <- mapTrajs2Trajs(initState, \(startTraj) {
     predictEsn(
       parms$esn,
+      startTraj$state,
+      timeRange = timeRange)
+  })
+
+  return(esti)
+}
+
+
+
+estimateTrajsTransformer <- function(initState, timeRange, parms, hyperParms) {
+
+  hyperParms <- asOpts(hyperParms, c("Transformer", "HyperParms"))
+
+  esti <- mapTrajs2Trajs(initState, \(startTraj) {
+    predictTransformer(
+      parms$transformer,
       startTraj$state,
       timeRange = timeRange)
   })

@@ -85,6 +85,7 @@ runOne <- function(
     } else {
       hyperParms <- hyperParmsList
     }
+    if (length(hyperParms$name) == 0 || nchar(hyperParms$name) == 0) hyperParms$name <- hyperParmsList$name
   }
   cat(",", hyperParms$name)
   pt <- proc.time()

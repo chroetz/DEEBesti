@@ -2,17 +2,18 @@
     "_class": ["Transformer", "HyperParms", "Opts"],
     "_description": "Transformer Network",
     "timeStepAsInput": false,
-    "architecture": {
-        "contextLen": 32,
-        "headSize": 16,
-        "nHeads": 4,
-        "nBlocks": 2,
-        "mlpUnits": 16,
-        "mlpDropout": 0.1,
-        "dropout": 0.1,
-        "learningRate": 1e-4
-    },
-    "train": {
-
-    }
+    "contextLen": 32,
+    "posDim": 16,
+    "headSize": 16,
+    "nHeads": 4,
+    "nBlocks": 2,
+    "mlpUnits": 16,
+    "mlpDropout": 0.1,
+    "dropout": 0.1,
+    "learningRate": 1e-4,
+    "validationSplit": 0.1,
+    "epochs": 50,
+    "stepsPerEpoch": 100,
+    "posEncoding": "sinusoidal",
+    "posEncodeFactor": 2
 }
