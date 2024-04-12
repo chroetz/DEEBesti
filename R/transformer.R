@@ -113,7 +113,7 @@ predictTransformer <- function(transformer, startState, len = NULL, startTime = 
   outStates[1, ] <- startState
 
   for (i in seq_len(len)) {
-    pred <- transformer$model %>% predict(x)
+    pred <- transformer$model %>% predict(x, verbose=2)
     outStates[i+1,] <- pred
     x[1, -contextLen, seq_len(stateDim)] <- x[1, -1, seq_len(stateDim)]
     x[1, contextLen, seq_len(stateDim)] <- pred
