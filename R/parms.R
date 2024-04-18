@@ -106,6 +106,8 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
 
   parms <- list()
 
+  parms$obsTimeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
+
   # Fit the trajectory.
   method <- getClassAt(hyperParms$fitTrajs, 2)
   trajs <- switch(

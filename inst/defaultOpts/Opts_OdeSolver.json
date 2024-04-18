@@ -1,7 +1,10 @@
 {
     "_class": ["OdeSolver", "Opts"],
     "method": "rk4",
-    "timeStep": 0.1,
+    "timeStep": null,
+    "_timeStep_description": "absolute value of solver time step",
+    "nInterTimeStepObs": null,
+    "_nInterTimeStepObs_description": "if not null, solver time step is this factor times mean obs time step",
     "additionalArgs": {}
 }
  
