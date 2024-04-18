@@ -10,11 +10,6 @@ solveOde <- function(fun, u0, timeRange, opts, parms = NULL) {
     }
     u0 <- makeTrajs(time = 0, state = u0, trajId = seq_len(n))
   }
-  if (is.null(opts$timeStep)) {
-    timeStep <- parms$obsTimeStep / opts$nInterTimeStepObs
-  } else {
-    timeStep <- opts$timeStep
-  }
   times <- seq(
     timeRange[1],
     timeRange[2]+2*timeStep,
