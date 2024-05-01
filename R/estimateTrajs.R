@@ -19,7 +19,13 @@ estimateTrajsTrajs <- function(initState, timeRange, parms, hyperParms) {
 
   hyperParms <- asOpts(hyperParms, c("Trajs", "HyperParms"))
 
-  if (is.null(hyperParms$odeSolver$timeStep)) {
+  if (!is.null(hyperParms$nInterTimeStepObs)) {
+    if (hyperParms$odeSolver$timeStep != 0) {
+      warning(
+        "Overwriting odeSolver$timeStep ",
+        hyperParms$odeSolver$timeStep,
+        " by parms$obsTimeStep / hyperParms$nInterTimeStepObs")
+    }
     hyperParms$odeSolver$timeStep <- parms$obsTimeStep / hyperParms$nInterTimeStepObs
   }
   solveOde(

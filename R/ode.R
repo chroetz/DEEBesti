@@ -12,8 +12,8 @@ solveOde <- function(fun, u0, timeRange, opts, parms = NULL) {
   }
   times <- seq(
     timeRange[1],
-    timeRange[2]+2*timeStep,
-    by = timeStep)
+    timeRange[2]+2*opts$timeStep,
+    by = opts$timeStep)
   times <- times[1:which(times >= timeRange[2])[1]]
   mapTrajs2Trajs(u0, function(init) {
     u <- do.call(

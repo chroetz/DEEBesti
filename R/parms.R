@@ -3,11 +3,23 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
   hyperParms <- asOpts(hyperParms, "HyperParms")
 
   normalization <- calculateNormalization(obs, hyperParms$normalize)
-  obs <- normalization$normalize(obs)
+
+  if (!length(hyperParms$obsTimeSpanTarget) == 0) {
+    avgTimeSpan <- mean(unlist(applyTrajId(obs, \(traj) diff(range(traj$time)))))
+    timeScaling <- hyperParms$obsTimeSpanTarget / avgTimeSpan
+  } else {
+    timeScaling <- 1
+  }
+
+  normalizeParms <- list(
+    normalization = normalization,
+    timeScaling = timeScaling)
+
+  obs <- normalize(obs, normalizeParms)
 
   name <- getClassAt(hyperParms, 2)
   parms <- c(
-    list(normalization = normalization),
+    normalizeParms,
     switch(
       name,
       Trajs = getParmsTrajs(obs, hyperParms, memoize),
