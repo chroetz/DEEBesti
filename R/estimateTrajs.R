@@ -7,6 +7,7 @@ estimateTrajs <- function(initState, timeRange, parms, hyperParms) {
     name,
     Trajs = estimateTrajsTrajs(initState, timeRange, parms, hyperParms),
     Esn = estimateTrajsEsn(initState, timeRange, parms, hyperParms),
+    Linear = estimateTrajsLinear(initState, timeRange, parms, hyperParms),
     Transformer = estimateTrajsTransformer(initState, timeRange, parms, hyperParms),
     Direct = estimateTrajsDirect(initState, timeRange, parms, hyperParms),
     stop("Unknown HyperParms subclass"))
@@ -51,6 +52,20 @@ estimateTrajsEsn <- function(initState, timeRange, parms, hyperParms) {
   return(esti)
 }
 
+
+estimateTrajsLinear <- function(initState, timeRange, parms, hyperParms) {
+
+  hyperParms <- asOpts(hyperParms, c("Linear", "HyperParms"))
+
+  esti <- mapTrajs2Trajs(initState, \(startTraj) {
+    predictLinear(
+      parms$linear,
+      startTraj$state,
+      timeRange = timeRange)
+  })
+
+  return(esti)
+}
 
 
 estimateTrajsTransformer <- function(initState, timeRange, parms, hyperParms) {

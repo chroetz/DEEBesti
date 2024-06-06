@@ -223,7 +223,9 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
       t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
     },
     Esn = predictEsnDeriv(parms$esn, gridNormed$state, hyperParms$derivOrder),
+    Linear = predictLinearDeriv(parms$linear, gridNormed$state, hyperParms$derivOrder),
     Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
+    Transformer = stop("Deriv not implemented for Transformer"),
     stop("Unknown HyperParms subclass")
   )
 

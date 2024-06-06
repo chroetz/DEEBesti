@@ -24,6 +24,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
       name,
       Trajs = getParmsTrajs(obs, hyperParms, memoize),
       Esn = getParmsEsn(obs, hyperParms, memoize),
+      Linear = getParmsLinear(obs, hyperParms, memoize),
       Transformer = getParmsTransformer(obs, hyperParms, memoize),
       Direct = getParmsDirect(obs, hyperParms, memoize),
       stop("Unknown HyperParms subclass")
@@ -31,6 +32,23 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
   )
 
   return(parms)
+}
+
+
+# Propagator map Estimation: Linear (Next Generation Reservoir Computing)
+getParmsEsn <- function(obs, hyperParms, memoize) {
+
+  hyperParms <- asOpts(hyperParms, c("Linear", "HyperParms"))
+
+  linear <- createLinear(
+    obs,
+    timeStepAsInput = hyperParms$timeStepAsInput,
+    pastSteps = hyperParms$pastSteps,
+    skip = hyperParms$skip,
+    polyDeg = hyperParms$polyDeg,
+    l2Penalty = hyperParms$l2Penalty)
+
+  return(list(linear = linear))
 }
 
 
