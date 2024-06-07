@@ -156,6 +156,22 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
 }
 
 
+createFeaturesOne <- function(states, timeStep, timeStepAsInput, pastSteps, skip, polyDeg) {
+  validRows <- which(rowSums(is.na(states)) == 0)
+  states <- states[seq_len(validRows[length(states)]), ]
+  if (nrow(states) > 1+ pastSteps*skip) {
+    states <- states[(nrow(states)-pastSteps*skip):nrow(states), ]
+  }
+  n <- nrow(states)
+  trajs <- makeTrajs(
+    time = (0:(n-1)) * timeStep,
+    state = states)
+  baseFeatures <- createBaseFeatures(trajs, timeStepAsInput,  pastSteps, skip)
+  featureSeries <- createPolyFeatures(baseFeatures, polyDeg)
+  return(featureSeries$state[n, ])
+}
+
+
 predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRange = NULL) {
 
   if (is.null(timeRange)) {
@@ -170,22 +186,31 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
     len <- length(time) - 1
   }
 
-  outStates <- matrix(NA_real_, nrow = len+1, ncol = ncol(linear$outWeightMatrix))
+  nDims <- ncol(linear$outWeightMatrix)
+  outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
 
-  # TODO
-  stop("Not implemented yet")
-
-  # Need pastSteps*skip additional states before startState to start prediction
+  # Need pastSteps*skip additional states before startState to start prediction correctly.
   iStart <- DEEButil::whichMinDist(linear$states, startState)
   if (sum((linear$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
+    cat("Found startState in training data. Use it to initialize features.\n")
     startFeatures <- linear$features[iStart, ]
     features <- startFeatures
   } else {
-    # TODO create features from startState
+    cat("Did not find startState in training data. Use startState to initialize features.\n")
+    features <- createFeaturesOne(outStates, timeStep, timeStepAsInput, pastSteps, skip, polyDeg)
+  }
+  sel <- is.na(features)
+  if (any(sel)) {
+    features[sel] <- 0
+    cat("Replace NA start features by 0.\n")
   }
 
-  # TODO loop to create outStates
+  for (i in seq_len(len)) {
+    x <- crossprod(linear$outWeightMatrix, features)
+    outStates[i+1,] <- x
+    features <- createFeaturesOne(outStates, timeStep, timeStepAsInput, pastSteps, skip, polyDeg)
+  }
 
   outTrajs <- makeTrajs(
     time = time,
