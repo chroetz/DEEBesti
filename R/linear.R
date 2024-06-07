@@ -15,7 +15,7 @@ createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
 
   featuresLinTrajs <- mapTrajs2Trajs(trajs, \(traj) {
 
-    featuresLin <- cbind(timeSteps, traj$state)
+    featuresLin <- traj$state
 
     for (j in seq_len(pastSteps)) {
       rowIdxs <- seq_len(nrow(traj$state))
@@ -62,7 +62,7 @@ createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
             timeSteps[rowIdxs]))
       }
 
-      featuresTimeTraj <- makeTrajs(
+      out <- makeTrajs(
         time = traj$time,
         state = featuresTime)
 
@@ -148,9 +148,9 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
   }
 
   return(lst(
+    timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty,
     outWeightMatrix,
     timeStep,
-    timeStepAsInput,
     features = featureSeriesPredict$state,
     states = obs$state))
 }
@@ -198,7 +198,7 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
     features <- startFeatures
   } else {
     cat("Did not find startState in training data. Use startState to initialize features.\n")
-    features <- createFeaturesOne(outStates, timeStep, timeStepAsInput, pastSteps, skip, polyDeg)
+    features <- createFeaturesOne(outStates, linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
   }
   sel <- is.na(features)
   if (any(sel)) {
@@ -209,7 +209,7 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
   for (i in seq_len(len)) {
     x <- crossprod(linear$outWeightMatrix, features)
     outStates[i+1,] <- x
-    features <- createFeaturesOne(outStates, timeStep, timeStepAsInput, pastSteps, skip, polyDeg)
+    features <- createFeaturesOne(outStates, linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
   }
 
   outTrajs <- makeTrajs(
@@ -223,7 +223,7 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
 predictLinearDeriv <- function(linear, states, derivOrder) {
   t(apply(states, 1, \(s) {
     predictedStates <- predictLinear(linear, s, len = derivOrder)$state
-    polyInterpCoeffs <- polynomialInterpolation(esn$timeStep * 0:derivOrder, predictedStates)
+    polyInterpCoeffs <- polynomialInterpolation(linear$timeStep * 0:derivOrder, predictedStates)
     polyInterpCoeffs[2,] # derivative at 0 of polynomial is linear coefficient (second coeff)
   }))
 }

@@ -36,7 +36,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
 
 
 # Propagator map Estimation: Linear (Next Generation Reservoir Computing)
-getParmsEsn <- function(obs, hyperParms, memoize) {
+getParmsLinear <- function(obs, hyperParms, memoize) {
 
   hyperParms <- asOpts(hyperParms, c("Linear", "HyperParms"))
 
