@@ -11,15 +11,9 @@ rowIdxProd <- function(mat, idxs) {
 }
 
 
-createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty) {
+createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
 
-  featureSeries <- mapTrajs2Trajs(obs, \(traj) {
-
-    if (timeStepAsInput) {
-      timeSteps <- c(diff(traj$time), NA)
-    } else {
-      timeSteps <- NULL
-    }
+  featuresLinTrajs <- mapTrajs2Trajs(trajs, \(traj) {
 
     featuresLin <- cbind(timeSteps, traj$state)
 
@@ -28,18 +22,78 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
       rowIdxs <- rowIdxs - j*(skip+1)
       nEmpty <- sum(rowIdxs <= 0)
       rowIdxs <- rowIdxs[rowIdxs>=1]
-      if (timeStepAsInput) {
-        featuresLin <- cbind(
-          featuresLin,
-          c(rep(NA_real_, nEmpty),
-            timeSteps[rowIdxs]))
-      }
       featuresLin <- cbind(
         featuresLin,
         rbind(
           matrix(NA_real_, nrow = nEmpty, ncol = ncol(traj$state)),
           traj$state[rowIdxs,]))
     }
+
+    out <- makeTrajs(
+      time = traj$time,
+      state = featuresLin)
+
+    return(out)
+
+  })
+
+  if (!isFALSE(timeStepAsInput) && length(timeStepAsInput) > 0) {
+
+     featuresTimeTrajs <- mapTrajs2Trajs(trajs, \(traj) {
+
+      if (is.numeric(timeStepAsInput)) {
+        timeSteps <- rep(timeStepAsInput, nrow(traj$state))
+      } else if (is.logical(timeStepAsInput) && timeStepAsInput) {
+        timeSteps <- c(diff(traj$time), NA)
+      } else {
+        stop("timeStepAsInput must be logical or numeric")
+      }
+
+      featuresTime <- matrix(timeSteps, ncol=1)
+
+      for (j in seq_len(pastSteps)) {
+        rowIdxs <- seq_len(nrow(traj$state))
+        rowIdxs <- rowIdxs - j*(skip+1)
+        nEmpty <- sum(rowIdxs <= 0)
+        rowIdxs <- rowIdxs[rowIdxs>=1]
+        featuresTime <- cbind(
+          featuresTime,
+          c(rep(NA_real_, nEmpty),
+            timeSteps[rowIdxs]))
+      }
+
+      featuresTimeTraj <- makeTrajs(
+        time = traj$time,
+        state = featuresTime)
+
+      return(out)
+
+    })
+
+  } else {
+
+    featuresTimeTrajs <- NULL
+
+  }
+
+  return(lst(featuresLinTrajs, featuresTimeTrajs))
+}
+
+
+
+createPolyFeatures <- function(baseFeatures, polyDeg) {
+
+  if (is.null(baseFeatures$featuresTimeTrajs)) {
+    trajs <- baseFeatures$featuresLinTrajs
+  } else {
+    trajs <- makeTrajs(
+      baseFeatures$featuresLinTrajs$time,
+      cbind(baseFeatures$featuresLinTrajs$state, baseFeatures$featuresTimeTrajs$state))
+  }
+
+  mapTrajs2Trajs(trajs, \(traj) {
+
+    featuresLin <- traj$state
 
     nCols <- ncol(featuresLin)
     features <- matrix(1, nrow = nrow(featuresLin), ncol=1)
@@ -58,6 +112,13 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
     return(out)
 
   })
+}
+
+
+createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty) {
+
+  baseFeatures <- createBaseFeatures(obs, timeStepAsInput,  pastSteps, skip)
+  featureSeries <- createPolyFeatures(baseFeatures, polyDeg)
 
   regressionOut <- do.call(rbind, applyTrajId(obs, \(traj) traj$state[-1,, drop=FALSE]))
   regressionIn <- do.call(
@@ -68,6 +129,8 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
   regressionIn <- regressionIn[!naRows, ]
   regressionOut <- regressionOut[!naRows, ]
 
+  # TODO: elastic net: glmnet::glmnet
+
   X <- regressionIn
   XTX <- crossprod(X)
   diag(XTX) <- diag(XTX) + c(0, rep(l2Penalty, ncol(regressionIn)))
@@ -77,11 +140,19 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
     crossprod(X, regressionOut))
 
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
+  if (is.null(baseFeatures$featuresTimeTrajs)) {
+    featureSeriesPredict <- featureSeries
+  } else {
+    baseFeatures$featuresTimeTrajs$state[is.na(baseFeatures$featuresTimeTrajs$state)] <- timeStep
+    featureSeriesPredict <- createPolyFeatures(baseFeatures, polyDeg)
+  }
 
   return(lst(
     outWeightMatrix,
     timeStep,
-    timeStepAsInput))
+    timeStepAsInput,
+    features = featureSeriesPredict$state,
+    states = obs$state))
 }
 
 
@@ -104,6 +175,17 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
 
   # TODO
   stop("Not implemented yet")
+
+  # Need pastSteps*skip additional states before startState to start prediction
+  iStart <- DEEButil::whichMinDist(linear$states, startState)
+  if (sum((linear$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
+    startFeatures <- linear$features[iStart, ]
+    features <- startFeatures
+  } else {
+    # TODO create features from startState
+  }
+
+  # TODO loop to create outStates
 
   outTrajs <- makeTrajs(
     time = time,

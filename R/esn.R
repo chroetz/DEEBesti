@@ -135,9 +135,11 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
   # Decide how to initialize the reservoir
   iStart <- DEEButil::whichMinDist(esn$states, startState)
   if (sum((esn$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
+    cat("Found startState in training data. Use it to initialize Reservoir.\n")
     startReservoir <- esn$reservoir[iStart, ]
     reservoir <- startReservoir
   } else {
+    cat("Did not find startState in training data. Use 0 reservoir.\n")
     if (esn$timeStepAsInput) {
       v <- c(esn$bias, startState, esn$timeStep)
     } else {
