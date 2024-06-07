@@ -113,7 +113,7 @@ double whichMinDistToPwLin(NumericMatrix path, NumericVector id, NumericVector q
   double* del = new double[d];
 
   double minDist = INFINITY;
-  double minIdx;
+  double minIdx = -1;
 
   for (int i = 0; i < n; ++i) {
 
