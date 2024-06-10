@@ -226,6 +226,7 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
     Linear = predictLinearDeriv(parms$linear, gridNormed$state, hyperParms$derivOrder),
     Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
     Transformer = stop("Deriv not implemented for Transformer"),
+    NeuralOde = stop("Deriv not implemented for NeuralOde"),
     stop("Unknown HyperParms subclass")
   )
 

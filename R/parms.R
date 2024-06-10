@@ -26,6 +26,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
       Esn = getParmsEsn(obs, hyperParms, memoize),
       Linear = getParmsLinear(obs, hyperParms, memoize),
       Transformer = getParmsTransformer(obs, hyperParms, memoize),
+      NeuralOde = getParmsNeuralOde(obs, hyperParms, memoize),
       Direct = getParmsDirect(obs, hyperParms, memoize),
       stop("Unknown HyperParms subclass")
     )
@@ -99,6 +100,14 @@ getParmsTransformer <- function(obs, hyperParms, memoize) {
   transformer <- trainTransformer(transformer, obs, hyperParms)
 
   return(list(transformer = transformer))
+}
+
+
+
+getParmsNeuralOde <- function(obs, hyperParms, memoize) {
+  hyperParms <- asOpts(hyperParms, c("NeuralOde", "HyperParms"))
+  neuralOde <- createAndTrainNeuralOde(hyperParms, obs)
+  return(list(neuralOde = neuralOde))
 }
 
 

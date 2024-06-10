@@ -9,6 +9,7 @@ estimateTrajs <- function(initState, timeRange, parms, hyperParms) {
     Esn = estimateTrajsEsn(initState, timeRange, parms, hyperParms),
     Linear = estimateTrajsLinear(initState, timeRange, parms, hyperParms),
     Transformer = estimateTrajsTransformer(initState, timeRange, parms, hyperParms),
+    NeuralOde = estimateTrajsNeuralOde(initState, timeRange, parms, hyperParms),
     Direct = estimateTrajsDirect(initState, timeRange, parms, hyperParms),
     stop("Unknown HyperParms subclass"))
 
@@ -77,6 +78,31 @@ estimateTrajsTransformer <- function(initState, timeRange, parms, hyperParms) {
       parms$transformer,
       startTraj$state,
       timeRange = timeRange)
+  })
+
+  return(esti)
+}
+
+
+estimateTrajsNeuralOde <- function(initState, timeRange, parms, hyperParms) {
+
+  hyperParms <- asOpts(hyperParms, c("NeuralOde", "HyperParms"))
+
+  if (!is.null(hyperParms$timeStep)) {
+    timeStep <- hyperParms$outTimeStep
+  } else if (!is.null(hyperParms$nOutSteps)) {
+    timeStep <- diff(timeRange) / hyperParms$nOutSteps
+  } else {
+    stop("Specifiy outTimeStep or nOutSteps")
+  }
+
+
+  esti <- mapTrajs2Trajs(initState, \(startTraj) {
+    predictNeuralOde(
+      parms$neuralOde,
+      startTraj$state,
+      timeRange = timeRange,
+      timeStep = timeStep)
   })
 
   return(esti)

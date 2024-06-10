@@ -1,0 +1,17 @@
+{
+    "_class": ["NeuralOde", "HyperParms", "Opts"],
+    "_description": "NeuralOde",
+    "timeStepAsInput": false,
+    "outTimeStep": null,
+    "nOutSteps": 1000,
+    "deebNeuralOdeProjectPath": "~/DEEB_jl",
+    "seed": 1,
+    "hiddenLayers": 2,
+    "hiddenWidth": 32,
+    "activation": "tanh",
+    "steps": 4,
+    "trainFrac": 0.7,
+    "validFrac": 0.15,
+    "weightDecay": 1e-6,
+    "epochs": 10
+}

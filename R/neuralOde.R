@@ -1,0 +1,85 @@
+createAndTrainNeuralOde <- function(opts, obs) {
+
+  # TODO: handle learning rate schedule file...
+
+  workingDirRoot <- normalizePath("~/workingDir", mustWork=FALSE)
+  workingDir <- tempfile(pattern = "", tmpdir = workingDirRoot)
+  dir.create(workingDir, showWarnings=FALSE, recursive=TRUE)
+
+  wd <- getwd()
+  on.exit(setwd(wd))
+
+  setwd(workingDir)
+
+  DEEBtrajs::writeTrajs(obs, "obs.csv")
+
+  projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
+  scriptPath <- file.path(projectPath, "train.jl")
+  schedulePath <- file.path(projectPath, "schedule.toml")
+
+  cmd <- paste0(
+    'julia',
+    ' --project="', projectPath, '"',
+    ' "', scriptPath, '"',
+    ' --rng-seed ', opts$seed,
+    ' --dim ', ncol(obs$state),
+    ' --data-path "obs.csv"',
+    ' --hidden-layers ', opts$hiddenLayers,
+    ' --hidden-width ', opts$hiddenWidth,
+    ' --activation ', opts$activation,
+    ' --steps ', opts$steps,
+    ' --train-frac ', opts$trainFrac,
+    ' --valid-frac ', opts$validFrac,
+    ' --optimiser-rule AdamW',
+    ' --optimiser-hyperparams "lambda=', opts$weightDecay,'"',
+    ' --epochs ', opts$epochs,
+    ' --schedule-file ', schedulePath,
+    ' --sensealg BacksolveAdjoint',
+    ' --vjp ZygoteVJP')
+
+  system(cmd)
+
+  return(lst(workingDir, opts))
+}
+
+
+
+predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
+
+  opts <- neuralOde$opts
+  stateDim <- ncol(startState)
+
+  wd <- getwd()
+  on.exit(setwd(wd))
+
+  setwd(neuralOde$workingDir)
+
+  startTrajs <- DEEBtrajs::makeTrajs(timeRange[1], matrix(startState, nrow=1))
+  DEEBtrajs::writeTrajs(startTrajs, "start.csv")
+
+  projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
+  scriptPath <- file.path(projectPath, "infer.jl")
+
+  cmd <- paste0(
+    'julia',
+    ' --project="', projectPath, '"',
+    ' "', scriptPath, '"',
+    ' --dim ', stateDim,
+    ' --data-path "start.csv"',
+    ' --hidden-layers ', opts$hiddenLayers,
+    ' --hidden-width ', opts$hiddenWidth,
+    ' --activation ', opts$activation,
+    ' --epochs ', 0,
+    ' --schedule-file "-"',
+    ' --pred-traj',
+    ' --pred-path "esti.csv"',
+    ' --t0 ', timeRange[1],
+    ' --t1 ', timeRange[2],
+    ' --dt ', timeStep)
+
+  system(cmd)
+
+  esti <- DEEBtrajs::readTrajs("esti.csv")
+
+  return(esti)
+}
