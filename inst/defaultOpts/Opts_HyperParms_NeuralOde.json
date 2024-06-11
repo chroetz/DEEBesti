@@ -10,8 +10,8 @@
     "hiddenWidth": 32,
     "activation": "tanh",
     "steps": 4,
-    "trainFrac": 0.7,
-    "validFrac": 0.15,
+    "trainFrac": 0.85,
     "weightDecay": 1e-6,
-    "epochs": 10
+    "epochs": 10,
+    "learningRateSchedule": "const_medium"
 }

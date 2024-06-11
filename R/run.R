@@ -55,6 +55,7 @@ run <- function(
   }
 }
 
+
 #' @export
 runOne <- function(
     dbPath,
@@ -70,7 +71,6 @@ runOne <- function(
 
   hyperParms <- loadHyperParms(
     dbPath,
-    model,
     method,
     expansionNr)
 
@@ -90,13 +90,11 @@ runOne <- function(
 
 loadHyperParms <- function(
     dbPath,
-    model,
     method,
     expansionNr
 ) {
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
-  paths <- DEEBpath::getPaths(dbPath, model)
-  cat(hyperParmsPath)
+  cat("loadHyperParms:", hyperParmsPath)
   hyperParmsObject <- ConfigOpts::readOptsBare(hyperParmsPath)
   if (nchar(hyperParmsObject$name) == 0) hyperParmsObject$name <- basename(method)
   if (ConfigOpts::getClassAt(hyperParmsObject, 1) == "List") {
@@ -111,7 +109,7 @@ loadHyperParms <- function(
   } else {
     hyperParms <- hyperParmsObject
   }
-  cat(",", hyperParms$name)
+  cat(",", hyperParms$name, "\n")
   return(hyperParms)
 }
 
@@ -155,7 +153,7 @@ applyMethodToModel <- function(
 
 
 writeParms <- function(parms, obs, info, outDir) {
-  if (!is.null(parms$trajs)) {
+  if (hasValue(parms$trajs)) {
     smoothPath <- file.path(outDir, DEEBpath::smoothFile(info))
     writeTrajs(unnormalize(parms$trajs, parms), smoothPath)
   }

@@ -21,7 +21,7 @@ estimateTrajsTrajs <- function(initState, timeRange, parms, hyperParms) {
 
   hyperParms <- asOpts(hyperParms, c("Trajs", "HyperParms"))
 
-  if (!is.null(hyperParms$nInterTimeStepObs)) {
+  if (hasValue(hyperParms$nInterTimeStepObs)) {
     if (hyperParms$odeSolver$timeStep != 0) {
       warning(
         "Overwriting odeSolver$timeStep ",
@@ -88,14 +88,13 @@ estimateTrajsNeuralOde <- function(initState, timeRange, parms, hyperParms) {
 
   hyperParms <- asOpts(hyperParms, c("NeuralOde", "HyperParms"))
 
-  if (!is.null(hyperParms$timeStep)) {
+  if (hasValue(hyperParms$outTimeStep)) {
     timeStep <- hyperParms$outTimeStep
-  } else if (!is.null(hyperParms$nOutSteps)) {
+  } else if (hasValue(hyperParms$nOutSteps)) {
     timeStep <- diff(timeRange) / hyperParms$nOutSteps
   } else {
     stop("Specifiy outTimeStep or nOutSteps")
   }
-
 
   esti <- mapTrajs2Trajs(initState, \(startTraj) {
     predictNeuralOde(

@@ -15,7 +15,7 @@ createAndTrainNeuralOde <- function(opts, obs) {
 
   projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
   scriptPath <- file.path(projectPath, "train.jl")
-  schedulePath <- file.path(projectPath, "schedule.toml")
+  schedulePath <- file.path(projectPath, paste0("schedule_", opts$learningRateSchedule, ".toml"))
 
   cmd <- paste0(
     'julia',
@@ -29,15 +29,17 @@ createAndTrainNeuralOde <- function(opts, obs) {
     ' --activation ', opts$activation,
     ' --steps ', opts$steps,
     ' --train-frac ', opts$trainFrac,
-    ' --valid-frac ', opts$validFrac,
     ' --optimiser-rule AdamW',
     ' --optimiser-hyperparams "lambda=', opts$weightDecay,'"',
     ' --epochs ', opts$epochs,
-    ' --schedule-file ', schedulePath,
+    ' --schedule-file "', schedulePath, '"',
     ' --sensealg BacksolveAdjoint',
     ' --vjp ZygoteVJP')
 
-  system(cmd)
+  cat("Run command:\n", cmd, "\n")
+
+  errorCode <- system(cmd)
+  stopifnot(errorCode == 0)
 
   return(lst(workingDir, opts))
 }
@@ -45,6 +47,11 @@ createAndTrainNeuralOde <- function(opts, obs) {
 
 
 predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
+
+  stopifnot(length(timeStep) == 1)
+  stopifnot(is.numeric(timeStep))
+  stopifnot(is.finite(timeStep))
+  stopifnot(timeStep > 0)
 
   opts <- neuralOde$opts
   stateDim <- ncol(startState)
@@ -77,7 +84,10 @@ predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
     ' --t1 ', timeRange[2],
     ' --dt ', timeStep)
 
-  system(cmd)
+  cat("Run command:\n", cmd, "\n")
+
+  errorCode <- system(cmd)
+  stopifnot(errorCode == 0)
 
   esti <- DEEBtrajs::readTrajs("esti.csv")
 

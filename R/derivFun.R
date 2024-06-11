@@ -41,7 +41,7 @@ buildDerivFun <- function(opts) {
 
 derivFunNearestLine <- function(u, parms, target) {
   trajs <- parms$trajs
-  idxMin <- whichMinDistToPwLin(trajs$state, trajs$trajId, u)
+  idxMin <- DEEButil::whichMinDistToPwLin(trajs$state, trajs$trajId, u)
   if (target == "pointLine") {
     # assumes deriv[idxMin,] belongs to segement idxMin;
     # interpolate for corner points

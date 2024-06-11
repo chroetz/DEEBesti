@@ -102,7 +102,7 @@ createPolyFeaturesOne <- function(featuresLin, polyDeg) {
 
 createPolyFeatures <- function(baseFeatures, polyDeg) {
 
-  if (is.null(baseFeatures$featuresTimeTrajs)) {
+  if (hasValue(baseFeatures$featuresTimeTrajs)) {
     trajs <- baseFeatures$featuresLinTrajs
   } else {
     trajs <- makeTrajs(
@@ -149,7 +149,7 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
     crossprod(X, regressionOut))
 
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
-  if (is.null(baseFeatures$featuresTimeTrajs)) {
+  if (hasValue(baseFeatures$featuresTimeTrajs)) {
     featureSeriesPredict <- featureSeries
   } else {
     baseFeatures$featuresTimeTrajs$state[is.na(baseFeatures$featuresTimeTrajs$state)] <- timeStep
