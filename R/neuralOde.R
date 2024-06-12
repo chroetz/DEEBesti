@@ -1,8 +1,6 @@
 createAndTrainNeuralOde <- function(opts, obs) {
 
-  # TODO: handle learning rate schedule file...
-
-  workingDirRoot <- normalizePath("~/workingDir", mustWork=FALSE)
+  workingDirRoot <- normalizePath(".DEEB_tmp", mustWork=FALSE)
   workingDir <- tempfile(pattern = "", tmpdir = workingDirRoot)
   dir.create(workingDir, showWarnings=FALSE, recursive=TRUE)
 
