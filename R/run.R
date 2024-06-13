@@ -140,15 +140,38 @@ applyMethodToModel <- function(
   for (i in seq_len(nrow(meta))) {
     info <- meta[i,]
     if (verbose) cat(paste0("truth: ", info$truthNr, ", obs: ", info$obsNr, ".\n"))
+    estiStartProcTime <- proc.time()
     obs <- readTrajs(info$obsPath)
+    pt <- proc.time()
     parms <- getParms(obs, hyperParms)
+    parmsElapsedTime <- (proc.time() - pt)[3]
     if (saveParms) writeParms(parms, obs, info, outDir)
+    taskElapsedTimes <- c()
     for (j in seq_len(nrow(taskMeta))) {
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
+      pt <- proc.time()
       writeTaskResult(parms, hyperParms, obs, allInfo)
+      taskElapsedTimes[[j]] <- (proc.time() - pt)[3]
     }
+    estiElapsedTime <- (proc.time() - estiStartProcTime)[3]
+    writeEstiInfo(
+      lst(
+        estiElapsedTime,
+        parmsElapsedTime,
+        taskElapsedTimes),
+      parms,
+      info,
+      outDir)
     cleanUpParms(parms)
   }
+}
+
+
+writeEstiInfo <- function(data, parms, info, outDir) {
+  estiInfoPath <- file.path(outDir, DEEBpath::estiInfoFile(info))
+  info <- as.list(info)
+  data <- as.list(data)
+  jsonlite::write_json(c(data, info), path=estiInfoPath)
 }
 
 
