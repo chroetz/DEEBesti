@@ -33,6 +33,7 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias, 
   }
 
   return(lst(
+    propagatorType = "Esn",
     inWeightMatrix,
     reservoirWeightMatrix,
     size,
@@ -40,7 +41,7 @@ createEsn <- function(size, inDim, degree, spectralRadius, inWeightScale, bias, 
     bias))
 }
 
-trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeStepAsInput, skip = 0) {
+trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeStepAsInput, skip = 0, targetType = "state") {
 
   if (skip > 0) {
     m <- length(getTrajIds(obs))
@@ -82,20 +83,10 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeSte
     return(out)
   })
 
-  # TODO: include the following deriv estimation as option
-  # regressionOut <- do.call(
-  #   rbind,
-  #   applyTrajId(
-  #     obs,
-  #     \(traj) {
-  #       (traj$state[-1,, drop=FALSE] - traj$state[-nrow(traj$state),, drop=FALSE]) / diff(traj$time)
-  #     }
-  #   )
-  # )
-  regressionOut <- do.call(rbind, applyTrajId(obs, \(traj) traj$state[-1,, drop=FALSE]))
   regressionIn <- do.call(
     rbind,
     applyTrajId(reservoirSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
+  regressionOut <- getPropagatorRegressionOut(obs, targetType)
 
   X <- cbind(1, regressionIn)
   XTX <- crossprod(X)
@@ -112,8 +103,10 @@ trainEsn <- function(esn, obs, l2Penalty, warmUpLen, initReservoirScale, timeSte
     timeStep,
     timeStepAsInput,
     reservoir = reservoirSeries$state,
-    states = obs$state)))
+    states = obs$state,
+    targetType = targetType)))
 }
+
 
 predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = NULL) {
 
@@ -148,32 +141,20 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
     reservoir <- tanh(esn$inWeightMatrix %*% v)
   }
 
-  # TODO: include the following deriv estimation as option
-  # prevState <- startState
-  # for (i in seq_len(len)) {
-  #   x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
-  #   newState <- prevState + esn$timeStep * prevState
-  #   outStates[i+1,] <- newState
-  #   if (esn$timeStepAsInput) {
-  #     v <- c(esn$bias, newState, esn$timeStep)
-  #   } else {
-  #     v <- c(esn$bias, newState)
-  #   }
-  #   reservoir <- tanh(
-  #     esn$inWeightMatrix %*% v +
-  #     esn$reservoirWeightMatrix %*% reservoir)
-  # }
+  prevState <- startState
   for (i in seq_len(len)) {
-    x <- crossprod(esn$outWeightMatrix, c(1, reservoir))
-    outStates[i+1,] <- x
+    prediction <- crossprod(esn$outWeightMatrix, c(1, reservoir))
+    newState <- getPropagatorNextState(prevState, esn$timeStep, prediction, esn$targetType)
+    outStates[i+1,] <- newState
     if (esn$timeStepAsInput) {
-      v <- c(esn$bias, x, esn$timeStep)
+      v <- c(esn$bias, newState, esn$timeStep)
     } else {
-      v <- c(esn$bias, x)
+      v <- c(esn$bias, newState)
     }
     reservoir <- tanh(
       esn$inWeightMatrix %*% v +
       esn$reservoirWeightMatrix %*% reservoir)
+    prevState <- newState
   }
 
   outTrajs <- makeTrajs(
@@ -181,21 +162,4 @@ predictEsn <- function(esn, startState, len = NULL, startTime = 0, timeRange = N
     state = outStates)
 
   return(outTrajs)
-}
-
-
-predictEsnDeriv <- function(esn, states, derivOrder) {
-  t(apply(states, 1, \(s) {
-    predictedStates <- predictEsn(esn, s, len = derivOrder)$state
-    polyInterpCoeffs <- polynomialInterpolation(esn$timeStep * 0:derivOrder, predictedStates)
-    polyInterpCoeffs[2,] # derivative at 0 of polynomial is linear coefficient (second coeff)
-  }))
-}
-
-polynomialInterpolation <- function(x, y) {
-  stopifnot(length(x) == nrow(y))
-  p <- length(x) - 1
-  X <- outer(x, (0:p), `^`)
-  coeff <- DEEButil::saveSolve(crossprod(X), crossprod(X, y))
-  return(coeff)
 }

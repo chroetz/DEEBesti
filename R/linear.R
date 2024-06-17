@@ -124,12 +124,12 @@ createPolyFeatures <- function(baseFeatures, polyDeg) {
 }
 
 
-createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty) {
+createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty, targetType = "state") {
 
   baseFeatures <- createBaseFeatures(obs, timeStepAsInput,  pastSteps, skip)
   featureSeries <- createPolyFeatures(baseFeatures, polyDeg)
 
-  regressionOut <- do.call(rbind, applyTrajId(obs, \(traj) traj$state[-1,, drop=FALSE]))
+  regressionOut <- getPropagatorRegressionOut(obs, targetType)
   regressionIn <- do.call(
     rbind,
     applyTrajId(featureSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
@@ -157,10 +157,12 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
   }
 
   return(lst(
+    propagatorType = "Linear",
     timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty,
     outWeightMatrix,
     timeStep,
-    obs))
+    obs,
+    targetType))
 }
 
 
@@ -221,10 +223,12 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
     features <- createFeaturesOne(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
   }
 
+  prevState <- startState
   for (i in seq_len(len)) {
-    x <- crossprod(linear$outWeightMatrix, features) |> as.vector()
-    outStates[i+1,] <- x
-    trajPrevious$state <- rbind(trajPrevious$state[-1,], x)
+    prediction <- crossprod(linear$outWeightMatrix, features) |> as.vector()
+    newState <- getPropagatorNextState(prevState, linear$timeStep, prediction, linear$targetType)
+    outStates[i+1,] <- newState
+    trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
     trajPrevious$time <- c(trajPrevious$time[-1], time[i+1]) # TODO: time might be strange: have absolute vs need diff time
     features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
   }
@@ -234,13 +238,4 @@ predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRan
     state = outStates)
 
   return(outTrajs)
-}
-
-
-predictLinearDeriv <- function(linear, states, derivOrder) {
-  t(apply(states, 1, \(s) {
-    predictedStates <- predictLinear(linear, s, len = derivOrder)$state
-    polyInterpCoeffs <- polynomialInterpolation(linear$timeStep * 0:derivOrder, predictedStates)
-    polyInterpCoeffs[2,] # derivative at 0 of polynomial is linear coefficient (second coeff)
-  }))
 }

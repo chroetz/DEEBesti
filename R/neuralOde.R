@@ -91,3 +91,48 @@ predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
 
   return(esti)
 }
+
+
+
+
+
+
+predictNeuralOdeDeriv <- function(neuralOde, grid) {
+
+  opts <- neuralOde$opts
+
+  wd <- getwd()
+  on.exit(setwd(wd))
+
+  setwd(neuralOde$workingDir)
+
+  startTrajs <- DEEBtrajs::makeTrajs(rep(0, nrow(grid)), grid, seq_len(nrow(grid)))
+  stateDim <- DEEBtrajs::getDim(startTrajs)
+  DEEBtrajs::writeTrajs(startTrajs, "grid.csv")
+
+  projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
+  scriptPath <- file.path(projectPath, "infer.jl")
+
+  cmd <- paste0(
+    'julia',
+    ' --project="', projectPath, '"',
+    ' "', scriptPath, '"',
+    ' --dim ', stateDim,
+    ' --data-path "grid.csv"',
+    ' --hidden-layers ', opts$hiddenLayers,
+    ' --hidden-width ', opts$hiddenWidth,
+    ' --activation ', opts$activation,
+    ' --epochs ', 0,
+    ' --schedule-file "-"',
+    ' --pred-grid',
+    ' --pred-path "estigrid.csv"')
+
+  cat("Run command:\n", cmd, "\n")
+
+  errorCode <- system(cmd)
+  stopifnot(errorCode == 0)
+
+  esti <- DEEBtrajs::readDerivTrajs("estigrid.csv")
+
+  return(esti)
+}

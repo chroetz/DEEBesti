@@ -21,7 +21,7 @@ createTransformer <- function(opts, stateDim) {
 
   env <- new.env(parent=emptyenv())
 
-  return(lst(model, opts, env))
+  return(lst(propagatorType = "Transformer", model, opts, env))
 
 }
 
@@ -213,6 +213,7 @@ transformerAddPositionInfo <- function(transformer, states, opts) {
   }
   return(cbind(states, transformer$env$posVec))
 }
+
 
 getFeatureDim <- function(stateDim, opts) {
   stateDim + opts$posDim

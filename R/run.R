@@ -90,27 +90,44 @@ runOne <- function(
 
 loadHyperParms <- function(
     dbPath,
-    method,
-    expansionNr
+    methodFile,
+    expansionNr = NULL
 ) {
-  hyperParmsPath <- DEEBpath::getMethodFile(dbPath, method)
-  cat("loadHyperParms:", hyperParmsPath)
-  hyperParmsObject <- ConfigOpts::readOptsBare(hyperParmsPath)
-  if (nchar(hyperParmsObject$name) == 0) hyperParmsObject$name <- basename(method)
-  if (ConfigOpts::getClassAt(hyperParmsObject, 1) == "List") {
-    if (is.null(expansionNr)) {
-      stopifnot(length(hyperParmsObject$list) == 1)
-      expansionNr <- 1
-    }
-    hyperParmsList <- ConfigOpts::expandList(hyperParmsObject)
-    cat(",", expansionNr)
-    hyperParms <- hyperParmsList$list[[expansionNr]]
-    hyperParms$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParms)
-  } else {
-    hyperParms <- hyperParmsObject
+  cat("loadHyperParms:", methodFile)
+  hyperParmsList <- loadAsHyperParmsList(dbPath, methodFile)
+  if (is.null(expansionNr)) {
+    stopifnot(length(loadHyperParms$list) == 1)
+    expansionNr <- 1
   }
+  cat(",", expansionNr)
+  hyperParms <- hyperParmsList$list[[expansionNr]]
   cat(",", hyperParms$name, "\n")
   return(hyperParms)
+}
+
+
+#' @export
+loadAsHyperParmsList <- function(
+    dbPath,
+    methodFile
+) {
+  hyperParmsPath <- DEEBpath::getMethodFile(dbPath, methodFile)
+  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+  if (!hasValue(hyperParmsList$name)) {
+    hyperParmsList$name <- basename(methodFile)
+  }
+  if (ConfigOpts::getClassAt(hyperParmsList, 1) == "List") {
+    hyperParmsList <- ConfigOpts::expandList(hyperParmsList)
+  } else {
+    hyperParmsList <- ConfigOpts::makeOpts(
+      c("HyperParms", "List"),
+      name = hyperParmsList$name,
+      list = list(hyperParmsList))
+  }
+  for (i in seq_along(hyperParmsList$list)) {
+    hyperParmsList$list[[i]]$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParmsList$list[[i]])
+  }
+  return(hyperParmsList)
 }
 
 
@@ -243,11 +260,11 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
       derivFun <- buildDerivFun(hyperParms$derivFun)
       t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
     },
-    Esn = predictEsnDeriv(parms$esn, gridNormed$state, hyperParms$derivOrder),
-    Linear = predictLinearDeriv(parms$linear, gridNormed$state, hyperParms$derivOrder),
+    Esn = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
+    Linear = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
+    Transformer = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
     Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
-    Transformer = stop("Deriv not implemented for Transformer"),
-    NeuralOde = stop("Deriv not implemented for NeuralOde"),
+    NeuralOde = predictNeuralOdeDeriv(parms$neuralOde, gridNormed$state),
     stop("Unknown HyperParms subclass")
   )
 

@@ -49,7 +49,7 @@ getParmsLinear <- function(obs, hyperParms, memoize) {
     polyDeg = hyperParms$polyDeg,
     l2Penalty = hyperParms$l2Penalty)
 
-  return(list(linear = linear))
+  return(list(propagator = linear))
 }
 
 
@@ -80,7 +80,7 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
     timeStepAsInput = hyperParms$timeStepAsInput,
     skip = hyperParms$skip)
 
-  return(list(esn = esn))
+  return(list(propagator = esn))
 }
 
 
@@ -99,7 +99,7 @@ getParmsTransformer <- function(obs, hyperParms, memoize) {
 
   transformer <- trainTransformer(transformer, obs, hyperParms)
 
-  return(list(transformer = transformer))
+  return(list(propagator = transformer))
 }
 
 

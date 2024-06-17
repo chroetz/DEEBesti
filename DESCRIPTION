@@ -21,6 +21,7 @@ Imports:
     dplyr,
     FastKNN,
     glmnet,
+    jsonlite,
     keras,
     Matrix,
     RANN,

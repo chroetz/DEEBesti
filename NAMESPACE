@@ -2,6 +2,7 @@
 
 export(copyTruth)
 export(fitterLocalLinear)
+export(loadAsHyperParmsList)
 export(run)
 export(runOne)
 import(ConfigOpts)
