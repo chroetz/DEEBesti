@@ -40,11 +40,14 @@ polynomialInterpolation <- function(x, y) {
 }
 
 
-estimateTrajsPropagator <- function(initState, timeRange, parms, hyperParms) {
+estimateTrajsPropagator <- function(initState, timeRange, parms, opts) {
+
+  opts <- asOpts(opts, c("Propagator", "HyperParms"))
 
   esti <- mapTrajs2Trajs(initState, \(startTraj) {
     predictPropagator(
-      parms$propagator,
+      parms,
+      opts,
       startTraj$state,
       timeRange = timeRange)
   })
@@ -53,33 +56,31 @@ estimateTrajsPropagator <- function(initState, timeRange, parms, hyperParms) {
 }
 
 
-predictPropagatorDeriv <- function(propagator, states, derivOrder) {
-  targetType <- propagator$targetType
-  if (targetType == "deriv" || targetType == "state") { # TODO: for deriv unnecessary computations but valid result
+predictPropagatorDeriv <- function(parms, opts, states, derivOrder) {
+  opts <- asOpts(opts, c("Propagator", "HyperParms"))
+  if (opts$targetType == "deriv" || opts$targetType == "state") { # TODO: for deriv unnecessary computations but valid result
     deriv <- t(apply(states, 1, \(s) {
-      predictedStates <- predictPropagator(propagator, s, len = derivOrder)$state
-      polyInterpCoeffs <- polynomialInterpolation(propagator$timeStep * 0:derivOrder, predictedStates)
+      predictedStates <- predictPropagator(parms, opts, s, len = derivOrder)$state
+      polyInterpCoeffs <- polynomialInterpolation(parms$timeStep * 0:derivOrder, predictedStates)
       polyInterpCoeffs[2,] # derivative at 0 of polynomial is linear coefficient (second coeff)
     }))
   } else {
-    stop("Unknown targetType", targetType)
+    stop("Unknown targetType", opts$targetType)
   }
   return(deriv)
 
 }
 
 
+predictPropagator <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
 
-
-predictPropagator <- function(propagator, startState, len = NULL, startTime = 0, timeRange = NULL) {
-
-  stopifnot(hasValue(propagator$propagatorType))
-
+  opts <- asOpts(opts, c("Propagator", "HyperParms"))
+  name <- getClassAt(opts, 3)
   switch(
-    propagator$propagatorType,
-    Esn = predictEsn(propagator, startState, len, startTime, timeRange),
-    Linear = predictLinear(propagator, startState, len, startTime, timeRange),
-    Tansformer = predictTransformer(propagator, startState, len, startTime, timeRange),
-    stop("Unknown propagator type", propagator$propagatorType))
+    name,
+    Esn = predictEsn(parms, opts, startState, len, startTime, timeRange),
+    Linear = predictLinear(parms, opts, startState, len, startTime, timeRange),
+    Transformer = predictTransformer(parms, opts, startState, len, startTime, timeRange),
+    stop("Unknown propagator type", name))
 
 }

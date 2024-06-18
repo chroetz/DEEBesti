@@ -1,0 +1,7 @@
+{
+    "_class": ["Propagator", "HyperParms", "Opts"],
+    "_description": "mapping previous state(s) to next state",
+    "targetType": "state",
+    "derivOrder": 1,
+    "timeStepAsInput": false
+}

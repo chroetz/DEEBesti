@@ -1,5 +1,5 @@
 {
-    "_class": ["Esn", "HyperParms", "Opts"],
+    "_class": ["Esn", "Propagator", "HyperParms", "Opts"],
     "_description": "Echo State Network",
     "size": 300,
     "degree": 6,

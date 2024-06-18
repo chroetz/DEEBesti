@@ -1,0 +1,8 @@
+{
+    "_class": ["Linear", "Propagator", "HyperParms", "Opts"],
+    "_description": "Linear Propagator",
+    "pastSteps": 1,
+    "polyDeg": 2,
+    "l2Penalty": 1e-7,
+    "skip": 0
+}

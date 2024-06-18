@@ -188,7 +188,7 @@ writeEstiInfo <- function(data, parms, info, outDir) {
   estiInfoPath <- file.path(outDir, DEEBpath::estiInfoFile(info))
   info <- as.list(info)
   data <- as.list(data)
-  jsonlite::write_json(c(data, info), path=estiInfoPath)
+  jsonlite::write_json(c(data, info), path=estiInfoPath, pretty=TRUE, digits=I(8), auto_unbox=TRUE)
 }
 
 
@@ -260,9 +260,7 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
       derivFun <- buildDerivFun(hyperParms$derivFun)
       t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
     },
-    Esn = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
-    Linear = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
-    Transformer = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
+    Propagator = predictPropagatorDeriv(parms, hyperParms, gridNormed$state, hyperParms$derivOrder),
     Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
     NeuralOde = predictNeuralOdeDeriv(parms$neuralOde, gridNormed$state),
     stop("Unknown HyperParms subclass")

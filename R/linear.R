@@ -124,12 +124,14 @@ createPolyFeatures <- function(baseFeatures, polyDeg) {
 }
 
 
-createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty, targetType = "state") {
+createLinear <- function(obs, opts) {
 
-  baseFeatures <- createBaseFeatures(obs, timeStepAsInput,  pastSteps, skip)
-  featureSeries <- createPolyFeatures(baseFeatures, polyDeg)
+  opts <- asOpts(opts, c("Linear", "Propagator", "HyperParms"))
 
-  regressionOut <- getPropagatorRegressionOut(obs, targetType)
+  baseFeatures <- createBaseFeatures(obs, opts$timeStepAsInput,  opts$pastSteps, opts$skip)
+  featureSeries <- createPolyFeatures(baseFeatures, opts$polyDeg)
+
+  regressionOut <- getPropagatorRegressionOut(obs, opts$targetType)
   regressionIn <- do.call(
     rbind,
     applyTrajId(featureSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
@@ -142,7 +144,7 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
 
   X <- regressionIn
   XTX <- crossprod(X)
-  diag(XTX) <- diag(XTX) + c(0, rep(l2Penalty, ncol(regressionIn)-1))
+  diag(XTX) <- diag(XTX) + c(0, rep(opts$l2Penalty, ncol(regressionIn)-1))
 
   outWeightMatrix <- DEEButil::saveSolve(
     XTX,
@@ -153,16 +155,13 @@ createLinear <- function(obs, timeStepAsInput, pastSteps, skip, polyDeg, l2Penal
     featureSeriesPredict <- featureSeries
   } else {
     baseFeatures$featuresTimeTrajs$state[is.na(baseFeatures$featuresTimeTrajs$state)] <- timeStep
-    featureSeriesPredict <- createPolyFeatures(baseFeatures, polyDeg)
+    featureSeriesPredict <- createPolyFeatures(baseFeatures, opts$polyDeg)
   }
 
   return(lst(
-    propagatorType = "Linear",
-    timeStepAsInput, pastSteps, skip, polyDeg, l2Penalty,
     outWeightMatrix,
     timeStep,
-    obs,
-    targetType))
+    obs))
 }
 
 
@@ -189,48 +188,50 @@ createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, s
 }
 
 
-predictLinear <- function(linear, startState, len = NULL, startTime = 0, timeRange = NULL) {
+predictLinear <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
+
+  opts <- asOpts(opts, c("Linear", "Propagator", "HyperParms"))
 
   if (is.null(timeRange)) {
     stopifnot(length(len) == 1, len >= 0)
-    time <- startTime + (0:len)*linear$timeStep
+    time <- startTime + (0:len)*parms$timeStep
   } else {
     stopifnot(length(timeRange) == 2)
-    time <- seq(timeRange[1], timeRange[2], by = linear$timeStep)
+    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
     if (time[length(time)] < timeRange[2]) {
-      time <- c(time, time[length(time)] + linear$timeStep)
+      time <- c(time, time[length(time)] + parms$timeStep)
     }
     len <- length(time) - 1
   }
 
-  nDims <- ncol(linear$outWeightMatrix)
+  nDims <- ncol(parms$outWeightMatrix)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
 
   # Need pastSteps*(skip-1) additional states before startState to start prediction correctly.
-  nRowsRequired <- 1 + linear$pastSteps*(linear$skip+1)
+  nRowsRequired <- 1 + opts$pastSteps*(opts$skip+1)
   trajPrevious <- NULL
-  iStart <- DEEButil::whichMinDist(linear$obs$state, startState)
-  if (sum((linear$obs$state[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
-    trajId <- linear$obs$trajId[iStart]
-    traj <- linear$obs[1:iStart, ]
+  iStart <- DEEButil::whichMinDist(parms$obs$state, startState)
+  if (sum((parms$obs$state[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
+    trajId <- parms$obs$trajId[iStart]
+    traj <- parms$obs[1:iStart, ]
     traj <- traj[traj$trajId == trajId, ]
     trajPrevious <- traj[pmax(1, (nrow(traj)-nRowsRequired+1)):nrow(traj), ]
     cat("Found startState in training data. Use it to initialize features.\n")
-    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
+    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
   } else {
     cat("Did not find startState in training data. Use startState to initialize features.\n")
-    features <- createFeaturesOne(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
+    features <- createFeaturesOne(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
   }
 
   prevState <- startState
   for (i in seq_len(len)) {
-    prediction <- crossprod(linear$outWeightMatrix, features) |> as.vector()
-    newState <- getPropagatorNextState(prevState, linear$timeStep, prediction, linear$targetType)
+    prediction <- crossprod(parms$outWeightMatrix, features) |> as.vector()
+    newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
     trajPrevious$time <- c(trajPrevious$time[-1], time[i+1]) # TODO: time might be strange: have absolute vs need diff time
-    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), linear$timeStep, linear$timeStepAsInput, linear$pastSteps, linear$skip, linear$polyDeg)
+    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
   }
 
   outTrajs <- makeTrajs(

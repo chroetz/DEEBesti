@@ -7,6 +7,7 @@ createAndTrainNeuralOde <- function(opts, obs) {
   wd <- getwd()
   on.exit(setwd(wd))
 
+  cat("cd to", workingDir, "\n")
   setwd(workingDir)
 
   DEEBtrajs::writeTrajs(obs, "obs.csv")
@@ -57,6 +58,7 @@ predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
   wd <- getwd()
   on.exit(setwd(wd))
 
+  cat("cd to", neuralOde$workingDir, "\n")
   setwd(neuralOde$workingDir)
 
   startTrajs <- DEEBtrajs::makeTrajs(timeRange[1], matrix(startState, nrow=1))
@@ -104,6 +106,7 @@ predictNeuralOdeDeriv <- function(neuralOde, grid) {
   wd <- getwd()
   on.exit(setwd(wd))
 
+  cat("cd to", neuralOde$workingDir, "\n")
   setwd(neuralOde$workingDir)
 
   startTrajs <- DEEBtrajs::makeTrajs(rep(0, nrow(grid)), grid, seq_len(nrow(grid)))

@@ -23,9 +23,9 @@ extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = N
   storeValid <-
     parms$store |>
     dplyr::filter(
-      trajId == trajId[storeIdx],
+      .data$trajId == .data$trajId[storeIdx],
       seq_len(dplyr::n()) >= storeIdx) |>
-    dplyr::mutate(time = time - time[1] + lastTime)
+    dplyr::mutate(time = .data$time - .data$time[1] + lastTime)
 
   analogue <-
     dplyr::bind_rows(

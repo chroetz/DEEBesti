@@ -6,9 +6,7 @@ estimateTrajs <- function(initState, timeRange, parms, hyperParms) {
   esti <- switch(
     name,
     Trajs = estimateTrajsTrajs(initState, timeRange, parms, hyperParms),
-    Esn = estimateTrajsPropagator(initState, timeRange, parms, hyperParms),
-    Linear = estimateTrajsPropagator(initState, timeRange, parms, hyperParms),
-    Transformer = estimateTrajsPropagator(initState, timeRange, parms, hyperParms),
+    Propagator = estimateTrajsPropagator(initState, timeRange, parms, hyperParms),
     NeuralOde = estimateTrajsNeuralOde(initState, timeRange, parms, hyperParms),
     Direct = estimateTrajsDirect(initState, timeRange, parms, hyperParms),
     stop("Unknown HyperParms subclass"))

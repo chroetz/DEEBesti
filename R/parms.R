@@ -23,9 +23,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
     switch(
       name,
       Trajs = getParmsTrajs(obs, hyperParms, memoize),
-      Esn = getParmsEsn(obs, hyperParms, memoize),
-      Linear = getParmsLinear(obs, hyperParms, memoize),
-      Transformer = getParmsTransformer(obs, hyperParms, memoize),
+      Propagator = getParmsPropagator(obs, hyperParms, memoize),
       NeuralOde = getParmsNeuralOde(obs, hyperParms, memoize),
       Direct = getParmsDirect(obs, hyperParms, memoize),
       stop("Unknown HyperParms subclass")
@@ -36,70 +34,52 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
 }
 
 
+getParmsPropagator <- function(obs, hyperParms, memoize) {
+  hyperParms <- asOpts(hyperParms, c("Propagator", "HyperParms"))
+  name <- getClassAt(hyperParms, 3)
+  parms <- switch(
+    name,
+    Esn = getParmsEsn(obs, hyperParms, memoize),
+    Linear = getParmsLinear(obs, hyperParms, memoize),
+    Transformer = getParmsTransformer(obs, hyperParms, memoize),
+    stop("Unknown Propagator subclass")
+  )
+  return(parms)
+}
+
+
 # Propagator map Estimation: Linear (Next Generation Reservoir Computing)
 getParmsLinear <- function(obs, hyperParms, memoize) {
-
-  hyperParms <- asOpts(hyperParms, c("Linear", "HyperParms"))
-
-  linear <- createLinear(
-    obs,
-    timeStepAsInput = hyperParms$timeStepAsInput,
-    pastSteps = hyperParms$pastSteps,
-    skip = hyperParms$skip,
-    polyDeg = hyperParms$polyDeg,
-    l2Penalty = hyperParms$l2Penalty)
-
-  return(list(propagator = linear))
+  hyperParms <- asOpts(hyperParms, c("Linear", "Propagator", "HyperParms"))
+  parms <- createLinear(obs, hyperParms)
+  return(parms)
 }
 
 
 # Propagator map Estimation: Echo State Network and Random Features
 getParmsEsn <- function(obs, hyperParms, memoize) {
-
-  hyperParms <- asOpts(hyperParms, c("Esn", "HyperParms"))
-
+  hyperParms <- asOpts(hyperParms, c("Esn", "Propagator", "HyperParms"))
   inDim <- getDim(obs)
   if (hyperParms$timeStepAsInput) {
     inDim <- inDim + 1
   }
-
-  esn <- createEsn(
-    size = hyperParms$size,
-    inDim = inDim,
-    degree = hyperParms$degree,
-    spectralRadius = hyperParms$spectralRadius,
-    inWeightScale = hyperParms$inWeightScale,
-    bias = hyperParms$bias,
-    seed = hyperParms$seed)
-
-  esn <- trainEsn(
-    esn, obs,
-    l2Penalty = hyperParms$l2Penalty,
-    warmUpLen = hyperParms$warmUpLen,
-    initReservoirScale = hyperParms$initReservoirScale,
-    timeStepAsInput = hyperParms$timeStepAsInput,
-    skip = hyperParms$skip)
-
-  return(list(propagator = esn))
+  parms <- createEsn(hyperParms, inDim = inDim)
+  parms <- trainEsn(parms, obs, hyperParms)
+  return(parms)
 }
 
 
 
 # Propagator map Estimation: Transformer
 getParmsTransformer <- function(obs, hyperParms, memoize) {
-
-  hyperParms <- asOpts(hyperParms, c("Transformer", "HyperParms"))
-
+  hyperParms <- asOpts(hyperParms, c("Transformer", "Propagator", "HyperParms"))
   inDim <- getDim(obs)
   if (hyperParms$timeStepAsInput) {
     inDim <- inDim + 1
   }
-
-  transformer <- createTransformer(hyperParms, stateDim = inDim)
-
-  transformer <- trainTransformer(transformer, obs, hyperParms)
-
-  return(list(propagator = transformer))
+  parms <- createTransformer(hyperParms, stateDim = inDim)
+  parms <- trainTransformer(parms, obs, hyperParms)
+  return(parms)
 }
 
 
@@ -118,13 +98,13 @@ getParmsDirect <- function(obs, hyperParms, memoize) {
 
   obs <-
     obs |>
-    dplyr::arrange(trajId, time)
+    dplyr::arrange(.data$trajId, .data$time)
   store <-
     obs |>
-    dplyr::group_by(trajId) |>
+    dplyr::group_by(.data$trajId) |>
     tibble::rowid_to_column("obsIdx") |>
     dplyr::filter(
-      order(time, decreasing=TRUE) > hyperParms$requiredFutures)
+      order(.data$time, decreasing=TRUE) > hyperParms$requiredFutures)
 
   parms <- list()
 

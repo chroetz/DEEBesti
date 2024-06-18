@@ -1,5 +1,7 @@
 createTransformer <- function(opts, stateDim) {
 
+  opts <- asOpts(opts, c("Transformer", "Propagator", "HyperParms"))
+
   featureDim <- getFeatureDim(stateDim, opts)
 
   model <- buildTransformerModel(
@@ -21,11 +23,13 @@ createTransformer <- function(opts, stateDim) {
 
   env <- new.env(parent=emptyenv())
 
-  return(lst(propagatorType = "Transformer", model, opts, env))
+  return(lst(model, env))
 
 }
 
-trainTransformer <- function(transformer, obs, opts) {
+trainTransformer <- function(parms, obs, opts) {
+
+  opts <- asOpts(opts, c("Transformer", "Propagator", "HyperParms"))
 
   contextLen <- opts$contextLen
   stateDim <- ncol(obs$state)
@@ -40,7 +44,7 @@ trainTransformer <- function(transformer, obs, opts) {
     \(i) {
       s <- trainSetting[i,,drop=FALSE]
       states <- trainState[s$iStart:(s$iStart+contextLen-1),]
-      transformerAddPositionInfo(transformer, states, opts)
+      transformerAddPositionInfo(parms, states, opts)
     })
   dim(xTrain) <- c(contextLen, featureDim, length(xTrain) / (contextLen * featureDim))
   xTrain <- aperm(xTrain, c(3, 1, 2))
@@ -56,7 +60,7 @@ trainTransformer <- function(transformer, obs, opts) {
   callbacks <- list(
     keras::callback_early_stopping(patience = 40, restore_best_weights = TRUE))
 
-  history <- transformer$model %>%
+  history <- parms$model %>%
     keras::fit(
       verbose = 2,
       xTrain,
@@ -68,52 +72,54 @@ trainTransformer <- function(transformer, obs, opts) {
       shuffle = TRUE
     )
 
-  transformer$timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
-  transformer$history <- history
-  transformer$states <- trainState
+  parms$timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
+  parms$history <- history
+  parms$states <- trainState
 
-  return(transformer)
+  return(parms)
 }
 
-predictTransformer <- function(transformer, startState, len = NULL, startTime = 0, timeRange = NULL) {
 
-  opts <- transformer$opts
+predictTransformer <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
+
+  opts <- asOpts(opts, c("Transformer", "Propagator", "HyperParms"))
+
   stateDim <- ncol(startState)
   contextLen <- opts$contextLen
   featureDim <- getFeatureDim(stateDim, opts)
 
   if (is.null(timeRange)) {
     stopifnot(length(len) == 1, len >= 0)
-    time <- startTime + (0:len)*transformer$timeStep
+    time <- startTime + (0:len)*parms$timeStep
   } else {
     stopifnot(length(timeRange) == 2)
-    time <- seq(timeRange[1], timeRange[2], by = transformer$timeStep)
+    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
     if (time[length(time)] < timeRange[2]) {
-      time <- c(time, time[length(time)] + transformer$timeStep)
+      time <- c(time, time[length(time)] + parms$timeStep)
     }
     len <- length(time) - 1
   }
 
   # Decide how to initialize the context
-  iStart <- DEEButil::whichMinDist(transformer$states, startState)
+  iStart <- DEEButil::whichMinDist(parms$states, startState)
   if (
-    sum((transformer$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps) &&
+    sum((parms$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps) &&
     iStart >= contextLen
   ) {
-    startContext <- transformer$states[(iStart-contextLen+1):iStart, ]
+    startContext <- parms$states[(iStart-contextLen+1):iStart, ]
   } else {
     startContext <- matrix(0, nrow = contextLen, ncol = featureDim)
     startContext[contextLen, ] <- startState
   }
 
-  startContext <- transformerAddPositionInfo(transformer, startContext, opts)
+  startContext <- transformerAddPositionInfo(parms, startContext, opts)
   x <- startContext
   dim(x) <- c(1, contextLen, featureDim)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = stateDim)
   outStates[1, ] <- startState
 
   for (i in seq_len(len)) {
-    pred <- transformer$model %>% predict(x, verbose=2)
+    pred <- parms$model %>% predict(x, verbose=2)
     outStates[i+1,] <- pred
     x[1, -contextLen, seq_len(stateDim)] <- x[1, -1, seq_len(stateDim)]
     x[1, contextLen, seq_len(stateDim)] <- pred

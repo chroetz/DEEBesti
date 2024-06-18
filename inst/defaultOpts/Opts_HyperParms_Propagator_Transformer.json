@@ -1,7 +1,6 @@
 {
-    "_class": ["Transformer", "HyperParms", "Opts"],
+    "_class": ["Transformer", "Propagator", "HyperParms", "Opts"],
     "_description": "Transformer Network",
-    "timeStepAsInput": false,
     "contextLen": 32,
     "posDim": 16,
     "headSize": 16,
