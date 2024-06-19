@@ -42,6 +42,7 @@ getParmsPropagator <- function(obs, hyperParms, memoize) {
     Esn = getParmsEsn(obs, hyperParms, memoize),
     Linear = getParmsLinear(obs, hyperParms, memoize),
     Transformer = getParmsTransformer(obs, hyperParms, memoize),
+    Regression = getParmsRegression(obs, hyperParms, memoize),
     stop("Unknown Propagator subclass")
   )
   return(parms)
@@ -52,6 +53,13 @@ getParmsPropagator <- function(obs, hyperParms, memoize) {
 getParmsLinear <- function(obs, hyperParms, memoize) {
   hyperParms <- asOpts(hyperParms, c("Linear", "Propagator", "HyperParms"))
   parms <- createLinear(obs, hyperParms)
+  return(parms)
+}
+
+
+getParmsRegression <- function(obs, hyperParms, memoize) {
+  hyperParms <- asOpts(hyperParms, c("Regression", "Propagator", "HyperParms"))
+  parms <- createRegression(obs, hyperParms)
   return(parms)
 }
 

@@ -1,0 +1,10 @@
+{
+    "_class": ["Linear", "Propagator", "HyperParms", "Opts"],
+    "_description": "Linear Propagator",
+    "pastSteps": 0,
+    "skip": 0,
+    "neighbors": 50,
+    "propagatorRegression": {
+        "_class": ["PropagatorRegression", "Opts"]
+    }
+}

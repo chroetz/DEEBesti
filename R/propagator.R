@@ -20,9 +20,9 @@ getPropagatorRegressionOut <- function(obs, targetType) {
 
 getPropagatorNextState <- function(prevState, timeStep, prediction, targetType) {
   if (targetType == "deriv") {
-    nextState <- prevState + timeStep * prediction
+    nextState <- as.vector(prevState) + timeStep * as.vector(prediction)
   } else if (targetType == "state") {
-    nextState <- prediction
+    nextState <- as.vector(prediction)
   } else {
     stop("Unknown targetType", targetType)
   }
@@ -81,6 +81,7 @@ predictPropagator <- function(parms, opts, startState, len = NULL, startTime = 0
     Esn = predictEsn(parms, opts, startState, len, startTime, timeRange),
     Linear = predictLinear(parms, opts, startState, len, startTime, timeRange),
     Transformer = predictTransformer(parms, opts, startState, len, startTime, timeRange),
+    Regression = predictRegression(parms, opts, startState, len, startTime, timeRange),
     stop("Unknown propagator type", name))
 
 }

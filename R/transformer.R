@@ -27,6 +27,7 @@ createTransformer <- function(opts, stateDim) {
 
 }
 
+
 trainTransformer <- function(parms, obs, opts) {
 
   opts <- asOpts(opts, c("Transformer", "Propagator", "HyperParms"))

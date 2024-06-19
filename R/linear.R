@@ -151,12 +151,6 @@ createLinear <- function(obs, opts) {
     crossprod(X, regressionOut))
 
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
-  if (hasValue(baseFeatures$featuresTimeTrajs)) {
-    featureSeriesPredict <- featureSeries
-  } else {
-    baseFeatures$featuresTimeTrajs$state[is.na(baseFeatures$featuresTimeTrajs$state)] <- timeStep
-    featureSeriesPredict <- createPolyFeatures(baseFeatures, opts$polyDeg)
-  }
 
   return(lst(
     outWeightMatrix,
@@ -165,7 +159,7 @@ createLinear <- function(obs, opts) {
 }
 
 
-createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, skip, polyDeg) {
+createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, skip, polyDeg = NULL) {
   nRowsRequired <- 1 + pastSteps*(skip+1)
   if (row > nRowsRequired) {
     traj <- traj[(row-nRowsRequired+1):row, ]
@@ -177,7 +171,11 @@ createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, s
   if (timeStepAsInput) {
     linFeatures <- cbind(linFeatures, timeSteps)
   }
-  features <- createPolyFeaturesOne(linFeatures, polyDeg)
+  if (hasValue(polyDeg)) {
+    features <- createPolyFeaturesOne(linFeatures, polyDeg)
+  } else {
+    features <- linFeatures
+  }
   featuresOne <- features[nrow(features), ]
   sel <- is.na(featuresOne)
   if (any(sel)) {

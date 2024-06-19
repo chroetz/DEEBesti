@@ -1,0 +1,7 @@
+{
+    "_class": ["GaussianProcess", "PropagatorRegression", "Opts"],
+    "_description": "",
+    "bandwidth": 1,
+    "regulation": 1e-3
+}
+  

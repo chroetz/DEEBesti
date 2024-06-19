@@ -1,0 +1,7 @@
+{
+    "_class": ["LocalLinear", "PropagatorRegression", "Opts"],
+    "_description": "",
+    "bandwidth": 1,
+    "kernel": "Parab"
+}
+  
