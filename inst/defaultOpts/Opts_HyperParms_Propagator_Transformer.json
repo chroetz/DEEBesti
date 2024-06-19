@@ -12,7 +12,7 @@
     "learningRate": 1e-4,
     "validationSplit": 0.1,
     "epochs": 50,
-    "stepsPerEpoch": 100,
+    "batchSize": 32,
     "posEncoding": "sinusoidal",
     "posEncodeFactor": 2
 }

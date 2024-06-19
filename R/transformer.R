@@ -66,7 +66,7 @@ trainTransformer <- function(parms, obs, opts) {
       verbose = 2,
       xTrain,
       yTrain,
-      steps_per_epoch = opts$stepsPerEpoch,
+      batch_size = opts$batchSize,
       epochs = opts$epochs,
       callbacks = callbacks,
       validation_split = opts$validationSplit,
