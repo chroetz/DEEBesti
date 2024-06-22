@@ -1,8 +1,7 @@
 {
     "_class": ["Glmnet", "DerivFun", "Opts"],
     "_description": "features for linear regression and arguments to the R-function glmnet::cv.glmnet()",
-    "features": "poly5",
-    "_features_description": "currently only 'poly<num>' for polynomial features of degree up to <num>",
+    "polyDeg": 5,
     "lambda": null,
     "typeMeasure": "default",
     "nFolds": 10,

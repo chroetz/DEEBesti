@@ -18,26 +18,27 @@ prepareParmsThreshLm <- function(parms, opts) {
 
   opts <- asOpts(opts, c("ThreshLm", "DerivFun"))
 
-  stopifnot(grepl("^poly\\d+$", opts$features))
-  degree <- as.integer(substring(opts$features, 5))
+  degree <- opts$polyDeg
   d <- getDim(parms$trajs)
   degVecs <- DEEButil::getMonomialExponents(d, degree)
   x <- DEEButil::evaluateMonomials(parms$trajs$state, degVecs)
   y <- parms$trajs$deriv
 
-  beta <- linSolve(x, y)
+  beta <- linSolve(x, y, opts$l2Penalty)
   smallIndsPrev <- beta == 0
-  for (k in 1:opts$iterations) {
-    smallInds <- abs(beta) < opts$threshold
-    if (all(smallInds == smallIndsPrev)) break
-    beta[smallInds] <- 0
-    for (j in 1:d) {
-      bigInds <- !smallInds[,j]
-      if (any(bigInds)) {
-        beta[bigInds, j] <- linSolve(x[, bigInds, drop=FALSE], y[,j])
+  if (opts$iterations > 0) {
+    for (k in 1:opts$iterations) {
+      smallInds <- abs(beta) < opts$threshold
+      if (all(smallInds == smallIndsPrev)) break
+      beta[smallInds] <- 0
+      for (j in 1:d) {
+        bigInds <- !smallInds[,j]
+        if (any(bigInds)) {
+          beta[bigInds, j] <- linSolve(x[, bigInds, drop=FALSE], y[,j], opts$l2Penalty)
+        }
       }
+      smallIndsPrev <- smallInds
     }
-    smallIndsPrev <- smallInds
   }
 
   fits <- apply(
@@ -53,6 +54,11 @@ prepareParmsThreshLm <- function(parms, opts) {
   return(parms)
 }
 
-linSolve <- function(x, y) {
-  DEEButil::saveSolve(crossprod(x), crossprod(x, y))
+
+linSolve <- function(x, y, l2Penalty = 0) {
+  xtx <- crossprod(x)
+  if (l2Penalty > 0) {
+    diag(xtx) <- diag(xtx) + l2Penalty
+  }
+  DEEButil::saveSolve(xtx, crossprod(x, y))
 }

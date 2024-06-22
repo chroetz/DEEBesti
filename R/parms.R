@@ -142,11 +142,11 @@ getParmsTrajs <- function(obs, hyperParms, memoize) {
     "Identity" = obs,
     "ConstMean" = makeTrajsStateConst(obs, mean),
     "ConstLast" = makeTrajsStateConst(obs, dplyr::last),
-    "InterpolationSpline" = fitTrajsInterpolationSpline(obs, hyperParms$fitTraj),
-    "GaussianProcess" = fitTrajsGaussianProcess(obs, hyperParms$fitTraj),
-    "LocalPolynomial" = fitTrajsLocalPolynomial(obs, hyperParms$fitTraj),
-    "AltOpt" = fitTrajsAltOpt(obs, hyperParms$fitTraj, memoize = memoize),
-    "TrajOpt" = fitTrajsTrajOpt(obs, hyperParms$fitTraj, memoize = memoize),
+    "InterpolationSpline" = fitTrajsInterpolationSpline(obs, hyperParms$fitTrajs),
+    "GaussianProcess" = fitTrajsGaussianProcess(obs, hyperParms$fitTrajs),
+    "LocalPolynomial" = fitTrajsLocalPolynomial(obs, hyperParms$fitTrajs),
+    "AltOpt" = fitTrajsAltOpt(obs, hyperParms$fitTrajs, memoize = memoize),
+    "TrajOpt" = fitTrajsTrajOpt(obs, hyperParms$fitTrajs, memoize = memoize),
     stop("Unknown method ", method)
   )
   if (is.null(trajs)) return(NULL)

@@ -11,6 +11,8 @@ estimateTrajs <- function(initState, timeRange, parms, hyperParms) {
     Direct = estimateTrajsDirect(initState, timeRange, parms, hyperParms),
     stop("Unknown HyperParms subclass"))
 
+  esti$state[is.na(esti$state)] <- 0
+
   return(esti)
 }
 

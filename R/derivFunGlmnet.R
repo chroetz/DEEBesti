@@ -21,8 +21,7 @@ prepareParmsGlmnet <- function(parms, opts) {
 
   opts <- asOpts(opts, c("Glmnet", "DerivFun"))
 
-  stopifnot(grepl("^poly\\d+$", opts$features))
-  degree <- as.integer(substring(opts$features, 5))
+  degree <- opts$polyDeg
   d <- getDim(parms$trajs)
   degVecs <- DEEButil::getMonomialExponents(d, degree)
   featureValues <- DEEButil::evaluateMonomials(parms$trajs$state, degVecs)

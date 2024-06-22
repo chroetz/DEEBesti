@@ -1,9 +1,9 @@
 {
     "_class": ["ThreshLm", "DerivFun", "Opts"],
     "_description": "features for linear regression and sequential thersholding least squares",
-    "features": "poly5",
-    "_features_description": "currently only 'poly<num>' for polynomial features of degree up to <num>",
-    "threshold": 0.1,
-    "iterations": 10
+    "polyDeg": 5,
+    "threshold": 0,
+    "iterations": 0,
+    "l2Penalty": 0
 }
   
