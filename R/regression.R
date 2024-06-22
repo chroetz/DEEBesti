@@ -27,7 +27,7 @@ predictRegression <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Regression", "Propagator", "HyperParms"))
 
-  nDims <- ncol(parms$y)
+  nDims <- parms$dim
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
 
@@ -63,57 +63,113 @@ predictRegression <- function(parms, opts, startState, len) {
 
 
 
-trainPropagatorRegression <- function(x, y, opts)  {
-  knnFun <- FastKNN::buildKnnFunction(x, opts$neighbors)
-  return(lst(x, y, knnFun))
+trainPropagatorRegression <- function(x, y, optsPropagator)  {
+  opts <- asOpts(optsPropagator$propagatorRegression, c("PropagatorRegression"))
+  name <- ConfigOpts::getClassAt(opts, 2)
+  parms <- switch(
+    name,
+    LocalConst = ,
+    LocalLinear = ,
+    GaussianProcess = {
+      knnFun <- FastKNN::buildKnnFunction(x, opts$neighbors)
+      lst(x, y, knnFun)
+    },
+    NeuralNet = {
+      model <- buildNeuralPropagatorModel(opts, ncol(x), ncol(y))
+      model %>% keras::compile(
+        loss = "mse",
+        optimizer = keras::optimizer_adam(learning_rate = opts$learningRate)
+      )
+      callbacks <- list(
+        keras::callback_early_stopping(patience = 100, restore_best_weights = TRUE))
+      history <- model %>%
+        keras::fit(
+          verbose = 2,
+          x,
+          y,
+          batch_size = opts$batchSize,
+          epochs = opts$epochs,
+          callbacks = callbacks,
+          validation_split = opts$validationSplit,
+          shuffle = TRUE)
+      lst(model, history)
+    },
+    stop("Unknown name", name)
+  )
+  return(c(list(dim = ncol(y)), parms))
 }
 
 
+buildNeuralPropagatorModel <- function(opts, inDim, outDim) {
+  model <- keras::keras_model_sequential(input_shape = inDim)
+  for (layer in opts$layers) {
+    model <-
+      model %>%
+      keras::layer_dense(units = layer, activation = opts$activation)
+  }
+  model <-
+      model %>%
+      keras::layer_dense(units = outDim, activation = "linear")
+  return(model)
+}
+
+
+
 inferPropagatorRegression <- function(parms, opts, xout) {
-  fit <- matrix(NA_real_, nrow=nrow(xout), ncol=ncol(parms$y))
+  fit <- matrix(NA_real_, nrow=nrow(xout), ncol=parms$dim)
   for (i in seq_len(nrow(xout))) {
-    xouti <- xout[i,]
-    knn <- parms$knnFun(xouti)
-    x <- parms$x[knn$idx, , drop=FALSE]
-    y <- parms$y[knn$idx, , drop=FALSE]
-    fit[i, ] <- predictPropagatorRegression(knn$distSqr, x, y, xouti, opts$propagatorRegression)
+    fit[i, ] <- predictPropagatorRegression(parms, xout[i,, drop=FALSE], opts$propagatorRegression)
   }
   return(fit)
 }
 
 
-predictPropagatorRegression <- function(distSqr, x, y, xout, opts) {
+predictPropagatorRegression <- function(parms, xout, opts) {
   opts <- asOpts(opts, c("PropagatorRegression"))
   name <- ConfigOpts::getClassAt(opts, 2)
   switch(
     name,
-    LocalConst = predictPropagatorRegressionLocalConst(distSqr, y, opts),
-    LocalLinear = predictPropagatorRegressionLocalLinear(distSqr, x, y, xout, opts),
-    GaussianProcess = predictPropagatorRegressionGaussianProcess(distSqr, x, y, opts),
+    LocalConst = predictPropagatorRegressionLocalConst(parms, xout, opts),
+    LocalLinear = predictPropagatorRegressionLocalLinear(parms, xout, opts),
+    GaussianProcess = predictPropagatorRegressionGaussianProcess(parms, xout, opts),
+    NeuralNet = predictPropagatorRegressionNeuralNet(parms, xout),
     stop("Unknown name", name)
   )
 }
 
 
-predictPropagatorRegressionLocalConst <- function(distSqr, x, y, opts) {
-  w <- getKernel(opts$kernel)(sqrt(distSqr) / opts$bandwidth)
+predictPropagatorRegressionLocalConst <- function(parms, xout, opts) {
+  knn <- parms$knnFun(xout)
+  y <- parms$y[knn$idx, , drop=FALSE]
+  w <- getKernel(opts$kernel)(sqrt(knn$distSqr) / opts$bandwidth)
   yout <- weightedMean(y, w)
   return(yout)
 }
 
 
-predictPropagatorRegressionGaussianProcess <- function(distSqr, x, y, opts)  {
+predictPropagatorRegressionGaussianProcess <- function(parms, xout, opts)  {
+  knn <- parms$knnFun(xout)
+  y <- parms$y[knn$idx, , drop=FALSE]
+  x <- parms$x[knn$idx, , drop=FALSE]
   kernelMatrix <- DEEButil::expKernelMatrix(x, opts$bandwidth, opts$regulation)
-  kernelVector <- DEEButil::expKernelVectorFromDistSqr(distSqr, opts$bandwidth)
+  kernelVector <- DEEButil::expKernelVectorFromDistSqr(knn$distSqr, opts$bandwidth)
   crossprod(kernelVector, DEEButil::saveSolve(kernelMatrix, y))
 }
 
 
-predictPropagatorRegressionLocalLinear <- function(distSqr, x, y, xout, opts) {
-  w <- getKernel(opts$kernel)(sqrt(distSqr) / opts$bandwidth)
+predictPropagatorRegressionLocalLinear <- function(parms, xout, opts) {
+  knn <- parms$knnFun(xout)
+  y <- parms$y[knn$idx, , drop=FALSE]
+  x <- parms$x[knn$idx, , drop=FALSE]
+  w <- getKernel(opts$kernel)(sqrt(knn$distSqr) / opts$bandwidth)
   X <- cbind(1, x)
   Xw <- X * w
   beta <- DEEButil::saveSolve(crossprod(Xw, X), crossprod(Xw, y))
   crossprod(c(1, xout), beta)
+}
+
+
+predictPropagatorRegressionNeuralNet <- function(parms, xout) {
+  parms$model %>% predict(xout, verbose=2)
 }
 

@@ -1,0 +1,11 @@
+{
+    "_class": ["NeuralNet", "PropagatorRegression", "Opts"],
+    "_description": "",
+    "batchSize": 32,
+    "epochs": 100, 
+    "validationSplit": 0.1,
+    "layers": [32, 32],
+    "activation": "swish",
+    "learningRate": 1e-3
+}
+  

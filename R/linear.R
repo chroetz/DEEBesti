@@ -147,7 +147,7 @@ createLinear <- function(obs, opts) {
   } else if (opts$targetType == "state") {
     diag(XTX) <- diag(XTX) + c(0, rep(opts$l2Penalty, ncol(regressionIn)-1))
   } else {
-    stop("Unknown targetType", targetType)
+    stop("Unknown targetType", opts$targetType)
   }
 
   outWeightMatrix <- DEEButil::saveSolve(
