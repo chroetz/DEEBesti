@@ -23,21 +23,9 @@ createRegression <- function(obs, opts) {
 }
 
 
-predictRegression <- function(parms, opts, startState, len, startTime, timeRange) {
+predictRegression <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Regression", "Propagator", "HyperParms"))
-
-  if (is.null(timeRange)) {
-    stopifnot(length(len) == 1, len >= 0)
-    time <- startTime + (0:len)*parms$timeStep
-  } else {
-    stopifnot(length(timeRange) == 2)
-    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
-    if (time[length(time)] < timeRange[2]) {
-      time <- c(time, time[length(time)] + parms$timeStep)
-    }
-    len <- length(time) - 1
-  }
 
   nDims <- ncol(parms$y)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
@@ -65,15 +53,12 @@ predictRegression <- function(parms, opts, startState, len, startTime, timeRange
     newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
-    trajPrevious$time <- c(trajPrevious$time[-1], time[i+1]) # TODO: time might be strange: have absolute vs need diff time
+    trajPrevious$time <- c(trajPrevious$time[-1], last(trajPrevious$time) + parms$timeStep) # TODO: time might be strange: have absolute vs need diff time
     features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
+    prevState <- newState
   }
 
-  outTrajs <- makeTrajs(
-    time = time,
-    state = outStates)
-
-  return(outTrajs)
+  return(outStates)
 }
 
 

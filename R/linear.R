@@ -140,17 +140,21 @@ createLinear <- function(obs, opts) {
   regressionIn <- regressionIn[!naRows, ]
   regressionOut <- regressionOut[!naRows, ]
 
-  # TODO: elastic net: glmnet::glmnet
-
   X <- regressionIn
   XTX <- crossprod(X)
-  diag(XTX) <- diag(XTX) + c(0, rep(opts$l2Penalty, ncol(regressionIn)-1))
+  if (opts$targetType == "deriv") {
+    diag(XTX) <- diag(XTX) + rep(opts$l2Penalty, ncol(regressionIn))
+  } else if (opts$targetType == "state") {
+    diag(XTX) <- diag(XTX) + c(0, rep(opts$l2Penalty, ncol(regressionIn)-1))
+  } else {
+    stop("Unknown targetType", targetType)
+  }
 
   outWeightMatrix <- DEEButil::saveSolve(
     XTX,
     crossprod(X, regressionOut))
 
-  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
+  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
 
   return(lst(
     outWeightMatrix,
@@ -186,21 +190,9 @@ createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, s
 }
 
 
-predictLinear <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
+predictLinear <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Linear", "Propagator", "HyperParms"))
-
-  if (is.null(timeRange)) {
-    stopifnot(length(len) == 1, len >= 0)
-    time <- startTime + (0:len)*parms$timeStep
-  } else {
-    stopifnot(length(timeRange) == 2)
-    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
-    if (time[length(time)] < timeRange[2]) {
-      time <- c(time, time[length(time)] + parms$timeStep)
-    }
-    len <- length(time) - 1
-  }
 
   nDims <- ncol(parms$outWeightMatrix)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
@@ -228,13 +220,10 @@ predictLinear <- function(parms, opts, startState, len = NULL, startTime = 0, ti
     newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
-    trajPrevious$time <- c(trajPrevious$time[-1], time[i+1]) # TODO: time might be strange: have absolute vs need diff time
+    trajPrevious$time <- c(trajPrevious$time[-1], last(trajPrevious$time)+parms$timeStep) # TODO: time might be strange: have absolute vs need diff time
     features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
+    prevState <- newState
   }
 
-  outTrajs <- makeTrajs(
-    time = time,
-    state = outStates)
-
-  return(outTrajs)
+  return(outStates)
 }

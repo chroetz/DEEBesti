@@ -81,25 +81,13 @@ trainTransformer <- function(parms, obs, opts) {
 }
 
 
-predictTransformer <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
+predictTransformer <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Transformer", "Propagator", "HyperParms"))
 
   stateDim <- ncol(startState)
   contextLen <- opts$contextLen
   featureDim <- getFeatureDim(stateDim, opts)
-
-  if (is.null(timeRange)) {
-    stopifnot(length(len) == 1, len >= 0)
-    time <- startTime + (0:len)*parms$timeStep
-  } else {
-    stopifnot(length(timeRange) == 2)
-    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
-    if (time[length(time)] < timeRange[2]) {
-      time <- c(time, time[length(time)] + parms$timeStep)
-    }
-    len <- length(time) - 1
-  }
 
   # Decide how to initialize the context
   iStart <- DEEButil::whichMinDist(parms$states, startState)
@@ -126,9 +114,7 @@ predictTransformer <- function(parms, opts, startState, len = NULL, startTime = 
     x[1, contextLen, seq_len(stateDim)] <- pred
   }
 
-  esti <- DEEBtrajs::makeTrajs(time, outStates)
-
-  return(esti)
+  return(outStates)
 }
 
 

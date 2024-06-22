@@ -110,21 +110,9 @@ trainEsn <- function(parms, obs, opts) {
 }
 
 
-predictEsn <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
+predictEsn <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Esn", "Propagator", "HyperParms"))
-
-  if (is.null(timeRange)) {
-    stopifnot(length(len) == 1, len >= 0)
-    time <- startTime + (0:len)*parms$timeStep
-  } else {
-    stopifnot(length(timeRange) == 2)
-    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
-    if (time[length(time)] < timeRange[2]) {
-      time <- c(time, time[length(time)] + parms$timeStep)
-    }
-    len <- length(time) - 1
-  }
 
   outStates <- matrix(NA_real_, nrow = len+1, ncol = ncol(parms$outWeightMatrix))
   outStates[1, ] <- startState
@@ -161,9 +149,5 @@ predictEsn <- function(parms, opts, startState, len = NULL, startTime = 0, timeR
     prevState <- newState
   }
 
-  outTrajs <- makeTrajs(
-    time = time,
-    state = outStates)
-
-  return(outTrajs)
+  return(outStates)
 }

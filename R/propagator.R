@@ -75,13 +75,29 @@ predictPropagatorDeriv <- function(parms, opts, states, derivOrder) {
 predictPropagator <- function(parms, opts, startState, len = NULL, startTime = 0, timeRange = NULL) {
 
   opts <- asOpts(opts, c("Propagator", "HyperParms"))
+
+  if (is.null(timeRange)) {
+    stopifnot(length(len) == 1, len >= 0)
+    time <- startTime + (0:len)*parms$timeStep
+  } else {
+    stopifnot(length(timeRange) == 2)
+    time <- seq(timeRange[1], timeRange[2], by = parms$timeStep)
+    if (time[length(time)] < timeRange[2]) {
+      time <- c(time, time[length(time)] + parms$timeStep)
+    }
+    len <- length(time) - 1
+  }
+
   name <- getClassAt(opts, 3)
-  switch(
+  predictedStates <- switch(
     name,
-    Esn = predictEsn(parms, opts, startState, len, startTime, timeRange),
-    Linear = predictLinear(parms, opts, startState, len, startTime, timeRange),
-    Transformer = predictTransformer(parms, opts, startState, len, startTime, timeRange),
-    Regression = predictRegression(parms, opts, startState, len, startTime, timeRange),
+    Esn = predictEsn(parms, opts, startState, len),
+    Linear = predictLinear(parms, opts, startState, len),
+    Transformer = predictTransformer(parms, opts, startState, len),
+    Regression = predictRegression(parms, opts, startState, len),
     stop("Unknown propagator type", name))
 
+  makeTrajs(
+    time = time,
+    state = predictedStates)
 }

@@ -4,6 +4,7 @@
 #' @importFrom DEEButil hasValue
 #' @importFrom rlang .data
 #' @importFrom tibble lst
+#' @importFrom dplyr last
 #' @importFrom keras %>%
 #' @importFrom stats predict
 #' @importFrom utils tail
