@@ -7,7 +7,7 @@ createRegression <- function(obs, opts) {
   regressionOut <- getPropagatorRegressionOut(obs, opts$targetType)
   regressionIn <- do.call(
     rbind,
-    applyTrajId(featureSeries$featuresLinTrajs, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
+    applyTrajId(featureSeries, \(traj) traj$state[-nrow(traj),, drop=FALSE]))
 
   naRows <- rowSums(is.na(regressionIn) > 0)
   regressionIn <- regressionIn[!naRows, ]
@@ -41,6 +41,7 @@ predictRegression <- function(parms, opts, startState, len) {
     traj <- traj[traj$trajId == trajId, ]
     trajPrevious <- traj[pmax(1, (nrow(traj)-nRowsRequired+1)):nrow(traj), ]
     cat("Found startState in training data. Use it to initialize features.\n")
+    browser()
     features <- createFeaturesOneTrajOneTime(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
   } else {
     cat("Did not find startState in training data. Use startState to initialize features.\n")

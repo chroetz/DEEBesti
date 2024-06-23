@@ -11,7 +11,14 @@ rowIdxProd <- function(mat, idxs) {
 }
 
 
-createLinFeaturesOneTraj <- function(state, pastSteps, skip) {
+createLinFeaturesOneTraj <- function(traj, pastSteps, skip, timeStepAsInput) {
+  if (timeStepAsInput) {
+    timeSteps <- diff(traj$time)
+    timeSteps <- c(timeSteps, mean(timeSteps))
+    state <- cbind(timeSteps, traj$state)
+  } else {
+    state <- traj$state
+  }
   if (pastSteps == 0) return(state)
   n <- nrow(state)
   d <- ncol(state)
@@ -48,7 +55,7 @@ createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
 
   featuresLinTrajs <- mapTrajs2Trajs(trajs, \(traj) {
 
-    featuresLin <- createLinFeaturesOneTraj(trajs$state, pastSteps, skip)
+    featuresLin <- createLinFeaturesOneTraj(traj, pastSteps, skip, timeStepAsInput)
 
     out <- makeTrajs(
       time = traj$time,
@@ -58,46 +65,7 @@ createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
 
   })
 
-  if (!isFALSE(timeStepAsInput) && length(timeStepAsInput) > 0) {
-
-     featuresTimeTrajs <- mapTrajs2Trajs(trajs, \(traj) {
-
-      if (is.numeric(timeStepAsInput)) {
-        timeSteps <- rep(timeStepAsInput, nrow(traj$state))
-      } else if (is.logical(timeStepAsInput) && timeStepAsInput) {
-        timeSteps <- c(diff(traj$time), NA)
-      } else {
-        stop("timeStepAsInput must be logical or numeric")
-      }
-
-      featuresTime <- matrix(timeSteps, ncol=1)
-
-      for (j in seq_len(pastSteps)) {
-        rowIdxs <- seq_len(nrow(traj$state))
-        rowIdxs <- rowIdxs - j*(skip+1)
-        nEmpty <- sum(rowIdxs <= 0)
-        rowIdxs <- rowIdxs[rowIdxs>=1]
-        featuresTime <- cbind(
-          featuresTime,
-          c(rep(NA_real_, nEmpty),
-            timeSteps[rowIdxs]))
-      }
-
-      out <- makeTrajs(
-        time = traj$time,
-        state = featuresTime)
-
-      return(out)
-
-    })
-
-  } else {
-
-    featuresTimeTrajs <- NULL
-
-  }
-
-  return(lst(featuresLinTrajs, featuresTimeTrajs))
+  return(featuresLinTrajs)
 }
 
 
@@ -117,15 +85,7 @@ createPolyFeaturesOneTrajOne <- function(featuresLin, polyDeg) {
 
 createPolyFeatures <- function(baseFeatures, polyDeg) {
 
-  if (hasValue(baseFeatures$featuresTimeTrajs)) {
-    trajs <- baseFeatures$featuresLinTrajs
-  } else {
-    trajs <- makeTrajs(
-      baseFeatures$featuresLinTrajs$time,
-      cbind(baseFeatures$featuresLinTrajs$state, baseFeatures$featuresTimeTrajs$state))
-  }
-
-  mapTrajs2Trajs(trajs, \(traj) {
+  mapTrajs2Trajs(baseFeatures, \(traj) {
 
     features <- createPolyFeaturesOneTraj(traj$state, polyDeg)
 
@@ -185,23 +145,24 @@ createFeaturesOneTrajOneTime <- function(traj, row, timeStep, timeStepAsInput, p
   } else {
     traj <- traj[1:row, ]
   }
-  timeSteps <- c(diff(traj$time), timeStep)
-  linFeatures <- createLinFeaturesOneTrajLastTime(traj$state, pastSteps, skip)
   if (timeStepAsInput) {
-    linFeatures <- cbind(linFeatures, timeSteps)
+    timeSteps <- c(diff(traj$time), timeStep)
+    state <- cbind(timeSteps, traj$state)
+  } else {
+    state <- traj$state
   }
+  linFeatures <- createLinFeaturesOneTrajLastTime(state, pastSteps, skip)
   if (hasValue(polyDeg)) {
     features <- createPolyFeaturesOneTrajOne(linFeatures, polyDeg)
   } else {
     features <- linFeatures
   }
-  featuresOne <- features[nrow(features), ]
-  sel <- is.na(featuresOne)
+  sel <- is.na(features)
   if (any(sel)) {
-    featuresOne[sel] <- 0
+    features[sel] <- 0
     cat("Replace NA features by 0.\n")
   }
-  return(featuresOne)
+  return(features)
 }
 
 
