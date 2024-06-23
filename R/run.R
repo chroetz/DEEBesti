@@ -188,7 +188,7 @@ writeEstiInfo <- function(data, parms, info, outDir) {
   estiInfoPath <- file.path(outDir, DEEBpath::estiInfoFile(info))
   info <- as.list(info)
   data <- as.list(data)
-  jsonlite::write_json(c(data, info), path=estiInfoPath)
+  jsonlite::write_json(c(data, info), path=estiInfoPath, pretty=TRUE, digits=I(8), auto_unbox=TRUE)
 }
 
 
