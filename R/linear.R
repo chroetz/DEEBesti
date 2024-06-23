@@ -11,20 +11,36 @@ rowIdxProd <- function(mat, idxs) {
 }
 
 
-createLinFeaturesOne <- function(state, pastSteps, skip) {
-  featuresLin <- state
+createLinFeaturesOneTraj <- function(state, pastSteps, skip) {
+  if (pastSteps == 0) return(state)
+  n <- nrow(state)
+  d <- ncol(state)
+  featuresLin <- matrix(NA_real_, nrow = n, ncol = d*(1+pastSteps))
+  featuresLin[,1:d] <- state
   for (j in seq_len(pastSteps)) {
     rowIdxs <- seq_len(nrow(state))
     rowIdxs <- rowIdxs - j*(skip+1)
     nEmpty <- sum(rowIdxs <= 0)
     rowIdxs <- rowIdxs[rowIdxs>=1]
-    featuresLin <- cbind(
-      featuresLin,
-      rbind(
-        matrix(NA_real_, nrow = nEmpty, ncol = ncol(state)),
-        state[rowIdxs, , drop=FALSE]))
+    if (nEmpty >= n) next
+    featuresLin[(nEmpty+1):n, d*j+(1:d)] <- state[rowIdxs, ]
   }
   return(featuresLin)
+}
+
+
+createLinFeaturesOneTrajLastTime <- function(state, pastSteps, skip) {
+  n <- nrow(state)
+  d <- ncol(state)
+  if (pastSteps == 0) return(state[n, ])
+  rowIdxs <- n - (0:pastSteps)*(skip+1)
+  nEmpty <- sum(rowIdxs <= 0)
+  rowIdxs <- rowIdxs[rowIdxs>=1]
+  c(
+    state[rowIdxs, ] |>
+      t() |>
+      as.vector(),
+    rep(NA_real_, nEmpty*d))
 }
 
 
@@ -32,7 +48,7 @@ createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
 
   featuresLinTrajs <- mapTrajs2Trajs(trajs, \(traj) {
 
-    featuresLin <- createLinFeaturesOne(trajs$state, pastSteps, skip)
+    featuresLin <- createLinFeaturesOneTraj(trajs$state, pastSteps, skip)
 
     out <- makeTrajs(
       time = traj$time,
@@ -85,18 +101,17 @@ createBaseFeatures <- function(trajs, timeStepAsInput,  pastSteps, skip) {
 }
 
 
-createPolyFeaturesOne <- function(featuresLin, polyDeg) {
-  nCols <- ncol(featuresLin)
-  features <- matrix(1, nrow = nrow(featuresLin), ncol=1)
-  for (deg in seq_len(polyDeg)) {
-    indices <- do.call(expand.grid, replicate(deg, seq_len(nCols), simplify=FALSE))
-    indices <- as.matrix(indices)
-    notOrdered <- rowSums(indices[, -ncol(indices), drop=FALSE] > indices[, -1, drop=FALSE]) > 0
-    indices <- indices[!notOrdered, , drop=FALSE]
-    values <- unlist(apply(indices, 1, \(idx) rowIdxProd(featuresLin, idx), simplify=FALSE))
-    features <- cbind(features, matrix(values, nrow = nrow(features)))
-  }
-  return(features)
+createPolyFeaturesOneTraj <- function(featuresLin, polyDeg) {
+  d <- ncol(featuresLin)
+  degVecs <- DEEButil::getMonomialExponents(d, polyDeg)
+  DEEButil::evaluateMonomials(featuresLin, degVecs)
+}
+
+
+createPolyFeaturesOneTrajOne <- function(featuresLin, polyDeg) {
+  d <- length(featuresLin)
+  degVecs <- DEEButil::getMonomialExponents(d, polyDeg)
+  DEEButil::evaluateMonomials(matrix(featuresLin, nrow=1), degVecs)
 }
 
 
@@ -112,7 +127,7 @@ createPolyFeatures <- function(baseFeatures, polyDeg) {
 
   mapTrajs2Trajs(trajs, \(traj) {
 
-    features <- createPolyFeaturesOne(traj$state, polyDeg)
+    features <- createPolyFeaturesOneTraj(traj$state, polyDeg)
 
     out <- makeTrajs(
       time = traj$time,
@@ -163,7 +178,7 @@ createLinear <- function(obs, opts) {
 }
 
 
-createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, skip, polyDeg = NULL) {
+createFeaturesOneTrajOneTime <- function(traj, row, timeStep, timeStepAsInput, pastSteps, skip, polyDeg = NULL) {
   nRowsRequired <- 1 + pastSteps*(skip+1)
   if (row > nRowsRequired) {
     traj <- traj[(row-nRowsRequired+1):row, ]
@@ -171,12 +186,12 @@ createFeaturesOne <- function(traj, row, timeStep, timeStepAsInput, pastSteps, s
     traj <- traj[1:row, ]
   }
   timeSteps <- c(diff(traj$time), timeStep)
-  linFeatures <- createLinFeaturesOne(traj$state, pastSteps, skip)
+  linFeatures <- createLinFeaturesOneTrajLastTime(traj$state, pastSteps, skip)
   if (timeStepAsInput) {
     linFeatures <- cbind(linFeatures, timeSteps)
   }
   if (hasValue(polyDeg)) {
-    features <- createPolyFeaturesOne(linFeatures, polyDeg)
+    features <- createPolyFeaturesOneTrajOne(linFeatures, polyDeg)
   } else {
     features <- linFeatures
   }
@@ -208,10 +223,10 @@ predictLinear <- function(parms, opts, startState, len) {
     traj <- traj[traj$trajId == trajId, ]
     trajPrevious <- traj[pmax(1, (nrow(traj)-nRowsRequired+1)):nrow(traj), ]
     cat("Found startState in training data. Use it to initialize features.\n")
-    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
+    features <- createFeaturesOneTrajOneTime(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
   } else {
     cat("Did not find startState in training data. Use startState to initialize features.\n")
-    features <- createFeaturesOne(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
+    features <- createFeaturesOneTrajOneTime(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
   }
 
   prevState <- startState
@@ -221,7 +236,7 @@ predictLinear <- function(parms, opts, startState, len) {
     outStates[i+1,] <- newState
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
     trajPrevious$time <- c(trajPrevious$time[-1], last(trajPrevious$time)+parms$timeStep) # TODO: time might be strange: have absolute vs need diff time
-    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
+    features <- createFeaturesOneTrajOneTime(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, opts$polyDeg)
     prevState <- newState
   }
 

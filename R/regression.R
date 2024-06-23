@@ -41,10 +41,10 @@ predictRegression <- function(parms, opts, startState, len) {
     traj <- traj[traj$trajId == trajId, ]
     trajPrevious <- traj[pmax(1, (nrow(traj)-nRowsRequired+1)):nrow(traj), ]
     cat("Found startState in training data. Use it to initialize features.\n")
-    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
+    features <- createFeaturesOneTrajOneTime(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
   } else {
     cat("Did not find startState in training data. Use startState to initialize features.\n")
-    features <- createFeaturesOne(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
+    features <- createFeaturesOneTrajOneTime(makeTrajs(time=0, state=outStates[1, , drop=FALSE]), 1, parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
   }
 
   prevState <- startState
@@ -54,7 +54,7 @@ predictRegression <- function(parms, opts, startState, len) {
     outStates[i+1,] <- newState
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
     trajPrevious$time <- c(trajPrevious$time[-1], last(trajPrevious$time) + parms$timeStep) # TODO: time might be strange: have absolute vs need diff time
-    features <- createFeaturesOne(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
+    features <- createFeaturesOneTrajOneTime(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)
     prevState <- newState
   }
 
