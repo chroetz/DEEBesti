@@ -135,7 +135,7 @@ predictEsn <- function(parms, opts, startState, len) {
 
   prevState <- startState
   for (i in seq_len(len)) {
-    prediction <- crossprod(parms$outWeightMatrix, c(1, reservoir))
+    prediction <- as.vector(c(1, reservoir) %*% parms$outWeightMatrix)
     newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
     if (opts$timeStepAsInput) {

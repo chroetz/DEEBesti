@@ -79,7 +79,7 @@ createPolyFeaturesOneTraj <- function(featuresLin, polyDeg) {
 createPolyFeaturesOneTrajOne <- function(featuresLin, polyDeg) {
   d <- length(featuresLin)
   degVecs <- DEEButil::getMonomialExponents(d, polyDeg)
-  DEEButil::evaluateMonomials(matrix(featuresLin, nrow=1), degVecs)
+  DEEButil::evaluateMonomials(matrix(featuresLin, nrow=1), degVecs) |> as.vector()
 }
 
 
@@ -192,7 +192,7 @@ predictLinear <- function(parms, opts, startState, len) {
 
   prevState <- startState
   for (i in seq_len(len)) {
-    prediction <- crossprod(parms$outWeightMatrix, features) |> as.vector()
+    prediction <- as.vector(features %*% parms$outWeightMatrix)
     newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
