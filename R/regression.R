@@ -138,15 +138,6 @@ predictPropagatorRegression <- function(parms, xout, opts) {
 }
 
 
-predictPropagatorRegressionLocalConst <- function(parms, xout, opts) {
-  knn <- parms$knnFun(xout)
-  y <- parms$y[knn$idx, , drop=FALSE]
-  w <- getKernel(opts$kernel)(sqrt(knn$distSqr) / opts$bandwidth)
-  yout <- weightedMean(y, w)
-  return(yout)
-}
-
-
 predictPropagatorRegressionGaussianProcess <- function(parms, xout, opts)  {
   knn <- parms$knnFun(xout)
   y <- parms$y[knn$idx, , drop=FALSE]
@@ -157,11 +148,21 @@ predictPropagatorRegressionGaussianProcess <- function(parms, xout, opts)  {
 }
 
 
+predictPropagatorRegressionLocalConst <- function(parms, xout, opts) {
+  knn <- parms$knnFun(xout)
+  y <- parms$y[knn$idx, , drop=FALSE]
+  w <- getKernel(opts$kernel)(sqrt(knn$distSqr) / opts$bandwidth)
+  yout <- weightedMean(y, w)
+  return(yout)
+}
+
+
 predictPropagatorRegressionLocalLinear <- function(parms, xout, opts) {
   knn <- parms$knnFun(xout)
   y <- parms$y[knn$idx, , drop=FALSE]
   x <- parms$x[knn$idx, , drop=FALSE]
   w <- getKernel(opts$kernel)(sqrt(knn$distSqr) / opts$bandwidth)
+  if (sum(abs(w)) == 0) w[] <- 1
   X <- cbind(1, x)
   Xw <- X * w
   beta <- DEEButil::saveSolve(crossprod(Xw, X), crossprod(Xw, y))
