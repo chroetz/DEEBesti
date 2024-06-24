@@ -19,7 +19,8 @@ fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree) {
   for (j in seq_len(m)) {
     tm <- outTime[j]
     dist <- abs(traj$time-tm)
-    sel <- dist < 5
+    # ignore all times that are too far away
+    sel <- dist / bandwidth < 10 # TODO: this should be an option, or depend on the kernel (its support)
     w <- kernel(dist[sel] / bandwidth)
     Xsel <- X[sel, ]
     Xw <- Xsel * w
