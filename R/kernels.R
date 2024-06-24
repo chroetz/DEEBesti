@@ -17,7 +17,8 @@ kernParab <- function(delta) {
 getKernel <- function(name) {
   switch(
     name,
-    Normal = stats::dnorm,
+    Gauss = stats::dnorm,
+    FastApproxGauss = \(x) {x[] <- DEEButil::fast_exp_neg_sq(x);x},
     Const = kernConst,
     Rect = kernRect,
     Tri = kernTri,
