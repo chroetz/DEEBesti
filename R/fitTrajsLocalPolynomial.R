@@ -12,23 +12,23 @@ fitTrajsLocalPolynomial <- function(obs, opts) {
 
 
 fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree) {
-  m <- length(outTime)
   X <- outer(traj$time, 0:degree, `^`)
-  Ws <- kernel(outer(traj$time, outTime, `-`) / bandwidth)
-  XTWs <- array(
-    rep(t(X), times = m) * rep(Ws, each = degree + 1),
-    dim = c(degree + 1, length(traj$time), m))
-  psiState <- outer(outTime, 0:degree, `^`)
-  psiDeriv <- cbind(0, outer(outTime, 0:(degree-1), \(u, s) u^s*(s+1)))
+  m <- length(outTime)
   estiState <- matrix(nrow = m, ncol = ncol(traj$state))
   estiDeriv <- matrix(nrow = m, ncol = ncol(traj$state))
-  regu <- .Machine$double.eps
-  for (j in 1:m) {
-    B <- XTWs[,,j] %*% X
-    a <- XTWs[,,j] %*% traj$state
-    Z <- DEEButil::saveSolve(B, a)
-    estiState[j, ] <- psiState[j,] %*% Z
-    estiDeriv[j, ] <- psiDeriv[j,] %*% Z
+  for (j in seq_len(m)) {
+    tm <- outTime[j]
+    dist <- abs(traj$time-tm)
+    # ignore all times that are too far away
+    sel <- dist / bandwidth < 10 # TODO: this should be an option, or depend on the kernel (its support)
+    w <- kernel(dist[sel] / bandwidth)
+    Xsel <- X[sel, ]
+    Xw <- Xsel * w
+    beta <- DEEButil::saveSolve(crossprod(Xw, Xsel), crossprod(Xw, traj$state[sel, ]))
+    psiState <- tm^(0:degree)
+    psiDeriv <- cbind(0, tm^(0:(degree-1))*(1:degree))
+    estiState[j, ] <- psiState %*% beta
+    estiDeriv[j, ] <- psiDeriv %*% beta
   }
   makeTrajs(
     time = outTime,
