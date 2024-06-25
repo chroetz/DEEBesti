@@ -1,11 +1,27 @@
 unnormalize <- function(trajs, parms) {
   unnormed <- parms$normalization$denormalize(trajs)
-  unnormed$time <- unnormed$time / parms$timeScaling
+  unnormed$time <- unnormalizeTime(unnormed$time, parms)
   return(unnormed)
 }
 
 normalize <- function(trajs, parms) {
   normed <- parms$normalization$normalize(trajs)
-  normed$time <- normed$time * parms$timeScaling
+  normed$time <- normalizeTime(normed$time, parms)
   return(normed)
+}
+
+normalizeTime <- function(time, parms) {
+  time * parms$timeScaling
+}
+
+unnormalizeTime <- function(time, parms) {
+  time / parms$timeScaling
+}
+
+normalizeDuration <- function(time, parms) {
+  time * parms$timeScaling
+}
+
+unnormalizeDuration <- function(time, parms) {
+  time / parms$timeScaling
 }

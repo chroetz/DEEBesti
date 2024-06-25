@@ -161,13 +161,14 @@ applyMethodToModel <- function(
     obs <- readTrajs(info$obsPath)
     pt <- proc.time()
     parms <- getParms(obs, hyperParms)
+    normalizedObs <- normalize(obs, parms)
     parmsElapsedTime <- (proc.time() - pt)[3]
-    if (saveParms) writeParms(parms, obs, info, outDir)
+    if (saveParms) writeParms(parms, info, outDir)
     taskElapsedTimes <- c()
     for (j in seq_len(nrow(taskMeta))) {
       allInfo <- c(as.list(info), as.list(taskMeta[j,]), list(outDir = outDir))
       pt <- proc.time()
-      writeTaskResult(parms, hyperParms, obs, allInfo)
+      writeTaskResult(parms, hyperParms, normalizedObs, allInfo)
       taskElapsedTimes[[j]] <- (proc.time() - pt)[3]
     }
     estiElapsedTime <- (proc.time() - estiStartProcTime)[3]
@@ -192,7 +193,7 @@ writeEstiInfo <- function(data, parms, info, outDir) {
 }
 
 
-writeParms <- function(parms, obs, info, outDir) {
+writeParms <- function(parms, info, outDir) {
   if (hasValue(parms$trajs)) {
     smoothPath <- file.path(outDir, DEEBpath::smoothFile(info))
     writeTrajs(unnormalize(parms$trajs, parms), smoothPath)
@@ -200,12 +201,12 @@ writeParms <- function(parms, obs, info, outDir) {
 }
 
 
-writeTaskResult <- function(parms, hyperParms, obs, info) {
+writeTaskResult <- function(parms, hyperParms, normalizedObs, info) {
   info$task <- ConfigOpts::readOptsBare(info$taskPath)
   taskClass <- getClassAt(info$task, 2)
   switch(
     taskClass,
-    estiObsTrajs = writeTaskResultEstiObsTrajs(parms, hyperParms, obs, info),
+    estiObsTrajs = writeTaskResultEstiObsTrajs(parms, hyperParms, normalizedObs, info),
     newTrajs = writeTaskResultNewTrajs(parms, hyperParms, info),
     velocity = writeTaskResultVelocity(parms, hyperParms, info),
     stop("Unknown task class ", taskClass)
@@ -214,31 +215,30 @@ writeTaskResult <- function(parms, hyperParms, obs, info) {
 
 
 writeTaskResultNewTrajs <- function(parms, hyperParms, info) {
-  targetTimes <- seq(
+  normalizedPredictionTime <- normalizeTime(info$task$predictionTime, parms)
+  unnormalizedTargetTimes <- seq(
     info$task$predictionTime[1],
     info$task$predictionTime[2],
     by = info$task$timeStep)
+  normalizedTargetTimes <- normalizeTime(unnormalizedTargetTimes)
   init <- makeTrajs(
     time = 0,
     trajId = seq_len(nrow(info$task$initialState)),
     state = info$task$initialState)
   init <- normalize(init, parms)
-  result <- estimateTrajs(
+  normalizedResult <- estimateTrajs(
     init,
-    info$task$predictionTime,
+    normalizedPredictionTime,
     parms = parms,
     hyperParms)
-  if (is.null(result)) {
-    writeTrajs(
-      makeTrajs(
-        state = matrix(nrow = length(targetTimes), ncol = ncol(info$task$initialState)),
-        time = targetTimes),
-      file.path(info$outDir, DEEBpath::estiFile(info)))
-    return(invisible(NULL))
+  if (is.null(normalizedResult)) {
+    normalizedResult <- makeTrajs(
+      state = matrix(nrow = length(normalizedTargetTimes), ncol = ncol(info$task$initialState)),
+      time = normalizedTargetTimes)
   }
-  result <- unnormalize(result, parms)
+  result <- unnormalize(normalizedResult, parms)
   writeTrajs(
-    interpolateTrajs(result, targetTimes),
+    interpolateTrajs(result, unnormalizedTargetTimes),
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
 
@@ -260,16 +260,16 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
       derivFun <- buildDerivFun(hyperParms$derivFun)
       t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
     },
-    Esn = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
-    Linear = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
-    Transformer = predictPropagatorDeriv(parms$propagator, gridNormed$state, hyperParms$derivOrder),
+    Esn = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
+    Linear = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
+    Transformer = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
     Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
     NeuralOde = predictNeuralOdeDeriv(parms$neuralOde, gridNormed$state),
     stop("Unknown HyperParms subclass")
   )
 
   resultNormed <- makeDerivTrajs(state = gridNormed$state, deriv = derivs)
-  result <- unnormalize(resultNormed, parms)
+  result <- unnormalize(resultNormed, parms) # TODO: this does not work with time normalization
   stopifnot(max(abs(result$state - grid$state)) < sqrt(.Machine$double.eps))
   result$state <- grid$state # more robust against machine imprecision
   writeDerivTrajs(
@@ -278,17 +278,19 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
 }
 
 
-writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, info) {
+writeTaskResultEstiObsTrajs <- function(parms, hyperParms, normalizedObs, info) {
+  predictionTime <- normalizeTime(info$task$predictionTime, parms)
+  timeStep <- normalizeDuration(info$task$timeStep, parms)
   init <- estimateInitialStateAndTime(
     parms,
     hyperParms,
-    obs,
-    info$task$predictionTime[1],
-    info$task$timeStep)
+    normalizedObs,
+    predictionTime[1],
+    timeStep)
   targetTimes <- seq(
-    info$task$predictionTime[1],
-    info$task$predictionTime[2],
-    by = info$task$timeStep)
+    predictionTime[1],
+    predictionTime[2],
+    by = timeStep)
   result <- estimateTrajs(
     init$initial,
     c(init$time[1], info$task$predictionTime[2]),
@@ -309,7 +311,7 @@ writeTaskResultEstiObsTrajs <- function(parms, hyperParms, obs, info) {
 }
 
 
-estimateInitialStateAndTime <- function(parms, hyperParms, obs, startTime, timeStep) {
+estimateInitialStateAndTime <- function(parms, hyperParms, normalizedObs, startTime, timeStep) {
   name <- getClassAt(hyperParms$initialState, 2)
   if (
     name == "FromTrajs" ||
@@ -318,8 +320,7 @@ estimateInitialStateAndTime <- function(parms, hyperParms, obs, startTime, timeS
   } else if (
     name == "FromObs" ||
     (name == "Choose" && (!"trajs" %in% names(parms) || startTime > parms$trajs$time[1]))) {
-    startObs <- getClosestInTime(obs, startTime)
-    startObs <- normalize(startObs, parms)
+    startObs <- getClosestInTime(normalizedObs, startTime)
     return(list(time = mean(startObs$time), initial = startObs))
   } else {
     stop("Unkown initOpts ", name)
