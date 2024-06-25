@@ -220,7 +220,7 @@ writeTaskResultNewTrajs <- function(parms, hyperParms, info) {
     info$task$predictionTime[1],
     info$task$predictionTime[2],
     by = info$task$timeStep)
-  normalizedTargetTimes <- normalizeTime(unnormalizedTargetTimes)
+  normalizedTargetTimes <- normalizeTime(unnormalizedTargetTimes, parms)
   init <- makeTrajs(
     time = 0,
     trajId = seq_len(nrow(info$task$initialState)),
@@ -279,34 +279,32 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
 
 
 writeTaskResultEstiObsTrajs <- function(parms, hyperParms, normalizedObs, info) {
-  predictionTime <- normalizeTime(info$task$predictionTime, parms)
-  timeStep <- normalizeDuration(info$task$timeStep, parms)
+  normalizedPredictionTime <- normalizeTime(info$task$predictionTime, parms)
+  normalizedTimeStep <- normalizeDuration(info$task$timeStep, parms)
   init <- estimateInitialStateAndTime(
     parms,
     hyperParms,
     normalizedObs,
-    predictionTime[1],
-    timeStep)
-  targetTimes <- seq(
-    predictionTime[1],
-    predictionTime[2],
-    by = timeStep)
-  result <- estimateTrajs(
+    normalizedPredictionTime[1],
+    normalizedTimeStep)
+  unnormalizedTargetTime <- seq(
+    info$task$predictionTime[1],
+    info$task$predictionTime[2],
+    by = info$task$timeStep)
+  normalizedTargetTime <- normalizeTime(unnormalizedTargetTime, parms)
+  normalizedResult <- estimateTrajs(
     init$initial,
-    c(init$time[1], info$task$predictionTime[2]),
+    c(init$time[1], normalizedPredictionTime[2]),
     parms,
     hyperParms)
-  if (is.null(result)) {
-    writeTrajs(
-      makeTrajs(
-        state = matrix(nrow = length(targetTimes), ncol = ncol(obs$state)),
-        time = targetTimes),
-      file.path(info$outDir, DEEBpath::estiFile(info)))
-    return(invisible(NULL))
+  if (is.null(normalizedResult)) {
+    normalizedResult <- makeTrajs(
+      state = matrix(nrow = length(normalizedTargetTime), ncol = ncol(normalizedObs$state)),
+      time = normalizedTargetTime)
   }
-  resultDenormed <- unnormalize(result, parms)
+  unnormalizedResult <- unnormalize(normalizedResult, parms)
   writeTrajs(
-    interpolateTrajs(resultDenormed, targetTimes),
+    interpolateTrajs(unnormalizedResult, unnormalizedTargetTime),
     file.path(info$outDir, DEEBpath::estiFile(info)))
 }
 
