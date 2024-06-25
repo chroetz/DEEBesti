@@ -21,7 +21,7 @@ extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = N
   storeIdx <- parms$knnIdxToStoreIdx[knn$idx]
 
   storeValid <-
-    parms$store |>
+    parms$stored |>
     dplyr::filter(
       .data$trajId == .data$trajId[storeIdx],
       seq_len(dplyr::n()) >= storeIdx) |>
