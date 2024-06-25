@@ -117,8 +117,6 @@ predictEsn <- function(parms, opts, startState, len) {
   outStates <- matrix(NA_real_, nrow = len+1, ncol = length(startState))
   outStates[1, ] <- startState
 
-  if (!hasValue(parms)) return(outStates)
-
   # Decide how to initialize the reservoir
   iStart <- DEEButil::whichMinDist(parms$states, startState)
   if (sum((parms$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {

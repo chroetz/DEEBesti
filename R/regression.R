@@ -31,8 +31,6 @@ predictRegression <- function(parms, opts, startState, len) {
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
 
-  if (!hasValue(parms)) return(outStates)
-
   # Need pastSteps*(skip-1) additional states before startState to start prediction correctly.
   nRowsRequired <- 1 + opts$pastSteps*(opts$skip+1)
   trajPrevious <- NULL
