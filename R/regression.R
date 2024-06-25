@@ -27,9 +27,11 @@ predictRegression <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Regression", "Propagator", "HyperParms"))
 
-  nDims <- parms$dim
+  nDims <- length(startState)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
+
+  if (!hasValue(parms)) return(outStates)
 
   # Need pastSteps*(skip-1) additional states before startState to start prediction correctly.
   nRowsRequired <- 1 + opts$pastSteps*(opts$skip+1)

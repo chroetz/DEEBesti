@@ -114,8 +114,10 @@ predictEsn <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Esn", "Propagator", "HyperParms"))
 
-  outStates <- matrix(NA_real_, nrow = len+1, ncol = ncol(parms$outWeightMatrix))
+  outStates <- matrix(NA_real_, nrow = len+1, ncol = length(startState))
   outStates[1, ] <- startState
+
+  if (!hasValue(parms)) return(outStates)
 
   # Decide how to initialize the reservoir
   iStart <- DEEButil::whichMinDist(parms$states, startState)

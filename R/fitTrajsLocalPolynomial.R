@@ -22,9 +22,9 @@ fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree) {
     # ignore all times that are too far away
     sel <- dist / bandwidth < 10 # TODO: this should be an option, or depend on the kernel (its support)
     w <- kernel(dist[sel] / bandwidth)
-    Xsel <- X[sel, ]
+    Xsel <- X[sel, , drop=FALSE]
     Xw <- Xsel * w
-    beta <- DEEButil::saveSolve(crossprod(Xw, Xsel), crossprod(Xw, traj$state[sel, ]))
+    beta <- DEEButil::saveSolve(crossprod(Xw, Xsel), crossprod(Xw, traj$state[sel, , drop=FALSE]))
     psiState <- tm^(0:degree)
     psiDeriv <- cbind(0, tm^(0:(degree-1))*(1:degree))
     estiState[j, ] <- psiState %*% beta

@@ -104,6 +104,11 @@ createLinear <- function(obs, opts) {
   opts <- asOpts(opts, c("Linear", "Propagator", "HyperParms"))
 
   baseFeatures <- createBaseFeatures(obs, opts$timeStepAsInput,  opts$pastSteps, opts$skip)
+  nFeatures <- DEEButil::numberOfTermsInPoly(opts$polyDeg, ncol(baseFeatures$state))
+  if (nFeatures > 2000 || nFeatures > nrow(obs$state)) {
+    warning("Infeasible number of dimensions in LinearPropagator. Giving trivial result.")
+    return(NULL)
+  }
   featureSeries <- createPolyFeatures(baseFeatures, opts$polyDeg)
 
   regressionOut <- getPropagatorRegressionOut(obs, opts$targetType)
@@ -170,9 +175,11 @@ predictLinear <- function(parms, opts, startState, len) {
 
   opts <- asOpts(opts, c("Linear", "Propagator", "HyperParms"))
 
-  nDims <- ncol(parms$outWeightMatrix)
+  nDims <- length(startState)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
+
+  if (!hasValue(parms)) return(outStates)
 
   # Need pastSteps*(skip-1) additional states before startState to start prediction correctly.
   nRowsRequired <- 1 + opts$pastSteps*(opts$skip+1)

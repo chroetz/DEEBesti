@@ -5,8 +5,8 @@
     "normalize": "meanAndCov",
     "_values_normalize": ["meanAndCov", "none"],
     "_normalize_description": "See DEEBtrajs::calculateNormalization().",
-    "normalizeTime": null,
-    "_normalizeTime_description": "null or time span to which the average obs time span is scaled.",
+    "obsTimeSpanTarget": null,
+    "_obsTimeSpanTarget_description": "null or time span to which the average obs time span is scaled.",
     "initialState": {
         "_class": ["InitialState", "Opts"]
     }
