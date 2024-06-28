@@ -12,7 +12,7 @@ predictDirectDeriv <- function(states, parms, hyperParms) {
 }
 
 
-extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = NULL) {
+extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = NULL, lastStoreIdx = NULL) {
 
   lastState <- analogue$state[nrow(analogue), ]
   lastTime <- analogue$time[nrow(analogue)]
@@ -26,6 +26,10 @@ extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = N
       .data$trajId == .data$trajId[storeIdx],
       seq_len(dplyr::n()) >= storeIdx) |>
     dplyr::mutate(time = .data$time - .data$time[1] + lastTime)
+
+  if (!is.null(lastStoreIdx) && lastStoreIdx == storeIdx) {
+    return(analogue)
+  }
 
   analogue <-
     dplyr::bind_rows(
@@ -42,5 +46,5 @@ extendAnalogue <- function(analogue, parms, requireTime = NULL, requireSteps = N
     return(analogue)
   }
 
-  return(extendAnalogue(analogue, parms, requireTime, requireSteps))
+  return(extendAnalogue(analogue, parms, requireTime, requireSteps, lastStoreIdx=storeIdx))
 }
