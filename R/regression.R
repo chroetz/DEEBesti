@@ -52,6 +52,7 @@ predictRegression <- function(parms, opts, startState, len) {
     prediction <- inferPropagatorRegression(parms, opts, matrix(features, nrow=1)) |> as.vector()
     newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
+    if (any(!is.finite(newState))) break
     trajPrevious$state <- rbind(trajPrevious$state[-1,], newState)
     trajPrevious$time <- c(trajPrevious$time[-1], last(trajPrevious$time) + parms$timeStep) # TODO: time might be strange: have absolute vs need diff time
     features <- createFeaturesOneTrajOneTime(trajPrevious, nrow(trajPrevious), parms$timeStep, opts$timeStepAsInput, opts$pastSteps, opts$skip, polyDeg = NULL)

@@ -110,6 +110,7 @@ predictTransformer <- function(parms, opts, startState, len) {
   for (i in seq_len(len)) {
     pred <- parms$model %>% predict(x, verbose=2)
     outStates[i+1,] <- pred
+    if (any(!is.finite(pred))) break
     x[1, -contextLen, seq_len(stateDim)] <- x[1, -1, seq_len(stateDim)]
     x[1, contextLen, seq_len(stateDim)] <- pred
   }

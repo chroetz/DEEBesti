@@ -138,6 +138,7 @@ predictEsn <- function(parms, opts, startState, len) {
     prediction <- as.vector(c(1, reservoir) %*% parms$outWeightMatrix)
     newState <- getPropagatorNextState(prevState, parms$timeStep, prediction, opts$targetType)
     outStates[i+1,] <- newState
+    if (any(!is.finite(newState))) break
     if (opts$timeStepAsInput) {
       v <- c(opts$bias, newState, parms$timeStep)
     } else {
