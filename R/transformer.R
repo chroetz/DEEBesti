@@ -89,8 +89,20 @@ predictTransformer <- function(parms, opts, startState, len) {
   contextLen <- opts$contextLen
   featureDim <- getFeatureDim(stateDim, opts)
 
+  outStates <- matrix(NA_real_, nrow = len+1, ncol = stateDim)
+  outStates[1, ] <- startState
+  if (any(is.na(startState))) {
+    warning("startState has NA. Returning NA.", immediate.=TRUE)
+    return(outStates)
+  }
+
   # Decide how to initialize the context
   iStart <- DEEButil::whichMinDist(parms$states, startState)
+  if (length(iStart) != 1 || is.na(iStart) || iStart <= 0) {
+    warning("Did not find a valid start state. Returning NA.", immediate.=TRUE)
+    return(outStates)
+  }
+
   if (
     sum((parms$states[iStart,] - startState)^2) < sqrt(.Machine$double.eps) &&
     iStart >= contextLen
@@ -104,8 +116,6 @@ predictTransformer <- function(parms, opts, startState, len) {
   startContext <- transformerAddPositionInfo(parms, startContext, opts)
   x <- startContext
   dim(x) <- c(1, contextLen, featureDim)
-  outStates <- matrix(NA_real_, nrow = len+1, ncol = stateDim)
-  outStates[1, ] <- startState
 
   for (i in seq_len(len)) {
     pred <- parms$model %>% predict(x, verbose=2)

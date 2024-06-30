@@ -179,13 +179,24 @@ predictLinear <- function(parms, opts, startState, len) {
   nDims <- length(startState)
   outStates <- matrix(NA_real_, nrow = len+1, ncol = nDims)
   outStates[1, ] <- startState
-
-  if (!parms$valid) return(outStates)
+  if (!parms$valid) {
+    warning("invalid parms. Returning NA.", immediate.=TRUE)
+    return(outStates)
+  }
+  if (any(is.na(startState))) {
+    warning("startState has NA. Returning NA.", immediate.=TRUE)
+    return(outStates)
+  }
+  # Decide how to initialize the context
+  iStart <- DEEButil::whichMinDist(parms$obs$state, startState)
+  if (length(iStart) != 1 || is.na(iStart) || iStart <= 0) {
+    warning("Did not find a valid start state. Returning NA.", immediate.=TRUE)
+    return(outStates)
+  }
 
   # Need pastSteps*(skip-1) additional states before startState to start prediction correctly.
   nRowsRequired <- 1 + opts$pastSteps*(opts$skip+1)
   trajPrevious <- NULL
-  iStart <- DEEButil::whichMinDist(parms$obs$state, startState)
   if (sum((parms$obs$state[iStart,] - startState)^2) < sqrt(.Machine$double.eps)) {
     trajId <- parms$obs$trajId[iStart]
     traj <- parms$obs[1:iStart, ]
