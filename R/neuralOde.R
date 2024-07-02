@@ -13,7 +13,7 @@ createAndTrainNeuralOde <- function(opts, obs) {
 
   DEEBtrajs::writeTrajs(obs, "obs.csv")
 
-  projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
+  projectPath <- getDeebJlPath(opts)
   scriptPath <- file.path(projectPath, "train.jl")
   schedulePath <- file.path(projectPath, paste0("schedule_", opts$learningRateSchedule, ".toml"))
 
@@ -45,6 +45,11 @@ createAndTrainNeuralOde <- function(opts, obs) {
 }
 
 
+getDeebJlPath <- function(opts) {
+  normalizePath(opts$deebNeuralOdeProjectPath, mustWork=FALSE)
+}
+
+
 
 predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
 
@@ -65,7 +70,7 @@ predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
   startTrajs <- DEEBtrajs::makeTrajs(timeRange[1], matrix(startState, nrow=1))
   DEEBtrajs::writeTrajs(startTrajs, "start.csv")
 
-  projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
+  projectPath <- getDeebJlPath(opts)
   scriptPath <- file.path(projectPath, "infer.jl")
 
   cmd <- paste0(
@@ -114,7 +119,7 @@ predictNeuralOdeDeriv <- function(neuralOde, grid) {
   stateDim <- DEEBtrajs::getDim(startTrajs)
   DEEBtrajs::writeTrajs(startTrajs, "grid.csv")
 
-  projectPath <- normalizePath(opts$deebNeuralOdeProjectPath, mustWork=TRUE)
+  projectPath <- getDeebJlPath(opts)
   scriptPath <- file.path(projectPath, "infer.jl")
 
   cmd <- paste0(
