@@ -1,7 +1,8 @@
 createAndTrainNeuralOde <- function(opts, obs) {
 
   workingDirRoot <- normalizePath(".DEEB_tmp", mustWork=FALSE)
-  workingDir <- tempfile(pattern = "", tmpdir = workingDirRoot)
+  workingName <- DEEButil::getUniqueFileName(workingDirRoot, identifyingObject=list(opts, obs, Sys.time()))
+  workingDir <- file.path(workingDirRoot, workingName)
   dir.create(workingDir, showWarnings=FALSE, recursive=TRUE)
 
   wd <- getwd()
