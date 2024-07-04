@@ -1,5 +1,8 @@
 derivFunThreshLm <- function(u, parms) {
   d <- length(u)
+  if (hasValue(parms$valid) && !parms$valid) {
+    return(rep(NA_real_, d))
+  }
   du <- vapply(
     seq_len(d),
     \(j) {
@@ -20,6 +23,11 @@ prepareParmsThreshLm <- function(parms, opts) {
 
   degree <- opts$polyDeg
   d <- getDim(parms$trajs)
+  nFeatures <- DEEButil::numberOfTermsInPoly(degree, d)
+  if (nFeatures > 2000) {
+    warning("Infeasible number of dimensions in ThreshLm. Giving trivial result.")
+    return(c(parms, list(valid = FALSE)))
+  }
   degVecs <- DEEButil::getMonomialExponents(d, degree)
   x <- DEEButil::evaluateMonomials(parms$trajs$state, degVecs)
   y <- parms$trajs$deriv
@@ -51,6 +59,7 @@ prepareParmsThreshLm <- function(parms, opts) {
     simplify=FALSE)
 
   parms$fits <- fits
+  parms$valid <- TRUE
   return(parms)
 }
 
