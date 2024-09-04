@@ -95,6 +95,7 @@ predictPropagator <- function(parms, opts, startState, len = NULL, startTime = 0
     Linear = predictLinear(parms, opts, startState, len),
     Transformer = predictTransformer(parms, opts, startState, len),
     Regression = predictRegression(parms, opts, startState, len),
+    RecurrentNet = predictRecurrentNet(parms, opts, startState, len),
     stop("Unknown propagator type", name))
 
   makeTrajs(

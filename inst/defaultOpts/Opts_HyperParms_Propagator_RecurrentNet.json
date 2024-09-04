@@ -1,0 +1,9 @@
+{
+    "_class": ["RecurrentNet", "Propagator", "HyperParms", "Opts"],
+    "_description": "RNN and LSTM",
+    "dropout": 0.1,
+    "learningRate": 1e-4,
+    "validationSplit": 0.1,
+    "epochs": 50,
+    "batchSize": 32
+}

@@ -260,9 +260,7 @@ writeTaskResultVelocity <- function(parms, hyperParms, info) {
       derivFun <- buildDerivFun(hyperParms$derivFun)
       t(apply(gridNormed$state, 1, \(s) derivFun(0, s, parms)[[1]]))
     },
-    Esn = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
-    Linear = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
-    Transformer = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
+    Propagator = predictPropagatorDeriv(parms$propagator, hyperParms, gridNormed$state, hyperParms$derivOrder),
     Direct = predictDirectDeriv(gridNormed$state, parms, hyperParms),
     NeuralOde = predictNeuralOdeDeriv(parms$neuralOde, gridNormed$state),
     stop("Unknown HyperParms subclass")

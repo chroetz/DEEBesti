@@ -43,6 +43,7 @@ getParmsPropagator <- function(obs, hyperParms, memoize) {
     Linear = getParmsLinear(obs, hyperParms, memoize),
     Transformer = getParmsTransformer(obs, hyperParms, memoize),
     Regression = getParmsRegression(obs, hyperParms, memoize),
+    RecurrentNet = getParmsRecurrentNet(obs, hyperParms, memoize),
     stop("Unknown Propagator subclass")
   )
   return(parms)
@@ -73,6 +74,15 @@ getParmsEsn <- function(obs, hyperParms, memoize) {
   }
   parms <- createEsn(hyperParms, inDim = inDim)
   parms <- trainEsn(parms, obs, hyperParms)
+  return(parms)
+}
+
+
+
+# Propagator map Estimation: RNN and LSTM
+getParmsRecurrentNet <- function(obs, hyperParms, memoize) {
+  hyperParms <- asOpts(hyperParms, c("RecurrentNet", "Propagator", "HyperParms"))
+  parms <- createRecurrentNet(obs, hyperParms)
   return(parms)
 }
 
