@@ -3,6 +3,7 @@
     "_description": "RNN and LSTM",
     "seed": 1,
     "layers": [8, 8], 
+    "activation": "swish",
     "chunkLen": 64,
     "slidingWindowStep": 1,
     "learningRate": 1e-3,

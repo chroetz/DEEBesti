@@ -58,14 +58,14 @@ trainPropagatorRecurrentNet <- function(x, y, opts) {
       callbacks = callbacks,
       validation_split = opts$validationSplit,
       shuffle = TRUE)
-#   predictionModel <- buildRnnModel(opts, dim(x), dim(y), stateful=TRUE)
-#   predictionModel$set_weights(trainModel$get_weights())
-#   predictionModel$reset_states()
-#
-#   return(lst(model = predictionModel, history))
-# }
- return(lst(model = trainModel, history))
+  predictionModel <- buildRnnModel(opts, dim(x), dim(y), stateful=TRUE)
+  predictionModel$set_weights(trainModel$get_weights())
+  predictionModel$reset_states()
+
+  return(lst(model = predictionModel, history))
 }
+#  return(lst(model = trainModel, history))
+# }
 
 
 buildRnnModel <- function(opts, inDim, outDim, stateful) {
