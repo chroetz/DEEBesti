@@ -58,24 +58,25 @@ trainPropagatorRecurrentNet <- function(x, y, opts) {
       callbacks = callbacks,
       validation_split = opts$validationSplit,
       shuffle = TRUE)
-  predictionModel <- buildRnnModel(opts, dim(x), dim(y), stateful=TRUE)
-  predictionModel$set_weights(trainModel$get_weights())
-  predictionModel$reset_states()
 
-  return(lst(model = predictionModel, history))
+  return(lst(model = trainModel, history))
 }
-#  return(lst(model = trainModel, history))
-# }
 
 
 buildRnnModel <- function(opts, inDim, outDim, stateful) {
   model <- keras::keras_model_sequential(input_shape = inDim[-1], batch_size = if (stateful) 1 else NULL)
+  layerFunction <- switch(
+    tolower(opts$kind),
+    rnn = keras::layer_simple_rnn,
+    lstm = keras::layer_lstm,
+    gru = keras::layer_gru)
+
   nLayers <- length(opts$layers)
   for (i in seq_len(nLayers)) {
     layer <- opts$layers[i]
     model <-
       model %>%
-      keras::layer_simple_rnn(
+      layerFunction(
         units = layer,
         activation = opts$activation,
         stateful = stateful,
