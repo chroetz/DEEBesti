@@ -7,7 +7,15 @@ createRecurrentNet <- function(obs, opts) {
   contextLen <- opts$chunkLen
   stateDim <- ncol(obs$state)
   featureDim <- stateDim
-  trainState <- obs$state
+  outState <- obs$state
+
+  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
+
+  if (isTRUE(opts$timeStepAsInput)) {
+    inState <- cbind(outState, c(diff(obs$time), timeStep))
+  } else {
+    inState <- outState
+  }
 
   trainSetting <- expand.grid(
     iStart = seq(1, nrow(obs) - contextLen, by = opts$slidingWindowStep))
@@ -16,7 +24,7 @@ createRecurrentNet <- function(obs, opts) {
     seq_len(nrow(trainSetting)),
     \(i) {
       s <- trainSetting[i,,drop=FALSE]
-      trainState[s$iStart:(s$iStart+contextLen-1),]
+      inState[s$iStart:(s$iStart+contextLen-1),]
     })
   dim(xTrain) <- c(contextLen, featureDim, length(xTrain) / (contextLen * featureDim))
   xTrain <- aperm(xTrain, c(3, 1, 2))
@@ -24,14 +32,12 @@ createRecurrentNet <- function(obs, opts) {
     seq_len(nrow(trainSetting)),
     \(i) {
       s <- trainSetting[i,,drop=FALSE]
-      x <- trainState[s$iStart+contextLen,]
+      x <- outState[s$iStart+contextLen,]
       x
     })
   yTrain <- t(yTrain)
 
   parms <- trainPropagatorRecurrentNet(xTrain, yTrain, opts)
-
-  timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
 
   return(c(
     parms,

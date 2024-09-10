@@ -84,6 +84,7 @@ trainPropagatorRegression <- function(x, y, optsPropagator)  {
       lst(x, y, knnFun)
     },
     NeuralNet = {
+      tensorflow::set_random_seed(opts$seed)
       model <- buildNeuralPropagatorModel(opts, ncol(x), ncol(y))
       model %>% keras::compile(
         loss = "mse",

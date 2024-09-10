@@ -1,6 +1,7 @@
 {
     "_class": ["NeuralNet", "PropagatorRegression", "Opts"],
     "_description": "",
+    "seed": 1,
     "batchSize": 32,
     "epochs": 100, 
     "validationSplit": 0.1,

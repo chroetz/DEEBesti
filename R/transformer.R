@@ -2,6 +2,8 @@ createTransformer <- function(opts, stateDim) {
 
   opts <- asOpts(opts, c("Transformer", "Propagator", "HyperParms"))
 
+  tensorflow::set_random_seed(opts$seed)
+
   featureDim <- getFeatureDim(stateDim, opts)
 
   model <- buildTransformerModel(
