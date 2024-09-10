@@ -27,6 +27,7 @@ Imports:
     RANN,
     rlang,
     stats,
+    tensorflow,
     tibble,
     tvR,
     utils
