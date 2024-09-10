@@ -114,17 +114,17 @@ predictTransformer <- function(parms, opts, startState, len) {
 
   if (
     sum((parms$obs$state[iStart,] - startState)^2) < sqrt(.Machine$double.eps) &&
-    iStart >= opts$chunkLen
+    iStart >= contextLen
   ) {
     if (opts$timeStepAsInput) {
       inState <- cbind(parms$obs$state, c(diff(parms$obs$time), parms$timeStep))
     } else {
       inState <- parms$obs$state
     }
-    startContext <- inState[(iStart-opts$chunkLen+1):iStart, ]
+    startContext <- inState[(iStart-contextLen+1):iStart, ]
   } else {
-    startContext <- matrix(0, nrow = opts$chunkLen, ncol = stateDim)
-    startContext[opts$chunkLen, ] <- startState
+    startContext <- matrix(0, nrow = contextLen, ncol = stateDim)
+    startContext[contextLen, ] <- startState
     if (opts$timeStepAsInput) {
       startContext <- cbind(startContext, parms$timeStep)
     }
@@ -140,10 +140,10 @@ predictTransformer <- function(parms, opts, startState, len) {
     pred <- parms$model %>% predict(x, verbose=2)
     outStates[i+1,] <- pred
     if (any(!is.finite(pred))) break
-    x[1, -opts$chunkLen, seq_len(inDim)] <- x[1, -1, seq_len(inDim)]
-    x[1, opts$chunkLen, seq_len(stateDim)] <- pred
+    x[1, -contextLen, seq_len(inDim)] <- x[1, -1, seq_len(inDim)]
+    x[1, contextLen, seq_len(stateDim)] <- pred
     if (opts$timeStepAsInput) {
-      x[1, opts$chunkLen, inDim] <- parms$timeStep
+      x[1, contextLen, inDim] <- parms$timeStep
     }
   }
 
