@@ -95,8 +95,7 @@ getParmsTransformer <- function(obs, hyperParms, memoize) {
   if (hyperParms$timeStepAsInput) {
     inDim <- inDim + 1
   }
-  parms <- createTransformer(hyperParms, stateDim = inDim)
-  parms <- trainTransformer(parms, obs, hyperParms)
+  parms <- createTransformer(obs, hyperParms)
   return(parms)
 }
 

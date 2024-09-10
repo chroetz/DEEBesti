@@ -2,19 +2,20 @@ createRecurrentNet <- function(obs, opts) {
 
   opts <- asOpts(opts, c("RecurrentNet", "Propagator", "HyperParms"))
 
-  tensorflow::set_random_seed(opts$seed) # TODO: use this whenever KERAS is used
+  tensorflow::set_random_seed(opts$seed)
 
   contextLen <- opts$chunkLen
   stateDim <- ncol(obs$state)
-  featureDim <- stateDim
   outState <- obs$state
 
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
 
-  if (isTRUE(opts$timeStepAsInput)) {
+  if (opts$timeStepAsInput) {
     inState <- cbind(outState, c(diff(obs$time), timeStep))
+    featureDim <- stateDim + 1
   } else {
     inState <- outState
+    featureDim <- stateDim
   }
 
   trainSetting <- expand.grid(
@@ -54,7 +55,8 @@ trainPropagatorRecurrentNet <- function(x, y, opts) {
   )
   callbacks <- list(
     keras::callback_early_stopping(patience = 100, restore_best_weights = TRUE))
-  history <- trainModel %>%
+  history <-
+    trainModel %>%
     keras::fit(
       verbose = 2,
       x,
@@ -119,21 +121,33 @@ predictRecurrentNet <- function(parms, opts, startState, len) {
     sum((parms$obs$state[iStart,] - startState)^2) < sqrt(.Machine$double.eps) &&
     iStart >= opts$chunkLen
   ) {
-    startContext <- parms$obs$state[(iStart-opts$chunkLen+1):iStart, ]
+    if (opts$timeStepAsInput) {
+      inState <- cbind(parms$obs$state, c(diff(parms$obs$time), parms$timeStep))
+    } else {
+      inState <- parms$obs$state
+    }
+    startContext <- inState[(iStart-opts$chunkLen+1):iStart, ]
   } else {
     startContext <- matrix(0, nrow = opts$chunkLen, ncol = stateDim)
     startContext[opts$chunkLen, ] <- startState
+    if (opts$timeStepAsInput) {
+      startContext <- cbind(startContext, parms$timeStep)
+    }
   }
 
+  inDim <- stateDim + ifelse(opts$timeStepAsInput, 1, 0)
   x <- startContext
-  dim(x) <- c(1, opts$chunkLen, stateDim)
+  dim(x) <- c(1, opts$chunkLen, inDim)
 
   for (i in seq_len(len)) {
     pred <- parms$model %>% predict(x, verbose=2)
     outStates[i+1,] <- pred
     if (any(!is.finite(pred))) break
-    x[1, -opts$chunkLen, seq_len(stateDim)] <- x[1, -1, seq_len(stateDim)]
+    x[1, -opts$chunkLen, seq_len(inDim)] <- x[1, -1, seq_len(inDim)]
     x[1, opts$chunkLen, seq_len(stateDim)] <- pred
+    if (opts$timeStepAsInput) {
+      x[1, opts$chunkLen, inDim] <- parms$timeStep
+    }
   }
 
   return(outStates)
