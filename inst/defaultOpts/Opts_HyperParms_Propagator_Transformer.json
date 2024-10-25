@@ -1,6 +1,8 @@
 {
     "_class": ["Transformer", "Propagator", "HyperParms", "Opts"],
     "_description": "Transformer Network",
+    "seed": 1,
+    "slidingWindowStep": 1,
     "contextLen": 32,
     "posDim": 16,
     "headSize": 16,
