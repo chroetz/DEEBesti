@@ -26,6 +26,7 @@ getParms <- function(obs, hyperParms, memoize = FALSE) {
       Propagator = getParmsPropagator(obs, hyperParms, memoize),
       NeuralOde = getParmsNeuralOde(obs, hyperParms, memoize),
       Direct = getParmsDirect(obs, hyperParms, memoize),
+      Const = getParmsConst(obs, hyperParms, memoize),
       stop("Unknown HyperParms subclass")
     )
   )
@@ -129,6 +130,24 @@ getParmsDirect <- function(obs, hyperParms, memoize) {
   parms$knnIdxToStoreIdx <- store$obsIdx
   parms$stored <- obs
   parms$knnFun <- FastKNN::buildKnnFunction(store$state, 1)
+
+  return(parms)
+}
+
+
+# Constant Output
+getParmsConst <- function(obs, hyperParms, memoize) {
+
+  hyperParms <- asOpts(hyperParms, c("Const", "HyperParms"))
+
+  constState <- switch(
+    hyperParms$method,
+    Mean = colMeans(obs$state),
+    Last = obs$state[nrow(obs$state), ],
+    stop("Unknown method for extracting constant state")
+  )
+
+  parms <- list(state = constState)
 
   return(parms)
 }

@@ -1,0 +1,6 @@
+{
+    "_class": ["Const", "HyperParms", "Opts"],
+    "_description": "Calculate a constant state and use that as prediction for all future.",
+    "method": "Mean",
+    "_values_method": ["Mean", "Last"]
+}

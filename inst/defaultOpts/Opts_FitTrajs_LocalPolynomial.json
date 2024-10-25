@@ -4,8 +4,8 @@
     "interSteps": 10,
     "bandwidth": 1,
     "kernel": "Normal",
-    "degree": 2
+    "degree": 2,
+    "maxNeighbors": 1000
 }
-    
-    
-  
+
+

@@ -9,6 +9,7 @@ estimateTrajs <- function(initState, timeRange, parms, hyperParms) {
     Propagator = estimateTrajsPropagator(initState, timeRange, parms, hyperParms),
     NeuralOde = estimateTrajsNeuralOde(initState, timeRange, parms, hyperParms),
     Direct = estimateTrajsDirect(initState, timeRange, parms, hyperParms),
+    Const = estimateTrajsConst(initState, timeRange, parms, hyperParms),
     stop("Unknown HyperParms subclass"))
 
   esti$state[is.na(esti$state)] <- 0
@@ -72,6 +73,18 @@ estimateTrajsDirect  <- function(initState, timeRange, parms, hyperParms) {
       makeTrajs(startTraj$time, matrix(startTraj$state, nrow=1)),
       parms,
       requireTime = max(timeRange))
+  })
+
+  return(esti)
+}
+
+
+estimateTrajsConst  <- function(initState, timeRange, parms, hyperParms) {
+
+  hyperParms <- asOpts(hyperParms, c("Const", "HyperParms"))
+
+  esti <- mapTrajs2Trajs(initState, \(startTraj) {
+    makeTrajs(timeRange, rbind(parms$state, parms$state))
   })
 
   return(esti)
