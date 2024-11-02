@@ -26,7 +26,7 @@ fitTrajLocalPolynomial <- function(traj, outTime, bandwidth, kernel, degree, max
   estiState <- matrix(nrow = m, ncol = ncol(traj$state))
   estiDeriv <- matrix(nrow = m, ncol = ncol(traj$state))
   i <- 1
-  s <- floor(maxNeighbors/2)
+  s <- pmin(n, floor(maxNeighbors/2))
   sel <- c(rep(TRUE, s), rep(FALSE, n - s))
 
   for (j in seq_len(m)) {
