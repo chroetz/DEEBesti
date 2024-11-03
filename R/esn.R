@@ -25,20 +25,23 @@ createEsn <- function(opts, inDim) {
 
   set.seed(opts$seed)
 
+  hasRecurrentConnections <- opts$degree > 0 &&  opts$spectralRadius > 0
+
   inWeightMatrix <- matrix(
       opts$inWeightScale * stats::rnorm(opts$size * (inDim + 1)),
       nrow = opts$size, ncol = inDim + 1)
-  if (opts$degree == 0 || opts$spectralRadius == 0) {
-    reservoirWeightMatrix <- matrix(0, opts$size, opts$size)
-  } else {
+  if (hasRecurrentConnections) {
     tmpWeightMatrix <- sampleWeightMatrix(opts$size, deg = opts$degree)
     reservoirWeightMatrix <-
       tmpWeightMatrix * opts$spectralRadius / spectralRadius(tmpWeightMatrix)
+  } else {
+    reservoirWeightMatrix <- NULL
   }
 
   return(lst(
     inWeightMatrix,
     reservoirWeightMatrix,
+    hasRecurrentConnections,
     inDim))
 }
 
@@ -65,19 +68,28 @@ trainEsn <- function(parms, obs, opts) {
       timeSteps <- c(timeSteps, mean(timeSteps))
     }
 
-    trajReservoirSeries <- matrix(NA_real_, nrow = nrow(traj), ncol = opts$size)
-    reservoir <- stats::rnorm(opts$size, sd = opts$initReservoirScale/opts$size)
+    if (parms$hasRecurrentConnections) {
+      trajReservoirSeries <- matrix(NA_real_, nrow = nrow(traj), ncol = opts$size)
+      reservoir <- stats::rnorm(opts$size, sd = opts$initReservoirScale/opts$size)
 
-    for (i in seq_len(nrow(traj))) {
-      if (opts$timeStepAsInput) {
-        v <- c(opts$bias, traj$state[i, ], timeSteps[i])
-      } else {
-        v <- c(opts$bias, traj$state[i, ])
+      for (i in seq_len(nrow(traj))) { # time consuming for large nrow(obs)
+        if (opts$timeStepAsInput) {
+          v <- c(opts$bias, traj$state[i, ], timeSteps[i])
+        } else {
+          v <- c(opts$bias, traj$state[i, ])
+        }
+        reservoir <- tanh(
+          parms$inWeightMatrix %*% v +
+          parms$reservoirWeightMatrix %*% reservoir)
+        trajReservoirSeries[i,] <- reservoir
       }
-      reservoir <- tanh(
-        parms$inWeightMatrix %*% v +
-        parms$reservoirWeightMatrix %*% reservoir)
-      trajReservoirSeries[i,] <- reservoir
+    } else {
+      if (opts$timeStepAsInput) {
+        V <- cbind(opts$bias, traj$state, timeSteps)
+      } else {
+        V <- cbind(opts$bias, traj$state)
+      }
+      trajReservoirSeries <- tanh(tcrossprod(V, parms$inWeightMatrix))
     }
 
     out <- makeTrajs(
@@ -93,12 +105,10 @@ trainEsn <- function(parms, obs, opts) {
   regressionOut <- getPropagatorRegressionOut(obs, opts$targetType)
 
   X <- cbind(1, regressionIn)
-  XTX <- crossprod(X)
+  XTX <- crossprod(X) # time consuming for large matrices (nrow(obs) X opts$size)
   diag(XTX) <- diag(XTX) + c(0, rep(opts$l2Penalty, opts$size))
-
-  outWeightMatrix <- DEEButil::saveSolve(
-    XTX,
-    crossprod(X, regressionOut))
+  XTy <- crossprod(X, regressionOut)
+  outWeightMatrix <- DEEButil::saveSolve(XTX, XTy) # time consuming for large matrices (opts$size X opts$size)
 
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE) # mean timeStep
 

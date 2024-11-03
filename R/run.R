@@ -112,7 +112,7 @@ loadAsHyperParmsList <- function(
     methodFile
 ) {
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, methodFile)
-  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+  hyperParmsList <- ConfigOpts::readOpts(hyperParmsPath)
   if (!hasValue(hyperParmsList$name)) {
     hyperParmsList$name <- basename(methodFile)
   }
@@ -122,7 +122,8 @@ loadAsHyperParmsList <- function(
     hyperParmsList <- ConfigOpts::makeOpts(
       c("HyperParms", "List"),
       name = hyperParmsList$name,
-      list = list(hyperParmsList))
+      list = list(hyperParmsList),
+      .fill = TRUE)
   }
   for (i in seq_along(hyperParmsList$list)) {
     hyperParmsList$list[[i]]$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParmsList$list[[i]])
@@ -202,7 +203,7 @@ writeParms <- function(parms, info, outDir) {
 
 
 writeTaskResult <- function(parms, hyperParms, normalizedObs, info) {
-  info$task <- ConfigOpts::readOptsBare(info$taskPath)
+  info$task <- ConfigOpts::readOpts(info$taskPath)
   taskClass <- getClassAt(info$task, 2)
   switch(
     taskClass,
