@@ -34,7 +34,7 @@ run <- function(
 
       for (hyperParmsPath in hyperParmsPaths) {
         cat(hyperParmsPath)
-        hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+        hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath) # TODO: should eventually be changed to readOpts and for all makeOpts() set .fill=TRUE
         if (nchar(hyperParmsList$name) == 0) {
           x <- basename(hyperParmsPath)
           hyperParmsList$name <- substring(x, 1, x-5)
@@ -112,7 +112,7 @@ loadAsHyperParmsList <- function(
     methodFile
 ) {
   hyperParmsPath <- DEEBpath::getMethodFile(dbPath, methodFile)
-  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath)
+  hyperParmsList <- ConfigOpts::readOptsBare(hyperParmsPath) # TODO: should eventually be changed to readOpts and for all makeOpts() set .fill=TRUE
   if (!hasValue(hyperParmsList$name)) {
     hyperParmsList$name <- basename(methodFile)
   }
@@ -123,7 +123,7 @@ loadAsHyperParmsList <- function(
       c("HyperParms", "List"),
       name = hyperParmsList$name,
       list = list(hyperParmsList),
-      .fill = FALSE)
+      .fill = FALSE) # TODO: should eventually be changed to TRUE and all readOptsBare to readOpts
   }
   for (i in seq_along(hyperParmsList$list)) {
     hyperParmsList$list[[i]]$name <- DEEBpath::nameWithHash(hyperParmsList$name, hyperParmsList$list[[i]])
