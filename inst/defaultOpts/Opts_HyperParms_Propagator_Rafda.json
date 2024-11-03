@@ -1,0 +1,14 @@
+{
+    "_class": ["Rafda", "Propagator", "HyperParms", "Opts"],
+    "_description": "RAFDA: Gottwald, Reich (2021)",
+    "size": 300,
+    "inWeightScale": 1.0,
+    "l2Penalty": 1e-7,
+    "bias": 1,
+    "seed": 1,
+    "skip": 0,
+    "derivOrder": 1,
+    "timeStepAsInput": false,
+    "weightSdScale": 0.01,
+    "ensembleSize": 200
+}
