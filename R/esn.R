@@ -164,9 +164,13 @@ predictEsn <- function(parms, opts, startState, len) {
     } else {
       v <- c(opts$bias, newState)
     }
-    reservoir <- tanh(
-      parms$inWeightMatrix %*% v +
-      parms$reservoirWeightMatrix %*% reservoir)
+    if (parms$hasRecurrentConnections) {
+      reservoir <- tanh(
+        parms$inWeightMatrix %*% v +
+        parms$reservoirWeightMatrix %*% reservoir)
+    } else {
+      reservoir <- tanh(parms$inWeightMatrix %*% v)
+    }
     prevState <- newState
   }
 
