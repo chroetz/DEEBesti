@@ -8,6 +8,11 @@ createRecurrentNet <- function(obs, opts) {
   stateDim <- ncol(obs$state)
   outState <- obs$state
 
+  if (contextLen >= nrow(obs)) {
+    warning("Time series too short. Shorten contextLen.", immediate.=TRUE)
+    contextLen <- nrow(obs)-1
+  }
+
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
 
   if (opts$timeStepAsInput) {
