@@ -91,6 +91,7 @@ predictPropagator <- function(parms, opts, startState, len = NULL, startTime = 0
   name <- getClassAt(opts, 3)
   predictedStates <- switch(
     name,
+    Rafda = predictRafda(parms, opts, startState, len),
     Esn = predictEsn(parms, opts, startState, len),
     Linear = predictLinear(parms, opts, startState, len),
     Transformer = predictTransformer(parms, opts, startState, len),

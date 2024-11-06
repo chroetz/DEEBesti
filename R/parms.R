@@ -40,6 +40,7 @@ getParmsPropagator <- function(obs, hyperParms, memoize) {
   name <- getClassAt(hyperParms, 3)
   parms <- switch(
     name,
+    Rafda = getParmsRafda(obs, hyperParms, memoize),
     Esn = getParmsEsn(obs, hyperParms, memoize),
     Linear = getParmsLinear(obs, hyperParms, memoize),
     Transformer = getParmsTransformer(obs, hyperParms, memoize),
@@ -64,6 +65,15 @@ getParmsRegression <- function(obs, hyperParms, memoize) {
   parms <- createRegression(obs, hyperParms)
   return(parms)
 }
+
+
+# RAFDA: Gottwald, Reich (2021)
+getParmsRafda <- function(obs, hyperParms, memoize) {
+  hyperParms <- asOpts(hyperParms, c("Rafda", "Propagator", "HyperParms"))
+  parms <- createRafda(obs, hyperParms)
+  return(parms)
+}
+
 
 
 # Propagator map Estimation: Echo State Network and Random Features
