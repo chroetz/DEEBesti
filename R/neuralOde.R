@@ -32,7 +32,7 @@ createAndTrainNeuralOde <- function(opts, obs) {
     ' --batchsize ', opts$batchsize,
     ' --train-frac ', opts$trainFrac,
     ' --optimiser-rule AdamW',
-    ' --optimiser-hyperparams "lambda=', opts$weightDecay,'"',
+    #' --optimiser-hyperparams "lambda=', opts$weightDecay,'"',
     ' --epochs ', opts$epochs,
     ' --schedule-file "', schedulePath, '"',
     ' --sensealg BacksolveAdjoint',
