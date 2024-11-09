@@ -39,9 +39,8 @@ createAndTrainNeuralOde <- function(opts, obs) {
     ' --vjp ZygoteVJP')
 
   cat("Run command:\n", cmd, "\n")
+  cat(system(cmd, intern=TRUE), "\n")
 
-  errorCode <- system(cmd)
-  stopifnot(errorCode == 0)
 
   return(lst(workingDir, opts))
 }
@@ -94,9 +93,7 @@ predictNeuralOde <- function(neuralOde, startState, timeRange, timeStep) {
     ' --dt ', timeStep)
 
   cat("Run command:\n", cmd, "\n")
-
-  errorCode <- system(cmd)
-  stopifnot(errorCode == 0)
+  cat(system(cmd, intern=TRUE), "\n")
 
   esti <- DEEBtrajs::readTrajs("esti.csv")
 
@@ -140,9 +137,8 @@ predictNeuralOdeDeriv <- function(neuralOde, grid) {
     ' --pred-path "estigrid.csv"')
 
   cat("Run command:\n", cmd, "\n")
+  cat(system(cmd, intern=TRUE), "\n")
 
-  errorCode <- system(cmd)
-  stopifnot(errorCode == 0)
 
   esti <- DEEBtrajs::readDerivTrajs("estigrid.csv")
 
