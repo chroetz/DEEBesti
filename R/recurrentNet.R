@@ -10,7 +10,7 @@ createRecurrentNet <- function(obs, opts) {
 
   if (contextLen >= nrow(obs)) {
     warning("Time series too short. Shorten contextLen.", immediate.=TRUE)
-    contextLen <- nrow(obs)-1
+    contextLen <- nrow(obs)-11 # Might still cause problems depending on validation split
   }
 
   timeStep <- getTimeStepTrajs(obs, requireConst=FALSE)
